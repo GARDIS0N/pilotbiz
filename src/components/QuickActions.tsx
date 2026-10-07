@@ -32,6 +32,8 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
   const [inputText, setInputText] = useState('');
 
   const quickChips = [
+    { label: '🔍 Google Search Intel', query: 'Search Google for the latest tech and AI news today' },
+    { label: '📈 Nairobi Rental Market', query: 'Search Google for current Kenyan rental market trends and Nairobi property updates' },
     { label: 'JARVIS, brief me', query: 'JARVIS, brief me' },
     { label: 'what next?', query: 'what next?' },
     { label: 'plan my day', query: 'plan my day' },

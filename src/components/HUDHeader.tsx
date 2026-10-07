@@ -35,12 +35,12 @@ interface HUDHeaderProps {
   reconnectAttempt?: number;
   maxReconnectAttempts?: number;
   // Google Drive & Auth Props
-  driveSyncStatus: DriveSyncStatus;
+  driveSyncStatus?: DriveSyncStatus;
   driveSyncError?: string | null;
   lastDriveSyncTime?: string | null;
   userEmail?: string | null;
   userPhotoUrl?: string | null;
-  onSignInGoogle: () => void;
+  onSignInGoogle?: () => void;
   onSignOutGoogle?: () => void;
   onManualSyncDrive?: () => void;
   isGoogleSigningIn?: boolean;
@@ -214,7 +214,7 @@ export const HUDHeader: React.FC<HUDHeaderProps> = ({
             </button>
           ) : (
             <GoogleSignInButton
-              onClick={onSignInGoogle}
+              onClick={onSignInGoogle || (() => {})}
               isLoading={isGoogleSigningIn}
               className="py-1 px-2.5 text-xs shadow-none border border-cyan-500/30 hover:border-cyan-400"
             />

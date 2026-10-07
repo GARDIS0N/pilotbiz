@@ -7,6 +7,7 @@ import { GoogleGenAI, Modality, Type, FunctionDeclaration } from '@google/genai'
 import dotenv from 'dotenv';
 
 dotenv.config();
+dotenv.config({ path: '.env.local' });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -303,6 +304,26 @@ NestList onboarding tested without friction and Hematology practice questions co
       args: { action: 'save', topic: 'Manager Intel', content: noteText },
     });
     reply = `Committed to memory archive, ${addressAs}. "${noteText}" is securely preserved.`;
+  } else if (
+    lower.startsWith('search') ||
+    lower.startsWith('google') ||
+    lower.includes('latest news') ||
+    lower.includes('weather') ||
+    lower.includes('search web') ||
+    lower.includes('search google') ||
+    lower.includes('who is') ||
+    lower.includes('what is the latest') ||
+    lower.includes('what happened') ||
+    lower.includes('market update')
+  ) {
+    const cleanQuery = prompt
+      .replace(/^(search for|search the web for|search google for|search|google)\s*/i, '')
+      .trim() || prompt;
+    functionCalls.push({
+      name: 'search_web',
+      args: { query: cleanQuery },
+    });
+    reply = `Executing real-time Google search for "${cleanQuery}", ${addressAs}. Retrieving live telemetry and web data...`;
   } else {
     reply = `Acknowledged, ${addressAs}. Keeping you focused on what matters most. What is our next physical action?`;
   }
@@ -313,13 +334,13 @@ NestList onboarding tested without friction and Hematology practice questions co
 // Tool declarations for JARVIS Personal Productivity Manager
 const searchWebTool: FunctionDeclaration = {
   name: 'search_web',
-  description: 'Search Google for current news, weather, Kenyan rental market facts, scientific research, or real-time info.',
+  description: 'Search Google for the latest real-time web results, breaking news, weather, Kenyan rental market data, scientific research, live prices, or current events.',
   parameters: {
     type: Type.OBJECT,
     properties: {
       query: {
         type: Type.STRING,
-        description: 'The search query to look up on Google',
+        description: 'The search query to look up on Google for latest information',
       },
     },
     required: ['query'],
@@ -950,14 +971,97 @@ Measure progress by execution and results. Planning is preparation. Execution is
 Whenever I interact with you, ask yourself:
 "What would move ${addressAs} meaningfully closer to his most important goals?"
 Then help him do that.
-MISSION: TURN AMBITION INTO EXECUTION.]`;
+MISSION: TURN AMBITION INTO EXECUTION.
+
+26. REAL-TIME GOOGLE SEARCH & LIVE WEB INTELLIGENCE
+- You have direct, live access to Google Search and real-time data through the search_web tool.
+- Whenever ${addressAs} asks about current news, recent events, market conditions, prices, weather, scientific research, Kenyan rental updates, or any fact requiring up-to-date knowledge, ALWAYS invoke search_web to retrieve the latest Google Search results.
+- Synthesize real-time facts with clarity, speed, and accuracy. Never guess or state that your knowledge is cut off when you can search.]`;
+}
+
+// -------------------------------------------------------------
+// Real-Time Google Search Grounding & Web Intelligence Engine
+// -------------------------------------------------------------
+async function performGoogleSearch(query: string, customKey?: string): Promise<{ text: string; sources: { title: string; url: string }[] }> {
+  const key = getApiKey(customKey);
+  if (key) {
+    try {
+      const response = await getGenAI(key).models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `Today is ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. Provide the latest, comprehensive, up-to-date information and facts from Google Search for: "${query}". Include specific numbers, dates, and recent developments.`,
+        config: {
+          tools: [{ googleSearch: {} }],
+        },
+      });
+
+      const text = response.text || `Search results retrieved for "${query}".`;
+      const searchChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+      const sources = searchChunks
+        .map((chunk: any) => ({
+          title: chunk.web?.title || 'Google Search Source',
+          url: chunk.web?.uri || '',
+        }))
+        .filter((s: any) => s.url);
+
+      return { text, sources };
+    } catch (genErr: any) {
+      console.warn('[Google Search Grounding Notice]:', genErr?.message);
+    }
+  }
+
+  // Live Web Intelligence Fallback (Zero-API-key resilient)
+  try {
+    const duckUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+    const res = await fetch(duckUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      },
+    });
+    if (res.ok) {
+      const html = await res.text();
+      const resultRegex = /<a class="result__url"[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<a class="result__snippet"[^>]*>([\s\S]*?)<\/a>/g;
+      const sources: { title: string; url: string }[] = [];
+      const snippets: string[] = [];
+      let match;
+      let count = 0;
+      while ((match = resultRegex.exec(html)) !== null && count < 5) {
+        let realUrl = match[1];
+        const uddgMatch = realUrl.match(/uddg=([^&]+)/);
+        if (uddgMatch) {
+          realUrl = decodeURIComponent(uddgMatch[1]);
+        }
+        const title = match[2].replace(/<[^>]+>/g, '').trim();
+        const snippet = match[3].replace(/<[^>]+>/g, '').trim();
+        if (realUrl && title && snippet) {
+          sources.push({ title, url: realUrl });
+          snippets.push(`• **${title}**: ${snippet}`);
+          count++;
+        }
+      }
+      if (snippets.length > 0) {
+        return {
+          text: `Live web telemetry for "${query}":\n\n${snippets.join('\n\n')}`,
+          sources,
+        };
+      }
+    }
+  } catch (err: any) {
+    console.warn('[Web Search Fallback Error]:', err?.message);
+  }
+
+  return {
+    text: `Tactical search results retrieved for "${query}". Live sensor feeds are active.`,
+    sources: [
+      { title: `Google Search: ${query}`, url: `https://www.google.com/search?q=${encodeURIComponent(query)}` },
+    ],
+  };
 }
 
 // -------------------------------------------------------------
 // REST API: Text, Vision, Grounding, and Audio Generation
 // -------------------------------------------------------------
 
-// Search web grounding helper via Gemini 2.5 Flash
+// Search web grounding helper via Google Search Grounding & Web Engine
 app.post('/api/jarvis/search', async (req, res) => {
   try {
     const { query } = req.body;
@@ -965,38 +1069,8 @@ app.post('/api/jarvis/search', async (req, res) => {
       return res.status(400).json({ error: 'Query is required' });
     }
 
-    const key = getApiKey();
-    if (key) {
-      try {
-        const response = await getGenAI(key).models.generateContent({
-          model: 'gemini-3.1-flash-lite',
-          contents: `Search Google and summarize the most up-to-date information for: "${query}". Be concise and factual.`,
-          config: {
-            tools: [{ googleSearch: {} }],
-          },
-        });
-
-        const text = response.text || 'No information retrieved.';
-        const searchChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-        const sources = searchChunks
-          .map((chunk: any) => ({
-            title: chunk.web?.title || 'Web Reference',
-            url: chunk.web?.uri || '',
-          }))
-          .filter((s: any) => s.url);
-
-        return res.json({ text, sources });
-      } catch (genErr: any) {
-        console.warn('Search model notice:', genErr?.message);
-      }
-    }
-
-    res.json({
-      text: `Tactical search results retrieved for "${query}". Sensor feeds are monitoring updates.`,
-      sources: [
-        { title: `Google Search: ${query}`, url: `https://www.google.com/search?q=${encodeURIComponent(query)}` },
-      ],
-    });
+    const result = await performGoogleSearch(query);
+    res.json(result);
   } catch (error: any) {
     console.warn('Search fallback engaged:', error?.message);
     res.json({ text: `Search completed for "${req.body.query || ''}".`, sources: [] });
@@ -1021,6 +1095,15 @@ app.post('/api/jarvis/chat', async (req, res) => {
     if (!key) {
       // Local zero-error intelligent British butler response
       const localResult = processLocalButlerDirective(prompt || '', addressAs);
+      const searchCall = localResult.functionCalls.find((fc: any) => fc.name === 'search_web');
+      if (searchCall) {
+        const liveSearch = await performGoogleSearch(searchCall.args.query, key);
+        return res.json({
+          reply: `Here are the latest live findings, ${addressAs}:\n\n${liveSearch.text}`,
+          functionCalls: localResult.functionCalls,
+          sources: liveSearch.sources,
+        });
+      }
       return res.json(localResult);
     }
 
@@ -1053,8 +1136,8 @@ Current user state:
     }
     contents.push({ role: 'user', parts });
 
-    const response = await getGenAI(key).models.generateContent({
-      model: 'gemini-3.1-flash-lite',
+    let response = await getGenAI(key).models.generateContent({
+      model: 'gemini-2.5-flash',
       contents,
       config: {
         systemInstruction,
@@ -1062,17 +1145,67 @@ Current user state:
       },
     });
 
-    const replyText = response.text || '';
+    let replyText = response.text || '';
     const functionCalls = response.functionCalls || [];
+    let sources: any[] = [];
 
-    // Extract grounding sources
-    const searchChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-    const sources = searchChunks
-      .map((chunk: any) => ({
-        title: chunk.web?.title || 'Source Citation',
-        url: chunk.web?.uri || '',
-      }))
-      .filter((s: any) => s.url);
+    // If Gemini called search_web, execute real-time search & synthesize
+    const searchCall = functionCalls.find((fc: any) => fc.name === 'search_web');
+    if (searchCall && (searchCall.args as any)?.query) {
+      const searchQuery = String((searchCall.args as any).query);
+      console.log(`[JARVIS Grounding] Executing Google search for: "${searchQuery}"`);
+      const searchResult = await performGoogleSearch(searchQuery, key);
+      sources = searchResult.sources || [];
+
+      // Feed tool response back into Gemini for grounded answer synthesis
+      contents.push({
+        role: 'model',
+        parts: [{ functionCall: searchCall }],
+      });
+      contents.push({
+        role: 'tool',
+        parts: [{
+          functionResponse: {
+            name: 'search_web',
+            response: {
+              result: searchResult.text,
+              sources: searchResult.sources,
+            },
+          },
+        }],
+      });
+
+      try {
+        const groundedResponse = await getGenAI(key).models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents,
+          config: {
+            systemInstruction,
+          },
+        });
+        replyText = groundedResponse.text || searchResult.text;
+        const extraChunks = groundedResponse.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+        if (extraChunks.length > 0) {
+          const extraSources = extraChunks.map((c: any) => ({
+            title: c.web?.title || 'Web Citation',
+            url: c.web?.uri || '',
+          })).filter((s: any) => s.url);
+          sources = [...sources, ...extraSources];
+        }
+      } catch (synthErr: any) {
+        console.warn('[Synthesis Warning]:', synthErr?.message);
+        replyText = searchResult.text;
+      }
+    } else {
+      // Extract any standard grounding metadata
+      const searchChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+      sources = searchChunks
+        .map((chunk: any) => ({
+          title: chunk.web?.title || 'Source Citation',
+          url: chunk.web?.uri || '',
+        }))
+        .filter((s: any) => s.url);
+    }
 
     res.json({
       reply: replyText,
@@ -1213,7 +1346,7 @@ app.post('/api/jarvis/summarize', async (req, res) => {
           : `Provide a concise executive summary with bullet points for ${addressAs} of the following text:\n\n${content}`;
 
         const response = await getGenAI(key).models.generateContent({
-          model: 'gemini-3.1-flash-lite',
+          model: 'gemini-2.5-flash',
           contents: prompt,
           config: {
             systemInstruction: buildSystemInstruction(addressAs),
@@ -1396,21 +1529,12 @@ wss.on('connection', async (clientWs: WebSocket) => {
                     let toolResult: any = { status: 'acknowledged' };
                     if (call.name === 'search_web') {
                       try {
-                        const searchRes = await getGenAI(key).models.generateContent({
-                          model: 'gemini-3.1-flash-lite',
-                          contents: `Search query: ${call.args?.query}. Provide a fast 2-sentence summary in English.`,
-                          config: {
-                            tools: [{ googleSearch: {} }],
-                          },
-                        });
+                        const searchResult = await performGoogleSearch(call.args?.query || '', key);
                         toolResult = {
-                          summary: searchRes.text || 'Information updated.',
-                          sources: searchRes.candidates?.[0]?.groundingMetadata?.groundingChunks?.map((c: any) => ({
-                            title: c.web?.title,
-                            url: c.web?.uri,
-                          })),
+                          summary: searchResult.text,
+                          sources: searchResult.sources,
                         };
-                        if (toolResult.sources) {
+                        if (toolResult.sources && toolResult.sources.length > 0) {
                           sendToClient({ type: 'sources', sources: toolResult.sources });
                         }
                       } catch (e: any) {
@@ -1536,15 +1660,15 @@ wss.on('connection', async (clientWs: WebSocket) => {
           const key = getApiKey();
           if (key) {
             try {
-              const res = await getGenAI(key).models.generateContent({
-                model: 'gemini-3.1-flash-lite',
+              let res = await getGenAI(key).models.generateContent({
+                model: 'gemini-2.5-flash',
                 contents: parsed.text,
                 config: {
                   systemInstruction: buildSystemInstruction(clientAddressAs),
                   tools: [{ functionDeclarations: toolsList }],
                 },
               });
-              const reply = res.text || `At your service, ${clientAddressAs}.`;
+              let reply = res.text || `At your service, ${clientAddressAs}.`;
               if (res.functionCalls) {
                 for (const call of res.functionCalls) {
                   sendToClient({
@@ -1553,6 +1677,14 @@ wss.on('connection', async (clientWs: WebSocket) => {
                     name: call.name,
                     args: call.args,
                   });
+
+                  if (call.name === 'search_web') {
+                    const searchRes = await performGoogleSearch(String((call.args as any)?.query || ''), key);
+                    if (searchRes.sources && searchRes.sources.length > 0) {
+                      sendToClient({ type: 'sources', sources: searchRes.sources });
+                    }
+                    reply = searchRes.text;
+                  }
                 }
               }
               sendToClient({
@@ -1575,6 +1707,14 @@ wss.on('connection', async (clientWs: WebSocket) => {
               name: call.name,
               args: call.args,
             });
+
+            if (call.name === 'search_web') {
+              const searchRes = await performGoogleSearch(call.args?.query || '', key);
+              if (searchRes.sources && searchRes.sources.length > 0) {
+                sendToClient({ type: 'sources', sources: searchRes.sources });
+              }
+              result.reply = searchRes.text;
+            }
           }
           sendToClient({
             type: 'transcript',

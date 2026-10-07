@@ -423,6 +423,7 @@ All 3 Top Priorities marked complete, zero unhandled tenant inquiries, and solid
   const lastServerMessageTimeRef = useRef<number>(Date.now());
   const lastUserSpeechTimeRef = useRef<number>(0);
   const isConnectingRef = useRef<boolean>(false);
+  const liveSourcesRef = useRef<SourceCitation[]>([]);
 
   useEffect(() => {
     messagesRef.current = messages;
@@ -807,9 +808,37 @@ All 3 Top Priorities marked complete, zero unhandled tenant inquiries, and solid
         }
         window.open(url, '_blank', 'noopener,noreferrer');
         appendMessage('assistant', `Opening external resource, ${addressAs}.`);
+      } else if (name === 'search_web') {
+        const query = args?.query || '';
+        appendMessage(
+          'assistant',
+          `Accessing live Google Search feeds for "${query}", ${addressAs}...`,
+          undefined,
+          { tool: 'search_web', description: `Google Search: "${query}"`, status: 'running', timestamp: '' }
+        );
+        fetch('/api/jarvis/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query }),
+        })
+          .then((r) => r.json())
+          .then((data) => {
+            appendMessage('assistant', data.text || 'Real-time telemetry updated.', data.sources, {
+              tool: 'search_web',
+              description: `Google Search Complete: "${query}"`,
+              status: 'completed',
+              timestamp: '',
+            });
+            if (data.text) {
+              speakText(data.text);
+            }
+          })
+          .catch((err) => {
+            appendMessage('assistant', `Google Search feed unavailable: ${err?.message}`);
+          });
       }
     },
-    [appendMessage, recordUserActivity]
+    [appendMessage, recordUserActivity, speakText]
   );
 
   // -----------------------------------------------------------------
@@ -1053,12 +1082,18 @@ Current Streak: ${streakCount} days
               if (msg.text) {
                 setLivePartialText((prev) => prev + msg.text);
               }
+            } else if (msg.type === 'sources') {
+              if (Array.isArray(msg.sources)) {
+                liveSourcesRef.current = msg.sources;
+              }
             } else if (msg.type === 'tool_call') {
               executeToolCall(msg.name, msg.args);
             } else if (msg.type === 'turn_complete') {
+              const currentSources = liveSourcesRef.current;
+              liveSourcesRef.current = [];
               setLivePartialText((fullText) => {
                 if (fullText.trim()) {
-                  appendMessage('assistant', fullText.trim());
+                  appendMessage('assistant', fullText.trim(), currentSources.length > 0 ? currentSources : undefined);
                 }
                 return '';
               });
