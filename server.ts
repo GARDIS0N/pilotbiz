@@ -1093,6 +1093,13 @@ app.post('/api/jarvis/chat', async (req, res) => {
 
     const key = getApiKey(customKey);
     if (!key) {
+      if (imageBase64) {
+        return res.json({
+          reply: `Optical snapshot and visual telemetry received, ${addressAs}. Deep multimodal image recognition and object analysis require a Gemini API Key. Please configure your GEMINI_API_KEY in Settings or your .env.local file to activate full real-time visual comprehension.`,
+          functionCalls: [],
+          sources: [],
+        });
+      }
       // Local zero-error intelligent British butler response
       const localResult = processLocalButlerDirective(prompt || '', addressAs);
       const searchCall = localResult.functionCalls.find((fc: any) => fc.name === 'search_web');
