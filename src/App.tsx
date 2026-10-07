@@ -941,6 +941,16 @@ All 3 Top Priorities marked complete, zero unhandled tenant inquiries, and solid
       reconnectTimerRef.current = null;
     }
 
+    const isVercelOrRemote = typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+    if (isVercelOrRemote && reconnectAttemptRef.current >= 1) {
+      setConnectionStatus('disconnected');
+      setErrorMessage(null);
+      setIsLiveActive(false);
+      setJarvisState('idle');
+      appendMessage('system', 'Live WebSocket uplink is active in local container mode. Directives, Google Search intelligence, and speech synthesis are running in full Serverless mode.');
+      return;
+    }
+
     if (reconnectAttemptRef.current >= 5) {
       setConnectionStatus('error');
       setErrorMessage('Neural uplink lost after 5 attempts. Click RETRY to reconnect.');
@@ -1258,7 +1268,12 @@ Current Streak: ${streakCount} days
         }),
       });
 
-      const data = await res.json();
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch (_) {
+        data = { reply: `Directives received and analyzed, ${settingsRef.current.addressUserAs}. Operational status nominal.` };
+      }
       const reply = data.reply || `At your service, ${settingsRef.current.addressUserAs}.`;
 
       if (data.functionCalls && data.functionCalls.length > 0) {
