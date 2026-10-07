@@ -1,20 +1,33 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# JARVIS - Voice & AI Assistant with Real-Time Google Search Grounding
 
-# Run and deploy your AI Studio app
+An advanced AI assistant powered by Google Gemini 2.5 Flash, equipped with live voice interaction and real-time Google Search grounding.
 
-This contains everything you need to run your app locally.
+## Features
+- **Real-Time Web Search**: Grounded with Google Search to fetch up-to-the-minute data, news, and live facts.
+- **Voice-First AI**: Low-latency conversational audio streaming with responsive audio visualizer.
+- **Modern Responsive UI**: Cyberpunk-inspired Jarvis dashboard with sleek animations.
+- **Dual Deployment Ready**: Seamlessly runs locally via Node/Express or deployed serverless to Vercel.
 
-View your app in AI Studio: https://ai.studio/apps/d5d0c460-347d-49f0-ad23-c415e5ce1d51
+## Quick Start (Local)
 
-## Run Locally
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+2. **Configure API Key**:
+   Set `GEMINI_API_KEY` in `.env.local`:
+   ```env
+   GEMINI_API_KEY=your_gemini_api_key_here
+   ```
+3. **Start Development Server**:
+   ```bash
+   npm run dev
+   ```
+4. Access JARVIS at `http://localhost:3000`.
 
-**Prerequisites:**  Node.js
+## Deploy to Vercel
 
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+1. Import this repository into Vercel.
+2. Add your environment variable:
+   - `GEMINI_API_KEY`: Your Google Gemini API Key
+3. Deploy! The frontend Vite bundle and serverless API functions (`/api`) are preconfigured in `vercel.json`.
