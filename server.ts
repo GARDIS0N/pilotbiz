@@ -1432,7 +1432,7 @@ wss.on('connection', async (clientWs: WebSocket) => {
             : baseInstruction;
 
           liveSession = await getGenAI(key).live.connect({
-            model: 'gemini-3.8-live',
+            model: 'gemini-2.5-flash',
             config: {
               responseModalities: [Modality.AUDIO],
               speechConfig: {

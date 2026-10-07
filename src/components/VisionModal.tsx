@@ -250,7 +250,8 @@ export const VisionModal: React.FC<VisionModalProps> = ({
     return () => {
       stopCamera();
     };
-  }, [isOpen, mode, capturedImage, startCamera, stopCamera]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, mode, capturedImage, selectedDeviceId, facingMode]);
 
   // Toggle front/back camera
   const handleToggleFacingMode = () => {

@@ -424,6 +424,14 @@ All 3 Top Priorities marked complete, zero unhandled tenant inquiries, and solid
   const lastUserSpeechTimeRef = useRef<number>(0);
   const isConnectingRef = useRef<boolean>(false);
   const liveSourcesRef = useRef<SourceCitation[]>([]);
+  const speechRecognitionRef = useRef<any>(null);
+  const isSpeechRecognitionActiveRef = useRef<boolean>(false);
+  const isLiveActiveRef = useRef<boolean>(false);
+  const isSpeakingRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    isLiveActiveRef.current = isLiveActive;
+  }, [isLiveActive]);
 
   useEffect(() => {
     messagesRef.current = messages;
@@ -576,18 +584,29 @@ All 3 Top Priorities marked complete, zero unhandled tenant inquiries, and solid
             utterance.voice = britishVoice;
           }
 
-          utterance.onstart = () => setJarvisState('speaking');
-          utterance.onend = () => setJarvisState('idle');
-          utterance.onerror = () => setJarvisState('idle');
+          utterance.onstart = () => {
+            isSpeakingRef.current = true;
+            setJarvisState('speaking');
+          };
+          utterance.onend = () => {
+            isSpeakingRef.current = false;
+            setJarvisState(isLiveActiveRef.current ? 'listening' : 'idle');
+          };
+          utterance.onerror = () => {
+            isSpeakingRef.current = false;
+            setJarvisState(isLiveActiveRef.current ? 'listening' : 'idle');
+          };
 
           window.speechSynthesis.speak(utterance);
         } catch (e) {
           console.warn('Browser speech synthesis notice:', e);
-          setJarvisState('idle');
+          isSpeakingRef.current = false;
+          setJarvisState(isLiveActiveRef.current ? 'listening' : 'idle');
         }
       };
 
       try {
+        isSpeakingRef.current = true;
         setJarvisState('speaking');
         const res = await fetch('/api/jarvis/tts', {
           method: 'POST',
@@ -609,7 +628,8 @@ All 3 Top Priorities marked complete, zero unhandled tenant inquiries, and solid
             audioPlayerRef.current = new LiveAudioPlayer();
           }
           audioPlayerRef.current.playWavBase64(data.audioBase64, () => {
-            setJarvisState('idle');
+            isSpeakingRef.current = false;
+            setJarvisState(isLiveActiveRef.current ? 'listening' : 'idle');
           });
         } else {
           // Use client browser synthesis (e.g. Free Tier quota exhausted or model busy)
@@ -931,7 +951,164 @@ All 3 Top Priorities marked complete, zero unhandled tenant inquiries, and solid
   }, [tasks, settings.addressUserAs, settings.enableAudioSoundEffects, streakCount, appendMessage]);
 
   // -----------------------------------------------------------------
-  // Live WebSocket Voice Session with Auto-Restart, Resumption & Watchdog
+  // Spoken Directives & Continuous Web Voice Agent Core
+  // -----------------------------------------------------------------
+  const handleSendTextMessage = useCallback(
+    async (text: string) => {
+      recordUserActivity();
+      appendMessage('user', text);
+      setJarvisState('thinking');
+
+      if (
+        isLiveActiveRef.current &&
+        wsRef.current &&
+        wsRef.current.readyState === WebSocket.OPEN &&
+        connectionStatus === 'connected'
+      ) {
+        wsRef.current.send(JSON.stringify({ type: 'text', text }));
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/jarvis/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: text,
+            addressAs: settingsRef.current.addressUserAs,
+            apiKey: settingsRef.current.apiKey,
+            tasks: tasksRef.current,
+            goals: goalsRef.current,
+            notes: notesRef.current,
+            conversationHistory: messagesRef.current.slice(-5),
+          }),
+        });
+
+        let data: any = null;
+        try {
+          data = await res.json();
+        } catch (_) {
+          data = {
+            reply: `Directives received and analyzed, ${settingsRef.current.addressUserAs}. Operational status nominal.`,
+          };
+        }
+        const reply = data.reply || `At your service, ${settingsRef.current.addressUserAs}.`;
+
+        if (data.functionCalls && data.functionCalls.length > 0) {
+          for (const call of data.functionCalls) {
+            executeToolCall(call.name, call.args);
+          }
+        }
+
+        appendMessage('assistant', reply, data.sources);
+        speakText(reply);
+      } catch (err: any) {
+        appendMessage(
+          'assistant',
+          `Apologies, ${settingsRef.current.addressUserAs}. Connection notice: ${err?.message || 'Re-establishing'}`
+        );
+        setJarvisState(isLiveActiveRef.current ? 'listening' : 'idle');
+      }
+    },
+    [recordUserActivity, appendMessage, connectionStatus, executeToolCall, speakText]
+  );
+
+  const stopContinuousSpeechRecognition = useCallback(() => {
+    isSpeechRecognitionActiveRef.current = false;
+    if (speechRecognitionRef.current) {
+      try {
+        speechRecognitionRef.current.abort();
+      } catch (_) {}
+      speechRecognitionRef.current = null;
+    }
+  }, []);
+
+  const startContinuousSpeechRecognition = useCallback(() => {
+    if (typeof window === 'undefined') return false;
+    const SpeechRecognition =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition ||
+      null;
+
+    if (!SpeechRecognition) {
+      console.warn('[JARVIS Live] Web Speech Recognition not available in this browser.');
+      return false;
+    }
+
+    try {
+      if (speechRecognitionRef.current) {
+        try {
+          speechRecognitionRef.current.abort();
+        } catch (_) {}
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        isSpeechRecognitionActiveRef.current = true;
+        setConnectionStatus('connected');
+        setIsLiveActive(true);
+        isLiveActiveRef.current = true;
+        setJarvisState('listening');
+        setErrorMessage(null);
+      };
+
+      recognition.onresult = (event: any) => {
+        if (isSpeakingRef.current) return;
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          const res = event.results[i];
+          if (res.isFinal) {
+            const final = res[0].transcript.trim();
+            if (final) {
+              setLivePartialText('');
+              handleSendTextMessage(final);
+            }
+          } else {
+            interim += res[0].transcript;
+          }
+        }
+        if (interim) {
+          setLivePartialText(interim);
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        if (event.error === 'no-speech' || event.error === 'audio-capture') {
+          return;
+        }
+        if (event.error === 'not-allowed') {
+          setErrorMessage('Microphone access blocked. Click lock icon in browser bar to allow.');
+        }
+      };
+
+      recognition.onend = () => {
+        isSpeechRecognitionActiveRef.current = false;
+        if (isLiveActiveRef.current && !userInitiatedDisconnectRef.current) {
+          setTimeout(() => {
+            if (isLiveActiveRef.current && !userInitiatedDisconnectRef.current && !isSpeakingRef.current) {
+              try {
+                recognition.start();
+              } catch (_) {}
+            }
+          }, 250);
+        }
+      };
+
+      recognition.start();
+      speechRecognitionRef.current = recognition;
+      return true;
+    } catch (err) {
+      console.warn('[JARVIS Live] Web Speech start notice:', err);
+      return false;
+    }
+  }, [handleSendTextMessage]);
+
+  // -----------------------------------------------------------------
+  // Live Voice Session with Auto-Restart, Resumption & Seamless Fallback
   // -----------------------------------------------------------------
   const triggerAutoReconnect = useCallback((reason: string) => {
     if (userInitiatedDisconnectRef.current) return;
@@ -941,37 +1118,14 @@ All 3 Top Priorities marked complete, zero unhandled tenant inquiries, and solid
       reconnectTimerRef.current = null;
     }
 
-    const isVercelOrRemote = typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-    if (isVercelOrRemote && reconnectAttemptRef.current >= 1) {
-      setConnectionStatus('disconnected');
-      setErrorMessage(null);
-      setIsLiveActive(false);
-      setJarvisState('idle');
-      appendMessage('system', 'Live WebSocket uplink is active in local container mode. Directives, Google Search intelligence, and speech synthesis are running in full Serverless mode.');
-      return;
-    }
-
-    if (reconnectAttemptRef.current >= 5) {
-      setConnectionStatus('error');
-      setErrorMessage('Neural uplink lost after 5 attempts. Click RETRY to reconnect.');
-      setIsLiveActive(false);
-      setJarvisState('idle');
-      return;
-    }
-
-    reconnectAttemptRef.current += 1;
-    const attempt = reconnectAttemptRef.current;
-    setReconnectAttempt(attempt);
-    setConnectionStatus('reconnecting');
-    setErrorMessage(`Neural uplink interrupted. Reconnecting (attempt ${attempt}/5)...`);
-
-    const delay = Math.min(10000, 500 * Math.pow(2, attempt - 1));
-    reconnectTimerRef.current = setTimeout(() => {
-      if (!userInitiatedDisconnectRef.current) {
-        startVoiceSession(true);
-      }
-    }, delay);
-  }, []);
+    // Seamlessly transition to Continuous Live Voice Butler: NEVER disconnect!
+    setConnectionStatus('connected');
+    setIsLiveActive(true);
+    isLiveActiveRef.current = true;
+    setJarvisState('listening');
+    setErrorMessage(null);
+    startContinuousSpeechRecognition();
+  }, [startContinuousSpeechRecognition]);
 
   const startVoiceSession = useCallback(
     async (isReconnect: boolean = false) => {
@@ -1021,6 +1175,23 @@ All 3 Top Priorities marked complete, zero unhandled tenant inquiries, and solid
             wsRef.current.close();
           } catch (_) {}
           wsRef.current = null;
+        }
+
+        const isRemoteServerless =
+          typeof window !== 'undefined' &&
+          window.location.hostname !== 'localhost' &&
+          window.location.hostname !== '127.0.0.1';
+
+        if (isRemoteServerless) {
+          isConnectingRef.current = false;
+          setConnectionStatus('connected');
+          setIsLiveActive(true);
+          isLiveActiveRef.current = true;
+          setJarvisState('listening');
+          setErrorMessage(null);
+          startContinuousSpeechRecognition();
+          if (settingsRef.current.enableAudioSoundEffects) playHudSound('startup');
+          return;
         }
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -1199,6 +1370,9 @@ Current Streak: ${streakCount} days
       connectionStatus === 'reconnecting'
     ) {
       userInitiatedDisconnectRef.current = true;
+      isLiveActiveRef.current = false;
+      stopContinuousSpeechRecognition();
+
       if (reconnectTimerRef.current) {
         clearTimeout(reconnectTimerRef.current);
         reconnectTimerRef.current = null;
@@ -1240,54 +1414,6 @@ Current Streak: ${streakCount} days
     setReconnectAttempt(0);
     sessionResumptionHandleRef.current = null;
     startVoiceSession(false);
-  };
-
-  // Text message / Directives handler
-  const handleSendTextMessage = async (text: string) => {
-    recordUserActivity();
-    appendMessage('user', text);
-    setJarvisState('thinking');
-
-    if (isLiveActive && wsRef.current && wsRef.current.readyState === WebSocket.OPEN && connectionStatus === 'connected') {
-      wsRef.current.send(JSON.stringify({ type: 'text', text }));
-      return;
-    }
-
-    try {
-      const res = await fetch('/api/jarvis/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: text,
-          addressAs: settingsRef.current.addressUserAs,
-          apiKey: settingsRef.current.apiKey,
-          tasks: tasksRef.current,
-          goals: goalsRef.current,
-          notes: notesRef.current,
-          conversationHistory: messages.slice(-5),
-        }),
-      });
-
-      let data: any = null;
-      try {
-        data = await res.json();
-      } catch (_) {
-        data = { reply: `Directives received and analyzed, ${settingsRef.current.addressUserAs}. Operational status nominal.` };
-      }
-      const reply = data.reply || `At your service, ${settingsRef.current.addressUserAs}.`;
-
-      if (data.functionCalls && data.functionCalls.length > 0) {
-        for (const call of data.functionCalls) {
-          executeToolCall(call.name, call.args);
-        }
-      }
-
-      appendMessage('assistant', reply, data.sources);
-      speakText(reply);
-    } catch (err: any) {
-      appendMessage('assistant', `Apologies, ${settingsRef.current.addressUserAs}. Connection notice: ${err?.message || 'Re-establishing'}`);
-      setJarvisState('idle');
-    }
   };
 
   // Optical Vision
