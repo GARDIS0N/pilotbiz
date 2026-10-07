@@ -269,7 +269,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
             </div>
 
             {settings.enableProactiveCheckIns && (
-              <div className="p-3 rounded-xl bg-slate-900/30 border border-cyan-500/20 space-y-2">
+              <div className="p-3 rounded-xl bg-slate-900/30 border border-cyan-500/20 space-y-3">
                 <div className="flex items-center justify-between text-xs font-mono-tech">
                   <span className="text-cyan-300">IDLE INTERVAL BEFORE CHECK-IN:</span>
                   <span className="text-cyan-100 font-bold">{settings.checkInIntervalMinutes || 45} MIN</span>
@@ -288,6 +288,41 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                       {mins}m {mins === 45 ? '(Def)' : ''}
                     </button>
                   ))}
+                </div>
+
+                <div className="pt-2 border-t border-cyan-500/20 space-y-2">
+                  <div className="text-[11px] font-mono-tech text-cyan-300 font-bold uppercase">
+                    DAILY ACCOUNTABILITY CHECK-IN SCHEDULE:
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="text-[10px] text-cyan-400/80 block mb-0.5">Morning</label>
+                      <input
+                        type="time"
+                        value={settings.morningCheckInTime || '08:30'}
+                        onChange={(e) => onUpdateSettings({ morningCheckInTime: e.target.value })}
+                        className="w-full px-2 py-1 bg-black/60 border border-cyan-500/30 rounded text-xs text-cyan-200 font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-cyan-400/80 block mb-0.5">Midday</label>
+                      <input
+                        type="time"
+                        value={settings.middayCheckInTime || '13:00'}
+                        onChange={(e) => onUpdateSettings({ middayCheckInTime: e.target.value })}
+                        className="w-full px-2 py-1 bg-black/60 border border-cyan-500/30 rounded text-xs text-cyan-200 font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-cyan-400/80 block mb-0.5">Evening</label>
+                      <input
+                        type="time"
+                        value={settings.eveningCheckInTime || '20:00'}
+                        onChange={(e) => onUpdateSettings({ eveningCheckInTime: e.target.value })}
+                        className="w-full px-2 py-1 bg-black/60 border border-cyan-500/30 rounded text-xs text-cyan-200 font-mono"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

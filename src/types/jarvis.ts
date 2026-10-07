@@ -161,6 +161,35 @@ export interface TranscriptMessage {
   report?: FullBriefingReport;
 }
 
+export interface ScheduleItem {
+  id: string;
+  title: string;
+  date: string; // YYYY-MM-DD
+  time?: string; // HH:MM
+  category: 'work' | 'personal' | 'study' | 'meeting' | 'health' | 'general';
+  completed: boolean;
+  slipCount: number; // number of times postponed (>=3 triggers callout)
+  notes?: string;
+  createdAt?: string;
+}
+
+export interface AccountabilityData {
+  streak: number;
+  lastStreakDate: string;
+  lastBriefedDate: string;
+  morningCheckInTime: string; // e.g. "08:30"
+  middayCheckInTime: string;  // e.g. "13:00"
+  eveningCheckInTime: string; // e.g. "20:00"
+  lastMorningCheckInDate?: string;
+  lastMiddayCheckInDate?: string;
+  lastEveningCheckInDate?: string;
+  weeklyStats: {
+    completed: number;
+    total: number;
+    rate: number;
+  };
+}
+
 export interface JarvisSettings {
   addressUserAs: string;
   voiceName: 'Zephyr' | 'Fenrir' | 'Puck' | 'Charon' | 'Kore';
@@ -170,4 +199,8 @@ export interface JarvisSettings {
   checkInIntervalMinutes: number; // default: 45
   enableProactiveCheckIns: boolean; // default: true
   enableDueTimeAlerts: boolean; // default: true
+  morningCheckInTime?: string; // default: "08:30"
+  middayCheckInTime?: string;  // default: "13:00"
+  eveningCheckInTime?: string; // default: "20:00"
 }
+

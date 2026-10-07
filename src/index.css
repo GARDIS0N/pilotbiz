@@ -1,115 +1,70 @@
 @import "tailwindcss";
 
-@layer base {
-  :root {
-    --jarvis-cyan: #00f0ff;
-    --jarvis-blue: #0077ff;
-    --jarvis-amber: #ffaa00;
-    --jarvis-red: #ff3344;
-  }
+:root {
+  /* Green Theme Tokens */
+  --color-primary: #10B981;
+  --color-primary-hover: #059669;
+  --color-dark-accent: #065F46;
+  --color-light-tint: #ECFDF5;
+  --color-text: #111827;
+  --color-text-muted: #6B7280;
+
+  /* Surfaces & Backgrounds (Dark Mode Default) */
+  --color-bg: #06140F;
+  --color-header-bg: rgba(6, 20, 15, 0.92);
+  --color-card-bg: #0B241B;
+  --color-card-hover: #0F2F23;
+  --color-border: #134E39;
+  --color-border-subtle: rgba(16, 185, 129, 0.15);
+
+  /* Message Bubbles */
+  --color-user-bubble: #10B981;
+  --color-user-text: #FFFFFF;
+  --color-jarvis-bubble: #0D281E;
+  --color-jarvis-bubble-border: #134E39;
+  --color-jarvis-text: #ECFDF5;
+
+  /* Input Bar */
+  --color-input-bg: #091F16;
+  --color-input-border: #144E39;
+  --color-input-text: #ECFDF5;
+  --color-input-placeholder: #059669;
+
+  /* Alert Tokens */
+  --color-warning-bg: #451A03;
+  --color-warning-border: #92400E;
+  --color-warning-text: #FDE68A;
 }
 
-.font-orbitron {
-  font-family: 'Orbitron', monospace, sans-serif;
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-jarvis-text);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
-.font-rajdhani {
-  font-family: 'Rajdhani', sans-serif;
+/* Touch friendly minimums & mobile viewport keyboard handling */
+button, input, textarea, select {
+  touch-action: manipulation;
 }
 
-.font-mono-tech {
-  font-family: 'Share Tech Mono', monospace;
-}
-
-/* Futuristic HUD Grid Background */
-.hud-grid {
-  background-size: 40px 40px;
-  background-image: 
-    linear-gradient(to right, rgba(0, 240, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
-}
-
-.hud-grid-dense {
-  background-size: 16px 16px;
-  background-image: 
-    linear-gradient(to right, rgba(0, 240, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
-}
-
-/* Subtle holographic scanline */
-.hud-scanlines {
-  background: linear-gradient(
-    rgba(18, 16, 16, 0) 50%, 
-    rgba(0, 240, 255, 0.025) 50%
-  );
-  background-size: 100% 4px;
-}
-
-/* Glow effects */
-.glow-cyan-sm {
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.25);
-}
-
-.glow-cyan-md {
-  box-shadow: 0 0 20px rgba(0, 240, 255, 0.4), inset 0 0 15px rgba(0, 240, 255, 0.15);
-}
-
-.glow-cyan-lg {
-  box-shadow: 0 0 35px rgba(0, 240, 255, 0.5), inset 0 0 25px rgba(0, 240, 255, 0.25);
-}
-
-.text-glow-cyan {
-  text-shadow: 0 0 8px rgba(0, 240, 255, 0.6), 0 0 16px rgba(0, 240, 255, 0.3);
-}
-
-.text-glow-amber {
-  text-shadow: 0 0 8px rgba(255, 170, 0, 0.6), 0 0 16px rgba(255, 170, 0, 0.3);
-}
-
-/* Custom Scrollbar */
+/* Custom minimal scrollbar */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
 }
-
 ::-webkit-scrollbar-track {
-  background: rgba(4, 16, 28, 0.7);
+  background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 240, 255, 0.25);
-  border-radius: 2px;
+  background: rgba(16, 185, 129, 0.2);
+  border-radius: 9999px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 240, 255, 0.6);
-}
-
-/* Corner bracket HUD styling */
-.hud-corner-box {
-  position: relative;
-}
-
-.hud-corner-box::before {
-  content: '';
-  position: absolute;
-  top: -1px;
-  left: -1px;
-  width: 8px;
-  height: 8px;
-  border-top: 2px solid rgba(0, 240, 255, 0.8);
-  border-left: 2px solid rgba(0, 240, 255, 0.8);
-  pointer-events: none;
-}
-
-.hud-corner-box::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  right: -1px;
-  width: 8px;
-  height: 8px;
-  border-bottom: 2px solid rgba(0, 240, 255, 0.8);
-  border-right: 2px solid rgba(0, 240, 255, 0.8);
-  pointer-events: none;
+  background: rgba(16, 185, 129, 0.4);
 }
