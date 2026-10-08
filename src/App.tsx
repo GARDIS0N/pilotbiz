@@ -10,12 +10,53 @@ import { LearningSessionModal } from './components/session/LearningSessionModal.
 import { AuthModal } from './components/auth/AuthModal.js';
 import { AITutorModal } from './components/tutor/AITutorModal.js';
 
+const DEFAULT_STUDENT_USER: User = {
+  id: 'user-student-amina',
+  name: 'Amina Kiprono',
+  email: 'amina@jifuno.ke',
+  role: 'STUDENT',
+  avatar: 'cheetah',
+  createdAt: '2026-09-01T08:00:00Z',
+  studentProfileId: 'student-amina-01'
+};
+
+const DEFAULT_STUDENT_PROFILE: StudentProfile = {
+  id: 'student-amina-01',
+  userId: 'user-student-amina',
+  fullName: 'Amina Kiprono',
+  gradeId: 'grade-4',
+  schoolName: 'Simba Primary Academy',
+  county: 'Nakuru',
+  avatar: 'cheetah',
+  level: 3,
+  xp: 420,
+  coins: 185,
+  hearts: 5,
+  maxHearts: 5,
+  streakDays: 5,
+  lastActiveDate: new Date().toISOString().split('T')[0],
+  streakFrozen: false,
+  unlockedWorldIds: ['world-math-kingdom', 'world-science-lab', 'world-word-quest'],
+  completedMissionIds: ['mission-01-seedlings'],
+  badges: ['badge-seedling-starter'],
+  equippedTitle: 'Savanna Explorer',
+  parentUserId: 'user-parent-mama',
+  classId: 'class-g4-simba'
+};
+
+const DEFAULT_GRADES: Grade[] = [
+  { id: 'grade-3', code: 'G3', name: 'Grade 3', levelGroup: 'LOWER_PRIMARY', description: 'Foundational literacy, numeracy and environmental awareness.' },
+  { id: 'grade-4', code: 'G4', name: 'Grade 4', levelGroup: 'UPPER_PRIMARY', description: 'Upper primary transition focusing on core CBE competencies and practical inquiry.' },
+  { id: 'grade-5', code: 'G5', name: 'Grade 5', levelGroup: 'UPPER_PRIMARY', description: 'Intermediate problem-solving, science, technology, agriculture, and languages.' },
+  { id: 'grade-6', code: 'G6', name: 'Grade 6', levelGroup: 'UPPER_PRIMARY', description: 'Preparation for Junior School assessment with advanced competency mastery.' }
+];
+
 export function App() {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [studentProfile, setStudentProfile] = useState<StudentProfile | null>(null);
-  const [grades, setGrades] = useState<Grade[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(DEFAULT_STUDENT_USER);
+  const [studentProfile, setStudentProfile] = useState<StudentProfile | null>(DEFAULT_STUDENT_PROFILE);
+  const [grades, setGrades] = useState<Grade[]>(DEFAULT_GRADES);
   const [selectedGradeId, setSelectedGradeId] = useState<string>('grade-4');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Sound mute state
   const [isMuted, setIsMuted] = useState(false);
