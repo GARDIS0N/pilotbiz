@@ -1,0 +1,67 @@
+{
+  "memories": [
+    {
+      "id": "mem-1",
+      "content": "User prefers direct, concise communication without polite filler or repetitive phrasing. Execution over planning.",
+      "category": "preference",
+      "source": "USER_EXPLICIT",
+      "importance": "high",
+      "tags": [
+        "communication",
+        "style",
+        "directness"
+      ],
+      "createdAt": "2026-10-07T12:00:00.000Z"
+    },
+    {
+      "id": "mem-2",
+      "content": "Primary active ventures: NestList (landlord onboarding), JARVIS (AI personal manager/OS), and CBE MLS Clinical Studies.",
+      "category": "goal",
+      "source": "USER_EXPLICIT",
+      "importance": "high",
+      "tags": [
+        "projects",
+        "focus",
+        "work"
+      ],
+      "createdAt": "2026-10-07T12:00:00.000Z"
+    },
+    {
+      "id": "mem-3",
+      "content": "Prefers dark tactical green UI HUD theme (#06140F, #10B981) with high contrast and no visual clutter.",
+      "category": "preference",
+      "source": "USER_EXPLICIT",
+      "importance": "medium",
+      "tags": [
+        "ui",
+        "theme",
+        "design"
+      ],
+      "createdAt": "2026-10-07T16:00:00.000Z"
+    },
+    {
+      "id": "mem-4",
+      "content": "Requires confirmation before any destructive actions, deletion of files, or irreversible data modifications.",
+      "category": "instruction",
+      "source": "USER_EXPLICIT",
+      "importance": "high",
+      "tags": [
+        "permissions",
+        "safety",
+        "protocol"
+      ],
+      "createdAt": "2026-10-08T00:00:00.000Z"
+    },
+    {
+      "id": "mem-1791452259487",
+      "content": "I prefer 50-minute deep work cycles with 10-minute breaks",
+      "category": "preference",
+      "source": "USER_EXPLICIT",
+      "importance": "high",
+      "tags": [
+        "user_directive"
+      ],
+      "createdAt": "2026-10-08T09:37:39.487Z"
+    }
+  ]
+}

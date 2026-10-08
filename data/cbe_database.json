@@ -1,0 +1,2329 @@
+{
+  "users": [
+    {
+      "id": "user-student-amina",
+      "name": "Amina Kiprono",
+      "email": "amina@jifuno.ke",
+      "role": "STUDENT",
+      "avatar": "cheetah",
+      "createdAt": "2026-09-01T08:00:00Z",
+      "studentProfileId": "student-amina-01"
+    },
+    {
+      "id": "user-parent-mama",
+      "name": "Mama Amina (Grace Kiprono)",
+      "email": "parent@jifuno.ke",
+      "role": "PARENT",
+      "avatar": "owl",
+      "createdAt": "2026-09-01T08:00:00Z",
+      "parentProfileId": "parent-grace-01"
+    },
+    {
+      "id": "user-teacher-ochieng",
+      "name": "Mwalimu Ochieng",
+      "email": "teacher@jifuno.ke",
+      "role": "TEACHER",
+      "avatar": "lion",
+      "createdAt": "2026-08-15T08:00:00Z",
+      "teacherProfileId": "teacher-ochieng-01"
+    },
+    {
+      "id": "user-admin-cbe",
+      "name": "Wanjala Wafula (CBE Admin)",
+      "email": "admin@jifuno.ke",
+      "role": "ADMIN",
+      "avatar": "eagle",
+      "createdAt": "2026-08-01T08:00:00Z"
+    },
+    {
+      "id": "test-usr-1791459913041",
+      "name": "Wanjiku Test Learner",
+      "email": "wanjiku.1791459913041@jifuno.ke",
+      "role": "STUDENT",
+      "avatar": "owl",
+      "createdAt": "2026-10-08T11:45:13.041Z",
+      "studentProfileId": "test-std-1791459913041"
+    },
+    {
+      "id": "test-usr-1791460052768",
+      "name": "Wanjiku Test Learner",
+      "email": "wanjiku.1791460052768@jifuno.ke",
+      "role": "STUDENT",
+      "avatar": "owl",
+      "createdAt": "2026-10-08T11:47:32.768Z",
+      "studentProfileId": "test-std-1791460052768"
+    },
+    {
+      "id": "test-usr-1791462520842",
+      "name": "Wanjiku Test Learner",
+      "email": "wanjiku.1791462520842@jifuno.ke",
+      "role": "STUDENT",
+      "avatar": "owl",
+      "createdAt": "2026-10-08T12:28:40.842Z",
+      "studentProfileId": "test-std-1791462520842"
+    },
+    {
+      "id": "test-usr-1791462805721",
+      "name": "Wanjiku Test Learner",
+      "email": "wanjiku.1791462805721@jifuno.ke",
+      "role": "STUDENT",
+      "avatar": "owl",
+      "createdAt": "2026-10-08T12:33:25.721Z",
+      "studentProfileId": "test-std-1791462805721"
+    },
+    {
+      "id": "test-usr-1791464406159",
+      "name": "Wanjiku Test Learner",
+      "email": "wanjiku.1791464406159@jifuno.ke",
+      "role": "STUDENT",
+      "avatar": "owl",
+      "createdAt": "2026-10-08T13:00:06.159Z",
+      "studentProfileId": "test-std-1791464406159"
+    }
+  ],
+  "students": [
+    {
+      "id": "student-amina-01",
+      "userId": "user-student-amina",
+      "fullName": "Amina Kiprono",
+      "gradeId": "grade-4",
+      "schoolName": "Simba Primary Academy",
+      "county": "Nakuru",
+      "avatar": "cheetah",
+      "level": 3,
+      "xp": 420,
+      "coins": 185,
+      "hearts": 5,
+      "maxHearts": 5,
+      "streakDays": 5,
+      "lastActiveDate": "2026-10-08",
+      "streakFrozen": false,
+      "unlockedWorldIds": [
+        "world-math-kingdom",
+        "world-science-lab",
+        "world-word-quest"
+      ],
+      "completedMissionIds": [
+        "mission-01-seedlings"
+      ],
+      "badges": [
+        "badge-seedling-starter"
+      ],
+      "equippedTitle": "Savanna Explorer",
+      "parentUserId": "user-parent-mama",
+      "classId": "class-g4-simba"
+    },
+    {
+      "id": "test-std-1791459913041",
+      "userId": "test-usr-1791459913041",
+      "fullName": "Wanjiku Test Learner",
+      "gradeId": "grade-4",
+      "schoolName": "Moi Nyeri Academy",
+      "county": "Nyeri",
+      "avatar": "owl",
+      "level": 1,
+      "xp": 110,
+      "coins": 80,
+      "hearts": 5,
+      "maxHearts": 5,
+      "streakDays": 1,
+      "lastActiveDate": "2026-10-08",
+      "streakFrozen": false,
+      "unlockedWorldIds": [
+        "world-math-kingdom"
+      ],
+      "completedMissionIds": [
+        "mission-01-seedlings"
+      ],
+      "badges": [
+        "badge-seedling-starter"
+      ],
+      "equippedTitle": "Safari Scout"
+    },
+    {
+      "id": "test-std-1791460052768",
+      "userId": "test-usr-1791460052768",
+      "fullName": "Wanjiku Test Learner",
+      "gradeId": "grade-4",
+      "schoolName": "Moi Nyeri Academy",
+      "county": "Nyeri",
+      "avatar": "owl",
+      "level": 1,
+      "xp": 110,
+      "coins": 80,
+      "hearts": 5,
+      "maxHearts": 5,
+      "streakDays": 1,
+      "lastActiveDate": "2026-10-08",
+      "streakFrozen": false,
+      "unlockedWorldIds": [
+        "world-math-kingdom"
+      ],
+      "completedMissionIds": [
+        "mission-01-seedlings"
+      ],
+      "badges": [
+        "badge-seedling-starter"
+      ],
+      "equippedTitle": "Safari Scout"
+    },
+    {
+      "id": "test-std-1791462520842",
+      "userId": "test-usr-1791462520842",
+      "fullName": "Wanjiku Test Learner",
+      "gradeId": "grade-4",
+      "schoolName": "Moi Nyeri Academy",
+      "county": "Nyeri",
+      "avatar": "owl",
+      "level": 1,
+      "xp": 110,
+      "coins": 80,
+      "hearts": 5,
+      "maxHearts": 5,
+      "streakDays": 1,
+      "lastActiveDate": "2026-10-08",
+      "streakFrozen": false,
+      "unlockedWorldIds": [
+        "world-math-kingdom"
+      ],
+      "completedMissionIds": [
+        "mission-01-seedlings"
+      ],
+      "badges": [
+        "badge-seedling-starter"
+      ],
+      "equippedTitle": "Safari Scout"
+    },
+    {
+      "id": "test-std-1791462805721",
+      "userId": "test-usr-1791462805721",
+      "fullName": "Wanjiku Test Learner",
+      "gradeId": "grade-4",
+      "schoolName": "Moi Nyeri Academy",
+      "county": "Nyeri",
+      "avatar": "owl",
+      "level": 1,
+      "xp": 110,
+      "coins": 80,
+      "hearts": 5,
+      "maxHearts": 5,
+      "streakDays": 1,
+      "lastActiveDate": "2026-10-08",
+      "streakFrozen": false,
+      "unlockedWorldIds": [
+        "world-math-kingdom"
+      ],
+      "completedMissionIds": [
+        "mission-01-seedlings"
+      ],
+      "badges": [
+        "badge-seedling-starter"
+      ],
+      "equippedTitle": "Safari Scout"
+    },
+    {
+      "id": "test-std-1791464406159",
+      "userId": "test-usr-1791464406159",
+      "fullName": "Wanjiku Test Learner",
+      "gradeId": "grade-4",
+      "schoolName": "Moi Nyeri Academy",
+      "county": "Nyeri",
+      "avatar": "owl",
+      "level": 1,
+      "xp": 110,
+      "coins": 80,
+      "hearts": 5,
+      "maxHearts": 5,
+      "streakDays": 1,
+      "lastActiveDate": "2026-10-08",
+      "streakFrozen": false,
+      "unlockedWorldIds": [
+        "world-math-kingdom"
+      ],
+      "completedMissionIds": [
+        "mission-01-seedlings"
+      ],
+      "badges": [
+        "badge-seedling-starter"
+      ],
+      "equippedTitle": "Safari Scout"
+    }
+  ],
+  "parents": [
+    {
+      "id": "parent-grace-01",
+      "userId": "user-parent-mama",
+      "fullName": "Grace Kiprono",
+      "phone": "+254712345678",
+      "childrenStudentIds": [
+        "student-amina-01"
+      ]
+    }
+  ],
+  "teachers": [
+    {
+      "id": "teacher-ochieng-01",
+      "userId": "user-teacher-ochieng",
+      "fullName": "David Ochieng",
+      "schoolName": "Simba Primary Academy",
+      "county": "Nakuru",
+      "tscNumber": "TSC/482910",
+      "classIds": [
+        "class-g4-simba"
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "class-g4-simba",
+      "name": "Grade 4 Simba Champions",
+      "gradeId": "grade-4",
+      "teacherId": "teacher-ochieng-01",
+      "code": "SIMBA4",
+      "studentIds": [
+        "student-amina-01"
+      ],
+      "assignedMissionIds": [
+        "mission-02-market-shillings",
+        "mission-03-chapati-fractions"
+      ],
+      "createdAt": "2026-09-05T08:00:00Z"
+    }
+  ],
+  "grades": [
+    {
+      "id": "grade-3",
+      "code": "G3",
+      "name": "Grade 3",
+      "levelGroup": "LOWER_PRIMARY",
+      "description": "Foundational literacy, numeracy and environmental awareness."
+    },
+    {
+      "id": "grade-4",
+      "code": "G4",
+      "name": "Grade 4",
+      "levelGroup": "UPPER_PRIMARY",
+      "description": "Upper primary transition focusing on core CBE competencies and practical inquiry."
+    },
+    {
+      "id": "grade-5",
+      "code": "G5",
+      "name": "Grade 5",
+      "levelGroup": "UPPER_PRIMARY",
+      "description": "Intermediate problem-solving, science, technology, agriculture, and languages."
+    },
+    {
+      "id": "grade-6",
+      "code": "G6",
+      "name": "Grade 6",
+      "levelGroup": "UPPER_PRIMARY",
+      "description": "Preparation for Junior School assessment with advanced competency mastery."
+    }
+  ],
+  "learningAreas": [
+    {
+      "id": "la-math-g4",
+      "gradeId": "grade-4",
+      "name": "Mathematics",
+      "swahiliName": "Hisabati",
+      "icon": "calculator",
+      "color": "#10B981",
+      "description": "Numbers, fractions, Kenyan currency, measurements and practical problem solving.",
+      "strandsCount": 3
+    },
+    {
+      "id": "la-science-g4",
+      "gradeId": "grade-4",
+      "name": "Science & Technology",
+      "swahiliName": "Sayansi na Teknolojia",
+      "icon": "microscope",
+      "color": "#3B82F6",
+      "description": "Living things, Kenyan habitats, environmental conservation and digital devices.",
+      "strandsCount": 3
+    },
+    {
+      "id": "la-kiswahili-g4",
+      "gradeId": "grade-4",
+      "name": "Kiswahili",
+      "swahiliName": "Kiswahili Sanifu",
+      "icon": "book-open",
+      "color": "#F59E0B",
+      "description": "Kusoma, sarufi, msamiati na utamaduni wa jamii zetu nchini Kenya.",
+      "strandsCount": 2
+    },
+    {
+      "id": "la-english-g4",
+      "gradeId": "grade-4",
+      "name": "English Language",
+      "swahiliName": "Lugha ya Kiingereza",
+      "icon": "feather",
+      "color": "#8B5CF6",
+      "description": "Reading comprehension, grammar, creative storytelling and communication.",
+      "strandsCount": 2
+    },
+    {
+      "id": "la-agri-g4",
+      "gradeId": "grade-4",
+      "name": "Agriculture & Nutrition",
+      "swahiliName": "Kilimo na Lishe Bora",
+      "icon": "sprout",
+      "color": "#14B8A6",
+      "description": "Soil conservation, seedbed preparation, crop care and healthy traditional foods.",
+      "strandsCount": 2
+    },
+    {
+      "id": "la-social-g4",
+      "gradeId": "grade-4",
+      "name": "Social Studies",
+      "swahiliName": "Masomo ya Jamii",
+      "icon": "compass",
+      "color": "#EC4899",
+      "description": "Kenyan counties, physical features, communities, and citizenship.",
+      "strandsCount": 2
+    }
+  ],
+  "strands": [
+    {
+      "id": "strand-math-numbers",
+      "learningAreaId": "la-math-g4",
+      "code": "MATH-STR-01",
+      "title": "Numbers & Operations",
+      "swahiliTitle": "Nambari na Matendo Yake",
+      "description": "Whole numbers, multiplication, division, and fractions with practical daily models.",
+      "icon": "hash"
+    },
+    {
+      "id": "strand-math-money",
+      "learningAreaId": "la-math-g4",
+      "code": "MATH-STR-02",
+      "title": "Measurement & Kenyan Currency",
+      "swahiliTitle": "Upimaji na Fedha za Kenya",
+      "description": "Kenyan Shillings (KES), buying, selling, budgeting and practical market calculations.",
+      "icon": "banknote"
+    },
+    {
+      "id": "strand-math-geometry",
+      "learningAreaId": "la-math-g4",
+      "code": "MATH-STR-03",
+      "title": "Geometry & Spatial Sense",
+      "swahiliTitle": "Jiometria na Maumbo",
+      "description": "2D/3D shapes, perimeter of school gardens, and angles in the environment.",
+      "icon": "shapes"
+    },
+    {
+      "id": "strand-sci-living",
+      "learningAreaId": "la-science-g4",
+      "code": "SCI-STR-01",
+      "title": "Living Things & Environment",
+      "swahiliTitle": "Viumbe Hai na Mazingira",
+      "description": "Plant life cycles, seed germination, Kenyan wildlife and conservation.",
+      "icon": "leaf"
+    },
+    {
+      "id": "strand-sci-tech",
+      "learningAreaId": "la-science-g4",
+      "code": "SCI-STR-02",
+      "title": "Digital Technology & Coding",
+      "swahiliTitle": "Teknolojia ya Kidijitali",
+      "description": "Input/output devices, algorithms, Internet safety and digital tools.",
+      "icon": "cpu"
+    },
+    {
+      "id": "strand-kisw-sarufi",
+      "learningAreaId": "la-kiswahili-g4",
+      "code": "KISW-STR-01",
+      "title": "Sarufi na Matumizi ya Lugha",
+      "swahiliTitle": "Sarufi",
+      "description": "Nomino (ngeli), vitendo, nyakati, na vihusishi katika lugha yetu.",
+      "icon": "book"
+    },
+    {
+      "id": "strand-kisw-kusoma",
+      "learningAreaId": "la-kiswahili-g4",
+      "code": "KISW-STR-02",
+      "title": "Kusoma na Kuelewa",
+      "swahiliTitle": "Ufahamu",
+      "description": "Hadithi za kitamaduni, hekaya za Sungura na Fisi, na ufahamu wa kina.",
+      "icon": "bookmark"
+    },
+    {
+      "id": "strand-eng-reading",
+      "learningAreaId": "la-english-g4",
+      "code": "ENG-STR-01",
+      "title": "Reading & Comprehension",
+      "swahiliTitle": "Kusoma Kiingereza",
+      "description": "Informational texts, Kenyan wildlife sanctuaries, and moral fables.",
+      "icon": "align-left"
+    },
+    {
+      "id": "strand-agri-crops",
+      "learningAreaId": "la-agri-g4",
+      "code": "AGRI-STR-01",
+      "title": "Crop Production & Gardening",
+      "swahiliTitle": "Kilimo cha Mazao",
+      "description": "Nursery beds, sukuma wiki planting, organic composting and soil management.",
+      "icon": "sun"
+    }
+  ],
+  "subStrands": [
+    {
+      "id": "substrand-multiplication",
+      "strandId": "strand-math-numbers",
+      "learningAreaId": "la-math-g4",
+      "title": "Multiplication & Rows",
+      "description": "Multiplication as repeated addition and equal grouping in agriculture and markets.",
+      "cbeCompetency": "Critical thinking, problem solving, and numeracy application",
+      "estimatedMinutes": 20
+    },
+    {
+      "id": "substrand-fractions",
+      "strandId": "strand-math-numbers",
+      "learningAreaId": "la-math-g4",
+      "title": "Fractions of a Whole (Chapatis & Fruit)",
+      "description": "Halves, quarters, eighths using physical models like chapatis and oranges.",
+      "cbeCompetency": "Spatial reasoning and fair resource sharing",
+      "estimatedMinutes": 25
+    },
+    {
+      "id": "substrand-currency",
+      "strandId": "strand-math-money",
+      "learningAreaId": "la-math-g4",
+      "title": "Kenyan Shillings & Market Change",
+      "description": "Coins (KES 1, 5, 10, 20) and notes (KES 50, 100, 200, 500, 1000) in everyday shopping.",
+      "cbeCompetency": "Financial literacy and practical decision making",
+      "estimatedMinutes": 25
+    },
+    {
+      "id": "substrand-germination",
+      "strandId": "strand-sci-living",
+      "learningAreaId": "la-science-g4",
+      "title": "Plant Germination & Conditions",
+      "description": "Factors necessary for seeds to sprout: water, warmth, air and fertile soil.",
+      "cbeCompetency": "Scientific inquiry and environmental stewardship",
+      "estimatedMinutes": 20
+    },
+    {
+      "id": "substrand-habitats",
+      "strandId": "strand-sci-living",
+      "learningAreaId": "la-science-g4",
+      "title": "Kenyan Wildlife & National Parks",
+      "description": "Herbivores, carnivores and their habitats in Maasai Mara, Tsavo, and Lake Nakuru.",
+      "cbeCompetency": "Environmental awareness and national pride",
+      "estimatedMinutes": 20
+    },
+    {
+      "id": "substrand-ngeli",
+      "strandId": "strand-kisw-sarufi",
+      "learningAreaId": "la-kiswahili-g4",
+      "title": "Ngeli za Nomino (A-WA & KI-VI)",
+      "description": "Kutambua ngeli za viumbe hai na vitu visivyo na uhai katika sentensi.",
+      "cbeCompetency": "Linguistic competence and cultural appreciation",
+      "estimatedMinutes": 20
+    },
+    {
+      "id": "substrand-seedbeds",
+      "strandId": "strand-agri-crops",
+      "learningAreaId": "la-agri-g4",
+      "title": "Nursery Beds & Seedling Transplanting",
+      "description": "Preparing fertile seedbed soil, sowing sukuma wiki seeds, and caring for young seedlings.",
+      "cbeCompetency": "Practical agricultural skills and self-reliance",
+      "estimatedMinutes": 25
+    }
+  ],
+  "learningOutcomes": [
+    {
+      "id": "lo-mult-01",
+      "subStrandId": "substrand-multiplication",
+      "outcomeText": "Multiply 2-digit numbers by 1-digit numbers without regrouping using Kenyan agricultural arrays.",
+      "cbeValues": [
+        "Patience",
+        "Hard work",
+        "Accuracy"
+      ]
+    },
+    {
+      "id": "lo-frac-01",
+      "subStrandId": "substrand-fractions",
+      "outcomeText": "Identify and represent fractions (1/2, 1/4, 3/4) by dividing whole foods such as chapatis and watermelons equally.",
+      "cbeValues": [
+        "Fairness",
+        "Sharing",
+        "Integrity"
+      ]
+    },
+    {
+      "id": "lo-curr-01",
+      "subStrandId": "substrand-currency",
+      "outcomeText": "Calculate the total cost of goods and determine the correct balance in Kenyan Shillings when buying items at a local market.",
+      "cbeValues": [
+        "Financial responsibility",
+        "Honesty"
+      ]
+    },
+    {
+      "id": "lo-germ-01",
+      "subStrandId": "substrand-germination",
+      "outcomeText": "Demonstrate through observation the key requirements for germination of bean and maize seeds in Kenya.",
+      "cbeValues": [
+        "Respect for nature",
+        "Scientific curiosity"
+      ]
+    }
+  ],
+  "lessons": [
+    {
+      "id": "lesson-mult-amina",
+      "subStrandId": "substrand-multiplication",
+      "title": "Planting Rows with Amina",
+      "conceptIntro": "Amina is helping her grandfather Mzee Juma plant sukuma wiki in their family shamba in Nakuru. Instead of counting seedlings one by one, she organizes them in tidy equal rows. When you have 5 rows and each row has 4 seedlings, multiplying 5 × 4 gives you the total of 20 seedlings in seconds!",
+      "kenyanContextNote": "Sukuma wiki (collard greens) is grown in shamba plots across all 47 Kenyan counties.",
+      "keyVocabulary": [
+        {
+          "term": "Factor",
+          "meaning": "The numbers you multiply together",
+          "swahiliTerm": "Kizidishi"
+        },
+        {
+          "term": "Product",
+          "meaning": "The result of multiplication",
+          "swahiliTerm": "Zao"
+        },
+        {
+          "term": "Row",
+          "meaning": "A horizontal line of seedlings or items",
+          "swahiliTerm": "Mstari wa mlalo"
+        }
+      ],
+      "didYouKnowKenyanFact": "Nakuru County has some of the richest volcanic agricultural soils in the Great Rift Valley!",
+      "activitiesCount": 5
+    },
+    {
+      "id": "lesson-frac-chapati",
+      "subStrandId": "substrand-fractions",
+      "title": "The Great Chapati Feast",
+      "conceptIntro": "Imagine Mama Amina just cooked a hot, golden-brown chapati. Amina and her 3 cousins want an equal piece each. To be fair, Mama cuts the chapati straight across twice into 4 equal slices. Each slice is 1 out of 4 pieces, written as 1/4 (one quarter). If Juma eats 2 slices, he eats 2/4, which is the same as half (1/2) of the chapati!",
+      "kenyanContextNote": "Sharing meals equally is an important Kenyan cultural value of Umoja and Undugu.",
+      "keyVocabulary": [
+        {
+          "term": "Numerator",
+          "meaning": "The top number showing how many pieces you have",
+          "swahiliTerm": "Kiasi cha juu"
+        },
+        {
+          "term": "Denominator",
+          "meaning": "The bottom number showing total equal parts",
+          "swahiliTerm": "Kiasi cha chini"
+        },
+        {
+          "term": "Equivalent",
+          "meaning": "Fractions having the same value (like 2/4 and 1/2)",
+          "swahiliTerm": "Sawa"
+        }
+      ],
+      "didYouKnowKenyanFact": "Kenyan chapatis were influenced by maritime Indian Ocean trade and are celebrated during special gatherings!",
+      "activitiesCount": 5
+    },
+    {
+      "id": "lesson-curr-market",
+      "subStrandId": "substrand-currency",
+      "title": "Smart Shopper at Kongowea Market",
+      "conceptIntro": "Baraka visits Kongowea Market in Mombasa to buy fresh fruits. A bunch of sweet bananas costs KES 80 and a fresh mango costs KES 40. Baraka calculates 80 + 40 = 120 shillings. He gives the trader a 200 shilling note. To find his change, he subtracts: 200 - 120 = 80 shillings!",
+      "kenyanContextNote": "The Central Bank of Kenya issues coins featuring national wildlife and values.",
+      "keyVocabulary": [
+        {
+          "term": "Shilling (KES)",
+          "meaning": "The official currency of Kenya",
+          "swahiliTerm": "Shilingi"
+        },
+        {
+          "term": "Balance / Change",
+          "meaning": "Money returned to you after paying more than the cost",
+          "swahiliTerm": "Chenji"
+        },
+        {
+          "term": "Budget",
+          "meaning": "A plan of how you will spend your money wisely",
+          "swahiliTerm": "Bajeti"
+        }
+      ],
+      "didYouKnowKenyanFact": "Kongowea Market in Nyali, Mombasa is one of the largest open-air food markets in East Africa!",
+      "activitiesCount": 5
+    },
+    {
+      "id": "lesson-sci-seeds",
+      "subStrandId": "substrand-germination",
+      "title": "The Miracle of the Maize Seed",
+      "conceptIntro": "A dry maize seed looks sleeping, but inside is an embryo waiting to awaken. In our laboratory experiment, seeds kept without water never sprout. Seeds placed in a freezer without warmth stay dormant. But when seeds get clean water, fresh air, and warm sunlight, the radicle emerges downwards into the soil and the plumule reaches up towards the blue Kenyan sky!",
+      "kenyanContextNote": "Maize is the staple food of Kenya, grown by millions of smallholder farmers.",
+      "keyVocabulary": [
+        {
+          "term": "Germination",
+          "meaning": "The process of a seed beginning to grow into a plant",
+          "swahiliTerm": "Kuota"
+        },
+        {
+          "term": "Radicle",
+          "meaning": "The first root that grows downwards",
+          "swahiliTerm": "Mzizi wa kwanza"
+        },
+        {
+          "term": "Cotyledon",
+          "meaning": "The seed leaf storing food for the baby sprout",
+          "swahiliTerm": "Bapa la mbegu"
+        }
+      ],
+      "didYouKnowKenyanFact": "Kenya hosts the Kenya Agricultural and Livestock Research Organization (KALRO) developing climate-smart drought-resistant crops!",
+      "activitiesCount": 5
+    }
+  ],
+  "gameWorlds": [
+    {
+      "id": "world-math-kingdom",
+      "title": "Math Kingdom",
+      "swahiliTitle": "Ufalme wa Hisabati",
+      "theme": "castle",
+      "icon": "calculator",
+      "description": "Master numbers, multiplication challenges, and Kenyan shilling marketplace quests.",
+      "requiredLevel": 1,
+      "bannerGradient": "from-emerald-600 via-teal-700 to-emerald-950",
+      "learningAreaIds": [
+        "la-math-g4"
+      ],
+      "totalMissions": 5
+    },
+    {
+      "id": "world-science-lab",
+      "title": "Science Lab & Savanna",
+      "swahiliTitle": "Maabara ya Sayansi",
+      "theme": "lab",
+      "icon": "microscope",
+      "description": "Investigate seed germination, wildlife ecosystems, and clean green energy.",
+      "requiredLevel": 2,
+      "bannerGradient": "from-blue-600 via-indigo-700 to-slate-950",
+      "learningAreaIds": [
+        "la-science-g4"
+      ],
+      "totalMissions": 4
+    },
+    {
+      "id": "world-word-quest",
+      "title": "Word Quest & Kiswahili",
+      "swahiliTitle": "Msafara wa Maneno",
+      "theme": "city",
+      "icon": "book-open",
+      "description": "Sharpen your grammar, explore ngeli za Kiswahili, and solve reading mysteries.",
+      "requiredLevel": 2,
+      "bannerGradient": "from-amber-600 via-orange-700 to-amber-950",
+      "learningAreaIds": [
+        "la-kiswahili-g4",
+        "la-english-g4"
+      ],
+      "totalMissions": 4
+    },
+    {
+      "id": "world-green-farm",
+      "title": "Green Farm Shamba",
+      "swahiliTitle": "Shamba Letu Bora",
+      "theme": "farm",
+      "icon": "sprout",
+      "description": "Care for seedlings, organic compost, water conservation and healthy nutrition.",
+      "requiredLevel": 3,
+      "bannerGradient": "from-lime-600 via-emerald-800 to-emerald-950",
+      "learningAreaIds": [
+        "la-agri-g4"
+      ],
+      "totalMissions": 3
+    },
+    {
+      "id": "world-kenya-explorer",
+      "title": "Kenya Explorer 47",
+      "swahiliTitle": "Gundua Kenya",
+      "theme": "mountain",
+      "icon": "compass",
+      "description": "Trek across Mount Kenya, Lake Victoria, Rift Valley lakes, and the Indian Ocean coastline.",
+      "requiredLevel": 4,
+      "bannerGradient": "from-rose-600 via-pink-800 to-rose-950",
+      "learningAreaIds": [
+        "la-social-g4"
+      ],
+      "totalMissions": 4
+    }
+  ],
+  "missions": [
+    {
+      "id": "mission-01-seedlings",
+      "worldId": "world-math-kingdom",
+      "subStrandId": "substrand-multiplication",
+      "lessonId": "lesson-mult-amina",
+      "order": 1,
+      "title": "Help Amina Plant Seedlings",
+      "swahiliTitle": "Msaidie Amina Kupanda Mimea",
+      "storyContext": "Amina needs 20 sukuma wiki seedlings in her garden bed. Help her calculate rows and total counts quickly before the afternoon sun gets hot!",
+      "characterName": "Amina",
+      "characterAvatar": "cheetah",
+      "difficulty": "BEGINNER",
+      "xpReward": 35,
+      "coinReward": 15,
+      "questionIds": [
+        "q-mult-01",
+        "q-mult-02",
+        "q-mult-03",
+        "q-mult-tf-01"
+      ],
+      "badgeUnlockId": "badge-seedling-starter"
+    },
+    {
+      "id": "mission-02-market-shillings",
+      "worldId": "world-math-kingdom",
+      "subStrandId": "substrand-currency",
+      "lessonId": "lesson-curr-market",
+      "order": 2,
+      "title": "Baraka at Kongowea Market",
+      "swahiliTitle": "Baraka Sokoni Kongowea",
+      "storyContext": "Baraka is sent with Kenyan currency to buy fruits for his family. Calculate costs and balance to ensure he gets the right change!",
+      "characterName": "Baraka",
+      "characterAvatar": "lion",
+      "difficulty": "EASY",
+      "xpReward": 45,
+      "coinReward": 20,
+      "questionIds": [
+        "q-curr-01",
+        "q-curr-02",
+        "q-curr-fill-01",
+        "q-curr-order-01"
+      ],
+      "badgeUnlockId": "badge-shilling-saver"
+    },
+    {
+      "id": "mission-03-chapati-fractions",
+      "worldId": "world-math-kingdom",
+      "subStrandId": "substrand-fractions",
+      "lessonId": "lesson-frac-chapati",
+      "order": 3,
+      "title": "The Great Chapati Fraction Feast",
+      "swahiliTitle": "Kushiriki Chapati kwa Haki",
+      "storyContext": "Mama Amina baked round chapatis for the family. Divide them fairly among cousins and calculate equivalent fractions!",
+      "characterName": "Mama Amina",
+      "characterAvatar": "owl",
+      "difficulty": "MEDIUM",
+      "xpReward": 55,
+      "coinReward": 25,
+      "questionIds": [
+        "q-frac-01",
+        "q-frac-02",
+        "q-frac-match-01",
+        "q-frac-tf-01"
+      ],
+      "badgeUnlockId": "badge-chapati-master"
+    },
+    {
+      "id": "mission-04-matatu-math",
+      "worldId": "world-math-kingdom",
+      "subStrandId": "substrand-currency",
+      "lessonId": "lesson-curr-market",
+      "order": 4,
+      "title": "Matatu Fare Challenge",
+      "swahiliTitle": "Hesabu za Nauli ya Matatu",
+      "storyContext": "Passengers board a matatu from Nairobi CBD to Rongai. Help conductor Kip calculate fares for groups and give change accurately!",
+      "characterName": "Kiprono",
+      "characterAvatar": "eagle",
+      "difficulty": "ADVANCED",
+      "xpReward": 70,
+      "coinReward": 30,
+      "questionIds": [
+        "q-matatu-01",
+        "q-matatu-02",
+        "q-matatu-fill-01"
+      ],
+      "badgeUnlockId": "badge-matatu-navigator"
+    },
+    {
+      "id": "mission-05-math-boss",
+      "worldId": "world-math-kingdom",
+      "subStrandId": "substrand-multiplication",
+      "lessonId": "lesson-mult-amina",
+      "order": 5,
+      "title": "The Rift Valley Math Arena Challenge",
+      "swahiliTitle": "Mshindani Mkuu wa Bonde la Ufa",
+      "storyContext": "Put all your skills together! Combine multiplication arrays, Kenyan shillings, and fractions to defeat the Arena Guardian.",
+      "characterName": "Mwalimu Ochieng",
+      "characterAvatar": "elephant",
+      "difficulty": "MASTERY",
+      "xpReward": 100,
+      "coinReward": 50,
+      "questionIds": [
+        "q-mult-01",
+        "q-curr-01",
+        "q-frac-01",
+        "q-boss-01"
+      ],
+      "badgeUnlockId": "badge-rift-valley-champion",
+      "isBossChallenge": true
+    },
+    {
+      "id": "mission-sci-01-seeds",
+      "worldId": "world-science-lab",
+      "subStrandId": "substrand-germination",
+      "lessonId": "lesson-sci-seeds",
+      "order": 1,
+      "title": "The Seed Sprout Mystery",
+      "swahiliTitle": "Fumbo la Kuota kwa Mbegu",
+      "storyContext": "Why did Wanjiku’s bean seed sprout while Mwangi’s stayed dry? Conduct controlled experiments in the science lab to unlock the secret of plant life!",
+      "characterName": "Wanjiku",
+      "characterAvatar": "gazelle",
+      "difficulty": "EASY",
+      "xpReward": 40,
+      "coinReward": 20,
+      "questionIds": [
+        "q-sci-germ-01",
+        "q-sci-germ-02",
+        "q-sci-germ-order-01",
+        "q-sci-germ-match-01"
+      ],
+      "badgeUnlockId": "badge-science-detective"
+    },
+    {
+      "id": "mission-sci-02-habitats",
+      "worldId": "world-science-lab",
+      "subStrandId": "substrand-habitats",
+      "lessonId": "lesson-sci-seeds",
+      "order": 2,
+      "title": "Wildlife Safari in Tsavo & Mara",
+      "swahiliTitle": "Safari ya Wanyamapori",
+      "storyContext": "Classify animals across Kenyan savannas, river basins, and forests. Learn how herbivores and carnivores thrive in our national parks!",
+      "characterName": "Baraka",
+      "characterAvatar": "lion",
+      "difficulty": "MEDIUM",
+      "xpReward": 50,
+      "coinReward": 25,
+      "questionIds": [
+        "q-sci-hab-01",
+        "q-sci-hab-match-01",
+        "q-sci-hab-tf-01"
+      ]
+    },
+    {
+      "id": "mission-kisw-01-ngeli",
+      "worldId": "world-word-quest",
+      "subStrandId": "substrand-ngeli",
+      "lessonId": "lesson-mult-amina",
+      "order": 1,
+      "title": "Bingwa wa Ngeli za Kiswahili",
+      "swahiliTitle": "Safari ya Ngeli za Kiswahili",
+      "storyContext": "Chunguza sentensi fasaha ukitumia ngeli ya A-WA na KI-VI. Jenga sentensi sahihi zinazompendeza Mwalimu!",
+      "characterName": "Juma",
+      "characterAvatar": "monkey",
+      "difficulty": "EASY",
+      "xpReward": 40,
+      "coinReward": 20,
+      "questionIds": [
+        "q-kisw-01",
+        "q-kisw-02",
+        "q-kisw-match-01",
+        "q-kisw-fill-01"
+      ],
+      "badgeUnlockId": "badge-kiswahili-star"
+    }
+  ],
+  "questions": [
+    {
+      "id": "q-mult-01",
+      "subStrandId": "substrand-multiplication",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "Amina plants 5 rows of sukuma wiki seedlings. Each row has 4 seedlings. How many seedlings did she plant in total?",
+      "storyScenario": "Amina wants to know the total count of seedlings before recording it in her CBC agriculture project diary.",
+      "difficulty": "BEGINNER",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "16 seedlings"
+        },
+        {
+          "id": "opt-2",
+          "text": "20 seedlings"
+        },
+        {
+          "id": "opt-3",
+          "text": "24 seedlings"
+        },
+        {
+          "id": "opt-4",
+          "text": "9 seedlings"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "5 rows with 4 seedlings in each row means 5 groups of 4. We calculate: 5 × 4 = 20 seedlings!",
+      "socraticHint": "Think of 5 groups with 4 items each. What do you get if you skip count by 4 five times? (4, 8, 12, 16...)",
+      "kenyanCulturalContext": "Sukuma wiki is widely planted in school garden beds across Kenya.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-mult-02",
+      "subStrandId": "substrand-multiplication",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "A farmer in Eldoret packs 6 bags of potatoes. Each bag weighs 8 kilograms. What is the total weight of the potato bags?",
+      "storyScenario": "Farmer Kiprono is preparing to take his harvest to the local market cooperative.",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "42 kg"
+        },
+        {
+          "id": "opt-2",
+          "text": "48 kg"
+        },
+        {
+          "id": "opt-3",
+          "text": "54 kg"
+        },
+        {
+          "id": "opt-4",
+          "text": "14 kg"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "6 bags multiplied by 8 kg each equals 6 × 8 = 48 kg.",
+      "socraticHint": "What is 6 multiplied by 8? You can also think of 6 × 4 = 24, and then double 24!",
+      "kenyanCulturalContext": "Eldoret in Uasin Gishu County is one of Kenya’s major agricultural breadbaskets.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-mult-03",
+      "subStrandId": "substrand-multiplication",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "During school sports day, the teacher arranges students into 7 teams of 6 runners. How many runners are there altogether?",
+      "storyScenario": "Simba Primary School is preparing for the inter-county athletics relays.",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "36 runners"
+        },
+        {
+          "id": "opt-2",
+          "text": "42 runners"
+        },
+        {
+          "id": "opt-3",
+          "text": "49 runners"
+        },
+        {
+          "id": "opt-4",
+          "text": "13 runners"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "7 teams of 6 runners = 7 × 6 = 42 runners.",
+      "socraticHint": "Can you multiply 7 by 6? Remember 7 × 5 = 35. Add one more 7 to 35!",
+      "kenyanCulturalContext": "Kenyan school athletics events foster national unity and talent development.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-mult-tf-01",
+      "subStrandId": "substrand-multiplication",
+      "type": "TRUE_FALSE",
+      "prompt": "Is 4 × 7 the exact same total as 7 × 4?",
+      "storyScenario": "Amina wonders whether rotating her seedling nursery tray changes the number of plants.",
+      "difficulty": "BEGINNER",
+      "correctBoolean": true,
+      "explanation": "Yes! Multiplication has the commutative property. 4 groups of 7 equals 28, and 7 groups of 4 also equals 28.",
+      "socraticHint": "Imagine turning a rectangle of seedlings sideways. Did any seedlings disappear or appear?",
+      "kenyanCulturalContext": "Commutative arrays are taught in Grade 4 CBC mathematics.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-curr-01",
+      "subStrandId": "substrand-currency",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "Wanjiku buys a storybook for KES 140 and a pencil for KES 20 at a bookshop in Machakos. How much did she spend in total?",
+      "storyScenario": "Wanjiku is budgeting her pocket money before school opens.",
+      "difficulty": "BEGINNER",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "KES 150"
+        },
+        {
+          "id": "opt-2",
+          "text": "KES 160"
+        },
+        {
+          "id": "opt-3",
+          "text": "KES 170"
+        },
+        {
+          "id": "opt-4",
+          "text": "KES 120"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "KES 140 + KES 20 = KES 160. Wanjiku spent 160 Kenyan Shillings.",
+      "socraticHint": "Add 20 shillings to 140 shillings. 14 tens plus 2 tens equals how many tens?",
+      "kenyanCulturalContext": "Machakos town has bustling retail bookshops for school learners.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-curr-02",
+      "subStrandId": "substrand-currency",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "Juma hands a 500-shilling note to the shopkeeper to pay for groceries costing KES 340. How much change (chenji) should Juma receive?",
+      "storyScenario": "Juma is sent to the local duka to buy milk and maize flour for evening tea.",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "KES 140"
+        },
+        {
+          "id": "opt-2",
+          "text": "KES 160"
+        },
+        {
+          "id": "opt-3",
+          "text": "KES 260"
+        },
+        {
+          "id": "opt-4",
+          "text": "KES 180"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "500 - 340 = 160 shillings. Juma should receive KES 160 as change.",
+      "socraticHint": "Start at 340. How much do you need to reach 400? (+60). How much from 400 to 500? (+100). Add 100 + 60!",
+      "kenyanCulturalContext": "Duka transactions with change calculation are common practical CBE life skills.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-curr-fill-01",
+      "subStrandId": "substrand-currency",
+      "type": "FILL_BLANK",
+      "prompt": "If one samosa at the school canteen costs KES 25, then 4 samosas will cost exactly [BLANK] Kenyan Shillings.",
+      "storyScenario": "The sports day canteen is selling fresh beef and vegetable samosas.",
+      "difficulty": "EASY",
+      "fillBlankAnswers": [
+        "100",
+        "100 shillings",
+        "kes 100",
+        "100 kes"
+      ],
+      "blankTemplate": "4 samosas cost [BLANK] Kenyan Shillings.",
+      "explanation": "4 × 25 = 100 shillings. Just like four 25-cent or 25-shilling coins make 100!",
+      "socraticHint": "What is 25 + 25? That is 50. Now double 50 for 4 samosas!",
+      "kenyanCulturalContext": "Samosas are a beloved school canteen and tea-time snack across Kenya.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-curr-order-01",
+      "subStrandId": "substrand-currency",
+      "type": "ORDERING",
+      "prompt": "Order these Kenyan currency denominations from the LOWEST value to the HIGHEST value:",
+      "storyScenario": "Help Baraka organize the coins and notes in his savings piggy bank.",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "curr-10",
+          "text": "KES 10 coin"
+        },
+        {
+          "id": "curr-20",
+          "text": "KES 20 coin"
+        },
+        {
+          "id": "curr-50",
+          "text": "KES 50 note"
+        },
+        {
+          "id": "curr-200",
+          "text": "KES 200 note"
+        }
+      ],
+      "correctOrderIds": [
+        "curr-10",
+        "curr-20",
+        "curr-50",
+        "curr-200"
+      ],
+      "explanation": "The order from smallest to greatest is: KES 10 < KES 20 < KES 50 < KES 200.",
+      "socraticHint": "Look at the numerical value on each coin and note. Which one can buy the least items?",
+      "kenyanCulturalContext": "Understanding currency values helps children build financial literacy.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-frac-01",
+      "subStrandId": "substrand-fractions",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "Mama cuts a warm round chapati into 4 equal slices. If Amina eats 1 slice, what fraction of the whole chapati did she eat?",
+      "storyScenario": "Mama insists that every child gets an equal share of the family meal.",
+      "difficulty": "BEGINNER",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "1/2 (One half)"
+        },
+        {
+          "id": "opt-2",
+          "text": "1/4 (One quarter)"
+        },
+        {
+          "id": "opt-3",
+          "text": "3/4 (Three quarters)"
+        },
+        {
+          "id": "opt-4",
+          "text": "4/1"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "Because the chapati was divided into 4 equal parts, 1 part out of 4 is written as 1/4 (one quarter).",
+      "socraticHint": "Remember: the bottom number (denominator) is the total number of equal slices (4). The top number is how many she ate (1).",
+      "kenyanCulturalContext": "Sharing chapatis equally is a relatable household example for fraction concepts.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-frac-02",
+      "subStrandId": "substrand-fractions",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "Which fraction is equal (equivalent) to 2/4 of a ripe watermelon?",
+      "storyScenario": "A fruit vendor in Kisumu cuts a sweet watermelon into 4 slices and sells 2 of them.",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "1/3"
+        },
+        {
+          "id": "opt-2",
+          "text": "1/2"
+        },
+        {
+          "id": "opt-3",
+          "text": "3/4"
+        },
+        {
+          "id": "opt-4",
+          "text": "2/8"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "2 out of 4 equal slices is exactly half of the watermelon, so 2/4 = 1/2.",
+      "socraticHint": "If you take 2 slices out of 4, have you taken more than half, less than half, or exactly half?",
+      "kenyanCulturalContext": "Watermelons grown around Lake Victoria and coastal areas are prized in Kenyan markets.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-frac-match-01",
+      "subStrandId": "substrand-fractions",
+      "type": "MATCHING",
+      "prompt": "Match each fraction with its everyday Kenyan description:",
+      "storyScenario": "Match the math term to how we describe it at home and at school.",
+      "difficulty": "EASY",
+      "matchingPairs": [
+        {
+          "leftId": "m1",
+          "leftText": "1/2",
+          "rightId": "r1",
+          "rightText": "Nusu (Half a chapati)"
+        },
+        {
+          "leftId": "m2",
+          "leftText": "1/4",
+          "rightId": "r2",
+          "rightText": "Robo (One quarter slice)"
+        },
+        {
+          "leftId": "m3",
+          "leftText": "3/4",
+          "rightId": "r3",
+          "rightText": "Robo tatu (Three quarters)"
+        }
+      ],
+      "explanation": "In Kenya and Kiswahili: 1/2 is nusu, 1/4 is robo, and 3/4 is robo tatu.",
+      "socraticHint": "Think about when you buy milk or sugar: half a kilo is nusu, quarter kilo is robo!",
+      "kenyanCulturalContext": "Nusu and robo are universally used terms in Kenyan dukas.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-frac-tf-01",
+      "subStrandId": "substrand-fractions",
+      "type": "TRUE_FALSE",
+      "prompt": "Is 1/3 larger than 1/4 of the same sweet mango?",
+      "storyScenario": "Two children compare their slices of sweet apple mango from Kitui.",
+      "difficulty": "MEDIUM",
+      "correctBoolean": true,
+      "explanation": "Yes! When you cut a mango into fewer pieces (3 pieces instead of 4), each piece is bigger. So 1/3 > 1/4.",
+      "socraticHint": "Would you get a bigger slice if you shared with 2 friends (3 total) or 3 friends (4 total)?",
+      "kenyanCulturalContext": "Kitui and Makueni counties are famous for sweet mango orchards.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-matatu-01",
+      "subStrandId": "substrand-currency",
+      "type": "SCENARIO",
+      "prompt": "A matatu from Thika to Nairobi charges KES 80 per passenger. A mother boards with her 2 children. How much total fare must she pay?",
+      "storyScenario": "The matatu conductor asks for fare as the vehicle approaches the Thika Superhighway.",
+      "difficulty": "MEDIUM",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "KES 160"
+        },
+        {
+          "id": "opt-2",
+          "text": "KES 240"
+        },
+        {
+          "id": "opt-3",
+          "text": "KES 320"
+        },
+        {
+          "id": "opt-4",
+          "text": "KES 200"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "There are 3 passengers in total (1 mother + 2 children). 3 × KES 80 = KES 240.",
+      "socraticHint": "How many total people are travelling? Remember to count the mother and both children!",
+      "kenyanCulturalContext": "The Thika Superhighway is one of Kenya’s major transit corridors.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-matatu-02",
+      "subStrandId": "substrand-currency",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "If the mother pays the conductor with a KES 500 note for the KES 240 fare, how much balance should she receive?",
+      "storyScenario": "The conductor counts out coins and notes from his leather pouch.",
+      "difficulty": "MEDIUM",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "KES 240"
+        },
+        {
+          "id": "opt-2",
+          "text": "KES 260"
+        },
+        {
+          "id": "opt-3",
+          "text": "KES 360"
+        },
+        {
+          "id": "opt-4",
+          "text": "KES 160"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "500 - 240 = 260 shillings.",
+      "socraticHint": "500 minus 200 is 300. Now subtract 40 more from 300!",
+      "kenyanCulturalContext": "Matatu conductors and passengers practice fast mental arithmetic every day.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-matatu-fill-01",
+      "subStrandId": "substrand-currency",
+      "type": "FILL_BLANK",
+      "prompt": "If you have two KES 100 notes and three KES 20 coins, you have a total of [BLANK] Kenyan Shillings.",
+      "storyScenario": "Count your coins and notes before paying the fare.",
+      "difficulty": "EASY",
+      "fillBlankAnswers": [
+        "260",
+        "260 shillings",
+        "kes 260",
+        "260 kes"
+      ],
+      "blankTemplate": "Total money is [BLANK] Kenyan Shillings.",
+      "explanation": "Two 100-shilling notes = 200. Three 20-shilling coins = 60. 200 + 60 = 260 KES.",
+      "socraticHint": "Calculate the notes first (2 × 100), then the coins (3 × 20), then add them together.",
+      "kenyanCulturalContext": "Kenyan coins come in 1, 5, 10, and 20 shilling denominations.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-boss-01",
+      "subStrandId": "substrand-multiplication",
+      "type": "SCENARIO",
+      "prompt": "Grandmaster Challenge: Amina sells 6 packets of milk at KES 60 each, and 4 loaves of bread at KES 65 each. What is the grand total value of her sales?",
+      "storyScenario": "The Rift Valley Arena Guardian tests your master competency across multiple operations!",
+      "difficulty": "MASTERY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "KES 580"
+        },
+        {
+          "id": "opt-2",
+          "text": "KES 620"
+        },
+        {
+          "id": "opt-3",
+          "text": "KES 600"
+        },
+        {
+          "id": "opt-4",
+          "text": "KES 640"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "Milk: 6 × 60 = 360 KES. Bread: 4 × 65 = 260 KES. Total: 360 + 260 = 620 Kenyan Shillings!",
+      "socraticHint": "Break it into 2 steps: First calculate the cost of the milk. Then calculate the cost of the bread. Finally, add the two sums together!",
+      "kenyanCulturalContext": "Kenyan dairy farmers and bakeries deliver fresh supplies to community kiosks daily.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-sci-germ-01",
+      "subStrandId": "substrand-germination",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "Which of the following conditions is NOT essential for a bean seed to germinate in your school garden?",
+      "storyScenario": "Grade 4 learners set up four petri dishes with different conditions in the science corner.",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "Water (Unyevu)"
+        },
+        {
+          "id": "opt-2",
+          "text": "Oxygen / Air (Hewa safi)"
+        },
+        {
+          "id": "opt-3",
+          "text": "Warmth (Joto la wastani)"
+        },
+        {
+          "id": "opt-4",
+          "text": "Artificial chemical fertilizer"
+        }
+      ],
+      "correctOptionId": "opt-4",
+      "explanation": "Seeds already contain stored food in their cotyledons. They need water, air, and warmth to germinate. Artificial fertilizer is not required for germination.",
+      "socraticHint": "Think about what a tiny sleeping seed needs to awaken. Does a baby sprout need fertilizer before it even has roots?",
+      "kenyanCulturalContext": "In Kenyan schools, learners carry out bean germination experiments using cotton wool or sawdust.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-sci-germ-02",
+      "subStrandId": "substrand-germination",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "What is the very first plant part that emerges downwards from a germinating maize seed to absorb moisture?",
+      "storyScenario": "Wanjiku observes her germinating maize seeds through a magnifying glass.",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "The flower"
+        },
+        {
+          "id": "opt-2",
+          "text": "The radicle (young root)"
+        },
+        {
+          "id": "opt-3",
+          "text": "The plumule (young shoot)"
+        },
+        {
+          "id": "opt-4",
+          "text": "The dry seed coat"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "The radicle is the embryonic root that grows downward into the soil first to anchor the plant and absorb water.",
+      "socraticHint": "Which part goes down into the soil first: the root or the leaf shoot?",
+      "kenyanCulturalContext": "CBE Science and Technology emphasizes hands-on observation of nature.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-sci-germ-order-01",
+      "subStrandId": "substrand-germination",
+      "type": "ORDERING",
+      "prompt": "Arrange the stages of bean seed germination in the correct chronological order:",
+      "storyScenario": "Document the lifecycle for your CBC science portfolio.",
+      "difficulty": "MEDIUM",
+      "options": [
+        {
+          "id": "germ-1",
+          "text": "Seed absorbs water and swells up"
+        },
+        {
+          "id": "germ-2",
+          "text": "Seed coat splits open"
+        },
+        {
+          "id": "germ-3",
+          "text": "Radicle (root) grows downwards"
+        },
+        {
+          "id": "germ-4",
+          "text": "Plumule (shoot) grows upwards into sunlight"
+        }
+      ],
+      "correctOrderIds": [
+        "germ-1",
+        "germ-2",
+        "germ-3",
+        "germ-4"
+      ],
+      "explanation": "First the seed imbibes water and swells, the coat splits, the radicle emerges downwards, and finally the plumule shoots upwards.",
+      "socraticHint": "What must happen first before a hard dry seed can break its outer coat?",
+      "kenyanCulturalContext": "Kenyan agricultural projects start with seedbed preparation.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-sci-germ-match-01",
+      "subStrandId": "substrand-germination",
+      "type": "MATCHING",
+      "prompt": "Match each seed part with its biological function:",
+      "storyScenario": "Label the parts of a bean seed dissected in class.",
+      "difficulty": "MEDIUM",
+      "matchingPairs": [
+        {
+          "leftId": "part1",
+          "leftText": "Seed Coat (Testa)",
+          "rightId": "func1",
+          "rightText": "Protects the delicate seed inside"
+        },
+        {
+          "leftId": "part2",
+          "leftText": "Cotyledon",
+          "rightId": "func2",
+          "rightText": "Stores food for the baby plant"
+        },
+        {
+          "leftId": "part3",
+          "leftText": "Plumule",
+          "rightId": "func3",
+          "rightText": "Grows into the stem and green leaves"
+        }
+      ],
+      "explanation": "The seed coat protects, cotyledon feeds the embryo, and plumule becomes the leafy shoot.",
+      "socraticHint": "Think about why a bean seed is thick and plump—it stores nutritious food!",
+      "kenyanCulturalContext": "Beans (maharagwe) are a staple protein food in Kenyan homes.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-sci-hab-01",
+      "subStrandId": "substrand-habitats",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "In Maasai Mara National Reserve, which animal is a herbivore that feeds primarily on savanna grasses?",
+      "storyScenario": "Grade 4 learners take a virtual safari excursion to learn about ecosystems.",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "Lion (Simba)"
+        },
+        {
+          "id": "opt-2",
+          "text": "Zebra (Pundamilia)"
+        },
+        {
+          "id": "opt-3",
+          "text": "Leopard (Chui)"
+        },
+        {
+          "id": "opt-4",
+          "text": "Crocodile (Mamba)"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "Zebras are herbivores because they feed exclusively on grasses and vegetation in the savanna.",
+      "socraticHint": "Which of these animals eats grass rather than hunting other animals?",
+      "kenyanCulturalContext": "Maasai Mara hosts the Great Wildebeest and Zebra Migration every year.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-sci-hab-match-01",
+      "subStrandId": "substrand-habitats",
+      "type": "MATCHING",
+      "prompt": "Match each Kenyan animal to its natural primary habitat:",
+      "storyScenario": "Explore the different geographical zones of Kenya.",
+      "difficulty": "EASY",
+      "matchingPairs": [
+        {
+          "leftId": "an1",
+          "leftText": "Flamingo",
+          "rightId": "hb1",
+          "rightText": "Lake Nakuru alkaline water"
+        },
+        {
+          "leftId": "an2",
+          "leftText": "Bongo Antelope",
+          "rightId": "hb2",
+          "rightText": "Mount Kenya dense bamboo forest"
+        },
+        {
+          "leftId": "an3",
+          "leftText": "Camel (Ngamia)",
+          "rightId": "hb3",
+          "rightText": "Semi-arid plains of Garissa and Turkana"
+        }
+      ],
+      "explanation": "Flamingos inhabit Lake Nakuru, Bongos live in high mountain forests, and camels thrive in northern semi-arid counties.",
+      "socraticHint": "Which animal is built to survive for days without water in dry sandy areas?",
+      "kenyanCulturalContext": "Kenya’s rich biodiversity spans Rift Valley lakes, mountain forests, and northern rangelands.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-sci-hab-tf-01",
+      "subStrandId": "substrand-habitats",
+      "type": "TRUE_FALSE",
+      "prompt": "Are trees and vegetation essential for preventing fertile topsoil from being washed away during heavy rains in Kenya?",
+      "storyScenario": "The agriculture teacher discusses soil erosion on hilly terrain in Murang’a and Kisii.",
+      "difficulty": "EASY",
+      "correctBoolean": true,
+      "explanation": "Yes! Tree roots bind the soil together, preventing soil erosion and conserving moisture.",
+      "socraticHint": "What happens when steep hills are left bare without grass or tree roots when rain pours?",
+      "kenyanCulturalContext": "Kenyan environmental icon Professor Wangari Maathai championed tree planting to protect soils and water towers.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-kisw-01",
+      "subStrandId": "substrand-ngeli",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "Nomino \"Mwalimu\" na \"Wanafunzi\" ziko katika ngeli gani ya Kiswahili?",
+      "storyScenario": "Juma anajibu maswali ya sarufi darasani kwa Mwalimu Ochieng.",
+      "difficulty": "BEGINNER",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "Ngeli ya KI - VI"
+        },
+        {
+          "id": "opt-2",
+          "text": "Ngeli ya A - WA"
+        },
+        {
+          "id": "opt-3",
+          "text": "Ngeli ya LI - YA"
+        },
+        {
+          "id": "opt-4",
+          "text": "Ngeli ya U - I"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "Viumbe hai kama watu na wanyama huwekwa katika ngeli ya A-WA (umoja: A-, wingi: WA-). Mfano: Mwalimu anafundisha, Wanafunzi wanafunzwa.",
+      "socraticHint": "Fikiria viumbe wenye uhai. Unaposema \"Mwalimu ...somsha\", unatumia kiambishi gani?",
+      "kenyanCulturalContext": "Kiswahili ni lugha ya taifa na lugha rasmi nchini Kenya.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-kisw-02",
+      "subStrandId": "substrand-ngeli",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "Chagua umoja sahihi wa sentensi hii: \"Vitabu vizuri vimenunuliwa na mzazi.\"",
+      "storyScenario": "Badilisha sentensi kutoka wingi kwenda umoja katika ngeli ya KI-VI.",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "Kitabu zuri limenunuliwa na mzazi."
+        },
+        {
+          "id": "opt-2",
+          "text": "Kitabu kizuri kimenunuliwa na mzazi."
+        },
+        {
+          "id": "opt-3",
+          "text": "Kitabu mzuri amenunuliwa na mzazi."
+        },
+        {
+          "id": "opt-4",
+          "text": "Kitabu kizuri zimenunuliwa na mzazi."
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "Katika ngeli ya KI-VI, umoja wa \"Vitabu vizuri vimenunuliwa\" ni \"Kitabu kizuri kimenunuliwa\". Viambishi vya upatanisho wa kisarufi ni KI-.",
+      "socraticHint": "Angalia upatanisho wa kisarufi: Kitabu ki-zuri ki-menunuliwa.",
+      "kenyanCulturalContext": "Kujifunza upatanisho wa kisarufi huwasaidia wanafunzi kuandika insha bora.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-kisw-match-01",
+      "subStrandId": "substrand-ngeli",
+      "type": "MATCHING",
+      "prompt": "Oanisha maamkizi ya heshima na majibu yake sahihi katika utamaduni wetu:",
+      "storyScenario": "Maamkizi ya heshima kati ya watoto na wazee katika jamii.",
+      "difficulty": "BEGINNER",
+      "matchingPairs": [
+        {
+          "leftId": "k1",
+          "leftText": "Shikamoo",
+          "rightId": "j1",
+          "rightText": "Marahaba"
+        },
+        {
+          "leftId": "k2",
+          "leftText": "Hujambo",
+          "rightId": "j2",
+          "rightText": "Sijambo"
+        },
+        {
+          "leftId": "k3",
+          "leftText": "Habari za asubuhi",
+          "rightId": "j3",
+          "rightText": "Nzuri sana"
+        }
+      ],
+      "explanation": "Shikamoo hujibiwa Marahaba; Hujambo hujibiwa Sijambo; Habari za asubuhi hujibiwa Nzuri sana.",
+      "socraticHint": "Ni jibu gani la heshima unalompa nyanya au babu anapokujibu shikamoo?",
+      "kenyanCulturalContext": "Maamkizi na heshima ni nguzo muhimu katika maadili ya mtalaa wa CBC.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-kisw-fill-01",
+      "subStrandId": "substrand-ngeli",
+      "type": "FILL_BLANK",
+      "prompt": "Kamilisha sentensi: Mtoto mtiifu [BLANK]wasaidia wazazi wake nyumbani kila jioni.",
+      "storyScenario": "Jaza kiambishi sahihi cha ngeli ya A-WA katika wakati uliopo.",
+      "difficulty": "EASY",
+      "fillBlankAnswers": [
+        "a",
+        "ana"
+      ],
+      "blankTemplate": "Mtoto mtiifu [BLANK]wasaidia wazazi wake nyumbani.",
+      "explanation": "Katika ngeli ya A-WA, mtoto mmoja (umoja) huchukua kiambishi \"a\" (anawasaidia au awasaidia).",
+      "socraticHint": "Katika umoja wa ngeli ya A-WA, tunatumia kiambishi gani cha kitenzi?",
+      "kenyanCulturalContext": "Kuheshimu na kusaidia wazazi ni miongoni mwa maadili mema ya jamii.",
+      "sourceType": "CURRICULUM_ALIGNED",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-test-admin-1791459913131",
+      "subStrandId": "substrand-currency",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "How many 50-shilling notes make 200 shillings?",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "2 notes"
+        },
+        {
+          "id": "opt-2",
+          "text": "4 notes"
+        },
+        {
+          "id": "opt-3",
+          "text": "5 notes"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "4 × 50 = 200 shillings.",
+      "socraticHint": "Count by fifties: 50, 100, 150...",
+      "kenyanCulturalContext": "Fifty shilling notes feature Kenyan wildlife.",
+      "sourceType": "AI_PRACTICE",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-test-admin-1791460052879",
+      "subStrandId": "substrand-currency",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "How many 50-shilling notes make 200 shillings?",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "2 notes"
+        },
+        {
+          "id": "opt-2",
+          "text": "4 notes"
+        },
+        {
+          "id": "opt-3",
+          "text": "5 notes"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "4 × 50 = 200 shillings.",
+      "socraticHint": "Count by fifties: 50, 100, 150...",
+      "kenyanCulturalContext": "Fifty shilling notes feature Kenyan wildlife.",
+      "sourceType": "AI_PRACTICE",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-test-admin-1791462520910",
+      "subStrandId": "substrand-currency",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "How many 50-shilling notes make 200 shillings?",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "2 notes"
+        },
+        {
+          "id": "opt-2",
+          "text": "4 notes"
+        },
+        {
+          "id": "opt-3",
+          "text": "5 notes"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "4 × 50 = 200 shillings.",
+      "socraticHint": "Count by fifties: 50, 100, 150...",
+      "kenyanCulturalContext": "Fifty shilling notes feature Kenyan wildlife.",
+      "sourceType": "AI_PRACTICE",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-test-admin-1791462805766",
+      "subStrandId": "substrand-currency",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "How many 50-shilling notes make 200 shillings?",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "2 notes"
+        },
+        {
+          "id": "opt-2",
+          "text": "4 notes"
+        },
+        {
+          "id": "opt-3",
+          "text": "5 notes"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "4 × 50 = 200 shillings.",
+      "socraticHint": "Count by fifties: 50, 100, 150...",
+      "kenyanCulturalContext": "Fifty shilling notes feature Kenyan wildlife.",
+      "sourceType": "AI_PRACTICE",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-test-admin-1791464406210",
+      "subStrandId": "substrand-currency",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "How many 50-shilling notes make 200 shillings?",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "2 notes"
+        },
+        {
+          "id": "opt-2",
+          "text": "4 notes"
+        },
+        {
+          "id": "opt-3",
+          "text": "5 notes"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "4 × 50 = 200 shillings.",
+      "socraticHint": "Count by fifties: 50, 100, 150...",
+      "kenyanCulturalContext": "Fifty shilling notes feature Kenyan wildlife.",
+      "sourceType": "AI_PRACTICE",
+      "contentStatus": "PUBLISHED"
+    }
+  ],
+  "achievements": [
+    {
+      "id": "badge-seedling-starter",
+      "code": "SEEDLING_STARTER",
+      "title": "Green Thumb Sower",
+      "description": "Completed your first agricultural multiplication mission with Amina!",
+      "icon": "sprout",
+      "xpReward": 50,
+      "coinReward": 25,
+      "category": "EXPLORATION"
+    },
+    {
+      "id": "badge-shilling-saver",
+      "code": "SHILLING_SAVER",
+      "title": "Market Money Master",
+      "description": "Calculated grocery totals and change without making a mistake at Kongowea Market!",
+      "icon": "coins",
+      "xpReward": 60,
+      "coinReward": 30,
+      "category": "MASTERY"
+    },
+    {
+      "id": "badge-chapati-master",
+      "code": "CHAPATI_MASTER",
+      "title": "Chapati Fraction Guru",
+      "description": "Divided chapatis fairly and mastered equivalent fractions!",
+      "icon": "pie-chart",
+      "xpReward": 75,
+      "coinReward": 35,
+      "category": "MASTERY"
+    },
+    {
+      "id": "badge-matatu-navigator",
+      "code": "MATATU_NAVIGATOR",
+      "title": "Matatu Navigator",
+      "description": "Solved real-world commuter fare calculations on the highway!",
+      "icon": "truck",
+      "xpReward": 80,
+      "coinReward": 40,
+      "category": "SPEED"
+    },
+    {
+      "id": "badge-rift-valley-champion",
+      "code": "RIFT_CHAMPION",
+      "title": "Rift Valley Champion",
+      "description": "Defeated the Grandmaster Boss Challenge in Math Kingdom!",
+      "icon": "trophy",
+      "xpReward": 150,
+      "coinReward": 100,
+      "category": "MASTERY"
+    },
+    {
+      "id": "badge-science-detective",
+      "code": "SCIENCE_DETECTIVE",
+      "title": "Savanna Science Explorer",
+      "description": "Completed seed germination experiments and investigated Kenyan wildlife!",
+      "icon": "microscope",
+      "xpReward": 60,
+      "coinReward": 30,
+      "category": "EXPLORATION"
+    },
+    {
+      "id": "badge-kiswahili-star",
+      "code": "KISWAHILI_STAR",
+      "title": "Nyota wa Kiswahili",
+      "description": "Umetatua mafumbo ya ngeli za Kiswahili na maamkizi ya adabu!",
+      "icon": "star",
+      "xpReward": 60,
+      "coinReward": 30,
+      "category": "MASTERY"
+    },
+    {
+      "id": "badge-seven-day-streak",
+      "code": "STREAK_7_DAYS",
+      "title": "Simba 7-Day Streak",
+      "description": "Kept the fire burning by learning every day for 7 consecutive days!",
+      "icon": "flame",
+      "xpReward": 200,
+      "coinReward": 150,
+      "category": "STREAK"
+    }
+  ],
+  "masteries": {
+    "student-amina-01": [
+      {
+        "strandId": "strand-math-numbers",
+        "strandTitle": "Numbers & Operations",
+        "learningAreaName": "Mathematics",
+        "masteryPercentage": 85,
+        "totalAttempts": 12,
+        "correctAttempts": 10,
+        "status": "PROFICIENT",
+        "lastPracticedDate": "2026-10-08"
+      },
+      {
+        "strandId": "strand-math-money",
+        "strandTitle": "Measurement & Kenyan Currency",
+        "learningAreaName": "Mathematics",
+        "masteryPercentage": 60,
+        "totalAttempts": 8,
+        "correctAttempts": 5,
+        "status": "DEVELOPING",
+        "lastPracticedDate": "2026-10-08"
+      },
+      {
+        "strandId": "strand-sci-living",
+        "strandTitle": "Living Things & Environment",
+        "learningAreaName": "Science & Technology",
+        "masteryPercentage": 90,
+        "totalAttempts": 10,
+        "correctAttempts": 9,
+        "status": "EXCEEDING",
+        "lastPracticedDate": "2026-10-08"
+      },
+      {
+        "strandId": "strand-kisw-sarufi",
+        "strandTitle": "Sarufi na Matumizi ya Lugha",
+        "learningAreaName": "Kiswahili",
+        "masteryPercentage": 45,
+        "totalAttempts": 6,
+        "correctAttempts": 3,
+        "status": "NEEDS_PRACTICE",
+        "lastPracticedDate": "2026-10-08"
+      }
+    ],
+    "test-std-1791459913041": [
+      {
+        "strandId": "strand-math-numbers",
+        "strandTitle": "Numbers & Operations",
+        "learningAreaName": "Mathematics",
+        "masteryPercentage": 100,
+        "totalAttempts": 4,
+        "correctAttempts": 4,
+        "status": "EXCEEDING",
+        "lastPracticedDate": "2026-10-08"
+      }
+    ],
+    "test-std-1791460052768": [
+      {
+        "strandId": "strand-math-numbers",
+        "strandTitle": "Numbers & Operations",
+        "learningAreaName": "Mathematics",
+        "masteryPercentage": 100,
+        "totalAttempts": 4,
+        "correctAttempts": 4,
+        "status": "EXCEEDING",
+        "lastPracticedDate": "2026-10-08"
+      }
+    ],
+    "test-std-1791462520842": [
+      {
+        "strandId": "strand-math-numbers",
+        "strandTitle": "Numbers & Operations",
+        "learningAreaName": "Mathematics",
+        "masteryPercentage": 100,
+        "totalAttempts": 4,
+        "correctAttempts": 4,
+        "status": "EXCEEDING",
+        "lastPracticedDate": "2026-10-08"
+      }
+    ],
+    "test-std-1791462805721": [
+      {
+        "strandId": "strand-math-numbers",
+        "strandTitle": "Numbers & Operations",
+        "learningAreaName": "Mathematics",
+        "masteryPercentage": 100,
+        "totalAttempts": 4,
+        "correctAttempts": 4,
+        "status": "EXCEEDING",
+        "lastPracticedDate": "2026-10-08"
+      }
+    ],
+    "test-std-1791464406159": [
+      {
+        "strandId": "strand-math-numbers",
+        "strandTitle": "Numbers & Operations",
+        "learningAreaName": "Mathematics",
+        "masteryPercentage": 100,
+        "totalAttempts": 4,
+        "correctAttempts": 4,
+        "status": "EXCEEDING",
+        "lastPracticedDate": "2026-10-08"
+      }
+    ]
+  },
+  "sessionResults": [
+    {
+      "sessionId": "sess-1791459913118-lbjug",
+      "missionId": "mission-01-seedlings",
+      "studentId": "test-std-1791459913041",
+      "scorePercentage": 100,
+      "totalQuestions": 4,
+      "correctAnswersCount": 4,
+      "xpEarned": 60,
+      "coinsEarned": 30,
+      "heartsRemaining": 5,
+      "streakMaintained": true,
+      "unlockedAchievements": [
+        {
+          "id": "badge-seedling-starter",
+          "code": "SEEDLING_STARTER",
+          "title": "Green Thumb Sower",
+          "description": "Completed your first agricultural multiplication mission with Amina!",
+          "icon": "sprout",
+          "xpReward": 50,
+          "coinReward": 25,
+          "category": "EXPLORATION"
+        }
+      ],
+      "leveledUp": false,
+      "newLevel": 1,
+      "completedAt": "2026-10-08T11:45:13.118Z"
+    },
+    {
+      "sessionId": "sess-1791460052862-q3syb",
+      "missionId": "mission-01-seedlings",
+      "studentId": "test-std-1791460052768",
+      "scorePercentage": 100,
+      "totalQuestions": 4,
+      "correctAnswersCount": 4,
+      "xpEarned": 60,
+      "coinsEarned": 30,
+      "heartsRemaining": 5,
+      "streakMaintained": true,
+      "unlockedAchievements": [
+        {
+          "id": "badge-seedling-starter",
+          "code": "SEEDLING_STARTER",
+          "title": "Green Thumb Sower",
+          "description": "Completed your first agricultural multiplication mission with Amina!",
+          "icon": "sprout",
+          "xpReward": 50,
+          "coinReward": 25,
+          "category": "EXPLORATION"
+        }
+      ],
+      "leveledUp": false,
+      "newLevel": 1,
+      "completedAt": "2026-10-08T11:47:32.862Z"
+    },
+    {
+      "sessionId": "sess-1791462520898-s68w8",
+      "missionId": "mission-01-seedlings",
+      "studentId": "test-std-1791462520842",
+      "scorePercentage": 100,
+      "totalQuestions": 4,
+      "correctAnswersCount": 4,
+      "xpEarned": 60,
+      "coinsEarned": 30,
+      "heartsRemaining": 5,
+      "streakMaintained": true,
+      "unlockedAchievements": [
+        {
+          "id": "badge-seedling-starter",
+          "code": "SEEDLING_STARTER",
+          "title": "Green Thumb Sower",
+          "description": "Completed your first agricultural multiplication mission with Amina!",
+          "icon": "sprout",
+          "xpReward": 50,
+          "coinReward": 25,
+          "category": "EXPLORATION"
+        }
+      ],
+      "leveledUp": false,
+      "newLevel": 1,
+      "completedAt": "2026-10-08T12:28:40.898Z"
+    },
+    {
+      "sessionId": "sess-1791462805757-uskag",
+      "missionId": "mission-01-seedlings",
+      "studentId": "test-std-1791462805721",
+      "scorePercentage": 100,
+      "totalQuestions": 4,
+      "correctAnswersCount": 4,
+      "xpEarned": 60,
+      "coinsEarned": 30,
+      "heartsRemaining": 5,
+      "streakMaintained": true,
+      "unlockedAchievements": [
+        {
+          "id": "badge-seedling-starter",
+          "code": "SEEDLING_STARTER",
+          "title": "Green Thumb Sower",
+          "description": "Completed your first agricultural multiplication mission with Amina!",
+          "icon": "sprout",
+          "xpReward": 50,
+          "coinReward": 25,
+          "category": "EXPLORATION"
+        }
+      ],
+      "leveledUp": false,
+      "newLevel": 1,
+      "completedAt": "2026-10-08T12:33:25.757Z"
+    },
+    {
+      "sessionId": "sess-1791464406203-cfsix",
+      "missionId": "mission-01-seedlings",
+      "studentId": "test-std-1791464406159",
+      "scorePercentage": 100,
+      "totalQuestions": 4,
+      "correctAnswersCount": 4,
+      "xpEarned": 60,
+      "coinsEarned": 30,
+      "heartsRemaining": 5,
+      "streakMaintained": true,
+      "unlockedAchievements": [
+        {
+          "id": "badge-seedling-starter",
+          "code": "SEEDLING_STARTER",
+          "title": "Green Thumb Sower",
+          "description": "Completed your first agricultural multiplication mission with Amina!",
+          "icon": "sprout",
+          "xpReward": 50,
+          "coinReward": 25,
+          "category": "EXPLORATION"
+        }
+      ],
+      "leveledUp": false,
+      "newLevel": 1,
+      "completedAt": "2026-10-08T13:00:06.203Z"
+    }
+  ],
+  "analyticsEvents": [
+    {
+      "id": "evt-1791459913122",
+      "studentId": "test-std-1791459913041",
+      "eventType": "mission_completed",
+      "metadata": {
+        "missionId": "mission-01-seedlings",
+        "scorePercentage": 100,
+        "xpEarned": 60,
+        "coinsEarned": 30,
+        "stars": 3
+      },
+      "timestamp": "2026-10-08T11:45:13.122Z"
+    },
+    {
+      "id": "evt-1791460052866",
+      "studentId": "test-std-1791460052768",
+      "eventType": "mission_completed",
+      "metadata": {
+        "missionId": "mission-01-seedlings",
+        "scorePercentage": 100,
+        "xpEarned": 60,
+        "coinsEarned": 30,
+        "stars": 3
+      },
+      "timestamp": "2026-10-08T11:47:32.866Z"
+    },
+    {
+      "id": "evt-1791462520903",
+      "studentId": "test-std-1791462520842",
+      "eventType": "mission_completed",
+      "metadata": {
+        "missionId": "mission-01-seedlings",
+        "scorePercentage": 100,
+        "xpEarned": 60,
+        "coinsEarned": 30,
+        "stars": 3
+      },
+      "timestamp": "2026-10-08T12:28:40.903Z"
+    },
+    {
+      "id": "evt-1791462805759",
+      "studentId": "test-std-1791462805721",
+      "eventType": "mission_completed",
+      "metadata": {
+        "missionId": "mission-01-seedlings",
+        "scorePercentage": 100,
+        "xpEarned": 60,
+        "coinsEarned": 30,
+        "stars": 3
+      },
+      "timestamp": "2026-10-08T12:33:25.759Z"
+    },
+    {
+      "id": "evt-1791464406206",
+      "studentId": "test-std-1791464406159",
+      "eventType": "mission_completed",
+      "metadata": {
+        "missionId": "mission-01-seedlings",
+        "scorePercentage": 100,
+        "xpEarned": 60,
+        "coinsEarned": 30,
+        "stars": 3
+      },
+      "timestamp": "2026-10-08T13:00:06.206Z"
+    }
+  ],
+  "xpTransactions": [
+    {
+      "id": "xp-init-01",
+      "studentId": "student-amina-01",
+      "amount": 420,
+      "reason": "Welcome bonus & completed Mission 01",
+      "timestamp": "2026-10-08T11:45:12.332Z"
+    },
+    {
+      "id": "xp-tx-1791459913078-hunw",
+      "studentId": "test-std-1791459913041",
+      "amount": 60,
+      "reason": "Completed mission: Help Amina Plant Seedlings (100%)",
+      "timestamp": "2026-10-08T11:45:13.078Z"
+    },
+    {
+      "id": "xp-tx-1791460052844-ofd6",
+      "studentId": "test-std-1791460052768",
+      "amount": 60,
+      "reason": "Completed mission: Help Amina Plant Seedlings (100%)",
+      "timestamp": "2026-10-08T11:47:32.846Z"
+    },
+    {
+      "id": "xp-tx-1791462520889-mlsf",
+      "studentId": "test-std-1791462520842",
+      "amount": 60,
+      "reason": "Completed mission: Help Amina Plant Seedlings (100%)",
+      "timestamp": "2026-10-08T12:28:40.889Z"
+    },
+    {
+      "id": "xp-tx-1791462805750-n83t",
+      "studentId": "test-std-1791462805721",
+      "amount": 60,
+      "reason": "Completed mission: Help Amina Plant Seedlings (100%)",
+      "timestamp": "2026-10-08T12:33:25.751Z"
+    },
+    {
+      "id": "xp-tx-1791464406193-cwk6",
+      "studentId": "test-std-1791464406159",
+      "amount": 60,
+      "reason": "Completed mission: Help Amina Plant Seedlings (100%)",
+      "timestamp": "2026-10-08T13:00:06.193Z"
+    }
+  ],
+  "coinTransactions": [
+    {
+      "id": "coin-init-01",
+      "studentId": "student-amina-01",
+      "amount": 185,
+      "reason": "Initial savings & Mission 01 reward",
+      "timestamp": "2026-10-08T11:45:12.332Z"
+    },
+    {
+      "id": "coin-tx-1791459913095-hkwf",
+      "studentId": "test-std-1791459913041",
+      "amount": 30,
+      "reason": "Earned in mission: Help Amina Plant Seedlings",
+      "timestamp": "2026-10-08T11:45:13.095Z"
+    },
+    {
+      "id": "coin-tx-1791460052850-zgix",
+      "studentId": "test-std-1791460052768",
+      "amount": 30,
+      "reason": "Earned in mission: Help Amina Plant Seedlings",
+      "timestamp": "2026-10-08T11:47:32.850Z"
+    },
+    {
+      "id": "coin-tx-1791462520892-6ygt",
+      "studentId": "test-std-1791462520842",
+      "amount": 30,
+      "reason": "Earned in mission: Help Amina Plant Seedlings",
+      "timestamp": "2026-10-08T12:28:40.892Z"
+    },
+    {
+      "id": "coin-tx-1791462805753-8qsi",
+      "studentId": "test-std-1791462805721",
+      "amount": 30,
+      "reason": "Earned in mission: Help Amina Plant Seedlings",
+      "timestamp": "2026-10-08T12:33:25.753Z"
+    },
+    {
+      "id": "coin-tx-1791464406197-x2td",
+      "studentId": "test-std-1791464406159",
+      "amount": 30,
+      "reason": "Earned in mission: Help Amina Plant Seedlings",
+      "timestamp": "2026-10-08T13:00:06.197Z"
+    }
+  ]
+}

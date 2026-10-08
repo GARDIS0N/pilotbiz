@@ -2,7 +2,7 @@ export type JarvisState = 'idle' | 'listening' | 'thinking' | 'speaking';
 export type LiveConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'reconnecting' | 'error';
 
 export type TaskPriority = 'HIGH' | 'MEDIUM' | 'LOW';
-export type TaskCategory = 'nestlist' | 'studies' | 'skills' | 'business' | 'content' | 'general';
+export type TaskCategory = 'work' | 'personal' | 'study' | 'skills' | 'business' | 'general';
 export type GoalPriorityTier = 'MUST_WIN' | 'SHOULD_ADVANCE' | 'MAINTAIN' | 'PAUSE';
 
 export interface TaskItem {
@@ -150,15 +150,101 @@ export interface ToolActionLog {
   timestamp: string;
 }
 
+export type InfoSourceType =
+  | 'PERSONAL_MEMORY'
+  | 'PROJECT_MEMORY'
+  | 'GOOGLE_DRIVE'
+  | 'WEB_RESEARCH'
+  | 'CURRENT_CONVERSATION'
+  | 'SYSTEM_INFO';
+
+export interface SourceAttribution {
+  type: InfoSourceType;
+  label: string;
+  detail?: string;
+  url?: string;
+}
+
+export type PermissionLevel = 'READ' | 'SUGGEST' | 'EXECUTE' | 'CONFIRM' | 'BLOCKED';
+
+export interface PendingConfirmationAction {
+  id: string;
+  actionType: string;
+  description: string;
+  permission: PermissionLevel;
+  payload: any;
+  status: 'pending' | 'approved' | 'rejected';
+  timestamp: string;
+}
+
+export interface TaskExecutionStep {
+  step: string;
+  status: 'pending' | 'running' | 'success' | 'error';
+  detail?: string;
+  tool?: string;
+}
+
 export interface TranscriptMessage {
   id: string;
   role: 'user' | 'assistant' | 'system';
   text: string;
   timestamp: string;
+  senderName?: string;
   sources?: SourceCitation[];
+  attributions?: SourceAttribution[];
+  pendingConfirmation?: PendingConfirmationAction;
+  taskSteps?: TaskExecutionStep[];
   toolAction?: ToolActionLog;
   audioUrl?: string;
   report?: FullBriefingReport;
+}
+
+export type MemoryCategory = 'preference' | 'habit' | 'instruction' | 'fact' | 'person' | 'goal' | 'general';
+export type MemorySource = 'USER_EXPLICIT' | 'CONVERSATION_INFERRED' | 'SYSTEM' | 'GOOGLE_DRIVE';
+export type MemoryImportance = 'high' | 'medium' | 'low';
+
+export interface MemoryItem {
+  id: string;
+  content: string;
+  category: MemoryCategory;
+  source: MemorySource;
+  importance: MemoryImportance;
+  tags?: string[];
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export type ProjectStatus = 'ACTIVE' | 'PLANNING' | 'PAUSED' | 'COMPLETED';
+
+export interface ProjectTask {
+  id: string;
+  title: string;
+  completed: boolean;
+  due?: string;
+}
+
+export interface ProjectDecision {
+  id: string;
+  title: string;
+  date: string;
+  rationale?: string;
+}
+
+export interface ProjectItem {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  status: ProjectStatus;
+  goals: string[];
+  tasks: ProjectTask[];
+  decisions: ProjectDecision[];
+  importantFiles?: string[];
+  technologies?: string[];
+  knownProblems?: string[];
+  nextActions?: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ScheduleItem {
@@ -190,6 +276,17 @@ export interface AccountabilityData {
   };
 }
 
+export interface ManagerMemory {
+  goals: string[];
+  wins: string[];
+  struggles: string[];
+  preferences: string[];
+}
+
+export type ChatMode = 'jarvis' | 'manager';
+
+export type MicState = 'idle' | 'listening' | 'processing' | 'error';
+
 export interface JarvisSettings {
   addressUserAs: string;
   voiceName: 'Zephyr' | 'Fenrir' | 'Puck' | 'Charon' | 'Kore';
@@ -202,5 +299,9 @@ export interface JarvisSettings {
   morningCheckInTime?: string; // default: "08:30"
   middayCheckInTime?: string;  // default: "13:00"
   eveningCheckInTime?: string; // default: "20:00"
+  managerName?: string; // default: "Coach"
+  chatMode?: ChatMode;
+  voiceLanguage?: string; // default: "en-US"
+  autoSendVoice?: boolean; // default: true
 }
 

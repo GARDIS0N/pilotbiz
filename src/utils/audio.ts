@@ -74,6 +74,10 @@ export class LiveAudioPlayer {
     }
   }
 
+  public playChunkBase64(base64PCM: string) {
+    this.enqueueChunk(base64PCM);
+  }
+
   public enqueueChunk(base64PCM: string) {
     this.initContext();
     if (!this.ctx || !this.gainNode) return;

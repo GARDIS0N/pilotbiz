@@ -130,7 +130,7 @@ export const TasksPanel: React.FC<TasksPanelProps> = ({
   // Task creation state
   const [newTitle, setNewTitle] = useState('');
   const [newPriority, setNewPriority] = useState<TaskPriority>('HIGH');
-  const [newCategory, setNewCategory] = useState<TaskCategory>('nestlist');
+  const [newCategory, setNewCategory] = useState<TaskCategory>('work');
   const [newDueTime, setNewDueTime] = useState('');
   const [newEstimatedMin, setNewEstimatedMin] = useState<number>(30);
   const [newIsTop3, setNewIsTop3] = useState<boolean>(false);
@@ -139,7 +139,7 @@ export const TasksPanel: React.FC<TasksPanelProps> = ({
 
   // Goal creation state
   const [goalTitle, setGoalTitle] = useState('');
-  const [goalCategory, setGoalCategory] = useState<TaskCategory>('nestlist');
+  const [goalCategory, setGoalCategory] = useState<TaskCategory>('work');
   const [goalWeeklyTarget, setGoalWeeklyTarget] = useState('');
   const [goalDailyAction, setGoalDailyAction] = useState('');
   const [goalMetrics, setGoalMetrics] = useState('');
@@ -240,8 +240,8 @@ export const TasksPanel: React.FC<TasksPanelProps> = ({
       wins: winsArray.length ? winsArray : ['Direct execution across key milestones'],
       misses: missesArray,
       failureClassification: reviewClassification,
-      tomorrowTop3: tomorrowArray.length ? tomorrowArray : ['Deploy NestList feature', 'MLS revision block', 'Content batch'],
-      tomorrowNumberOnePriority: reviewTomorrowNumberOne.trim() || tomorrowArray[0] || 'Deploy NestList pilot',
+      tomorrowTop3: tomorrowArray.length ? tomorrowArray : ['Execute priority milestone 1', 'Focus work block', 'Review & plan'],
+      tomorrowNumberOnePriority: reviewTomorrowNumberOne.trim() || tomorrowArray[0] || 'Execute primary focus milestone',
     });
 
     setReviewWins('');
@@ -269,12 +269,12 @@ export const TasksPanel: React.FC<TasksPanelProps> = ({
   };
 
   const categoryLabels: Record<TaskCategory, { label: string; badge: string }> = {
-    nestlist: { label: 'NestList (Rentals)', badge: 'bg-amber-950/70 border-amber-500/40 text-amber-300' },
-    studies: { label: 'MLS (Murang\'a Univ)', badge: 'bg-emerald-950/70 border-emerald-500/40 text-emerald-300' },
-    skills: { label: 'Tech & AI Skills', badge: 'bg-cyan-950/70 border-cyan-500/40 text-cyan-300' },
-    business: { label: 'Business & Income', badge: 'bg-blue-950/70 border-blue-500/40 text-blue-300' },
-    content: { label: 'Content Creation', badge: 'bg-purple-950/70 border-purple-500/40 text-purple-300' },
-    general: { label: 'General Responsibility', badge: 'bg-slate-900 border-slate-700 text-slate-300' },
+    work: { label: 'Work & Projects', badge: 'bg-emerald-950/70 border-emerald-500/40 text-emerald-300' },
+    study: { label: 'Study & Academics', badge: 'bg-teal-950/70 border-teal-500/40 text-teal-300' },
+    skills: { label: 'Tech & Skills', badge: 'bg-cyan-950/70 border-cyan-500/40 text-cyan-300' },
+    business: { label: 'Business & Ventures', badge: 'bg-blue-950/70 border-blue-500/40 text-blue-300' },
+    personal: { label: 'Personal & Health', badge: 'bg-amber-950/70 border-amber-500/40 text-amber-300' },
+    general: { label: 'General', badge: 'bg-slate-900 border-slate-700 text-slate-300' },
   };
 
   return (
@@ -423,7 +423,7 @@ export const TasksPanel: React.FC<TasksPanelProps> = ({
                 🎯 TODAY'S MISSION
               </span>
               <p className="text-xs font-semibold text-white mt-0.5 leading-snug">
-                {todayMission || 'Advance NestList core user acquisition flow & clear MLS Hematology module.'}
+                {todayMission || 'Execute highest-leverage priority tasks and achieve primary daily objective.'}
               </p>
             </div>
 
@@ -489,7 +489,7 @@ export const TasksPanel: React.FC<TasksPanelProps> = ({
                 </h4>
               </div>
               <span className="text-[10px] font-mono-tech text-cyan-500/60">
-                1: NESTLIST &bull; 2: ACADEMICS &bull; 3: SKILLS
+                1: PRIMARY &bull; 2: SECONDARY &bull; 3: BUFFER
               </span>
             </div>
 
@@ -616,24 +616,24 @@ export const TasksPanel: React.FC<TasksPanelProps> = ({
               ALL
             </button>
             <button
-              onClick={() => setFilterCategory('nestlist')}
+              onClick={() => setFilterCategory('work')}
               className={`px-2 py-0.5 rounded uppercase tracking-wider transition-all whitespace-nowrap ${
-                filterCategory === 'nestlist'
-                  ? 'bg-amber-950/80 text-amber-200 border border-amber-400/60 font-semibold'
-                  : 'text-amber-500/60 hover:text-amber-300'
-              }`}
-            >
-              NESTLIST
-            </button>
-            <button
-              onClick={() => setFilterCategory('studies')}
-              className={`px-2 py-0.5 rounded uppercase tracking-wider transition-all whitespace-nowrap ${
-                filterCategory === 'studies'
+                filterCategory === 'work'
                   ? 'bg-emerald-950/80 text-emerald-200 border border-emerald-400/60 font-semibold'
                   : 'text-emerald-500/60 hover:text-emerald-300'
               }`}
             >
-              MLS STUDIES
+              WORK
+            </button>
+            <button
+              onClick={() => setFilterCategory('study')}
+              className={`px-2 py-0.5 rounded uppercase tracking-wider transition-all whitespace-nowrap ${
+                filterCategory === 'study'
+                  ? 'bg-teal-950/80 text-teal-200 border border-teal-400/60 font-semibold'
+                  : 'text-teal-500/60 hover:text-teal-300'
+              }`}
+            >
+              STUDY
             </button>
             <button
               onClick={() => setFilterCategory('skills')}
@@ -643,17 +643,27 @@ export const TasksPanel: React.FC<TasksPanelProps> = ({
                   : 'text-cyan-500/60 hover:text-cyan-300'
               }`}
             >
-              AI & SKILLS
+              SKILLS
             </button>
             <button
-              onClick={() => setFilterCategory('content')}
+              onClick={() => setFilterCategory('business')}
               className={`px-2 py-0.5 rounded uppercase tracking-wider transition-all whitespace-nowrap ${
-                filterCategory === 'content'
-                  ? 'bg-purple-950/80 text-purple-200 border border-purple-400/60 font-semibold'
-                  : 'text-purple-500/60 hover:text-purple-300'
+                filterCategory === 'business'
+                  ? 'bg-blue-950/80 text-blue-200 border border-blue-400/60 font-semibold'
+                  : 'text-blue-500/60 hover:text-blue-300'
               }`}
             >
-              CONTENT
+              BUSINESS
+            </button>
+            <button
+              onClick={() => setFilterCategory('personal')}
+              className={`px-2 py-0.5 rounded uppercase tracking-wider transition-all whitespace-nowrap ${
+                filterCategory === 'personal'
+                  ? 'bg-amber-950/80 text-amber-200 border border-amber-400/60 font-semibold'
+                  : 'text-amber-500/60 hover:text-amber-300'
+              }`}
+            >
+              PERSONAL
             </button>
           </div>
 
@@ -682,11 +692,11 @@ export const TasksPanel: React.FC<TasksPanelProps> = ({
                 onChange={(e: any) => setNewCategory(e.target.value)}
                 className="bg-slate-900 text-cyan-300 border border-cyan-500/30 rounded px-1.5 py-1 focus:outline-none"
               >
-                <option value="nestlist">NestList</option>
-                <option value="studies">MLS Studies</option>
+                <option value="work">Work & Projects</option>
+                <option value="study">Study & Academics</option>
                 <option value="skills">AI & Tech Skills</option>
                 <option value="business">Business</option>
-                <option value="content">Content</option>
+                <option value="personal">Personal & Health</option>
                 <option value="general">General</option>
               </select>
 
@@ -856,7 +866,7 @@ export const TasksPanel: React.FC<TasksPanelProps> = ({
               type="text"
               value={goalTitle}
               onChange={(e) => setGoalTitle(e.target.value)}
-              placeholder="Goal title (e.g. Master Clinical Chemistry, Scale NestList)..."
+              placeholder="Goal title (e.g. Master Machine Learning, Scale Product)..."
               className="w-full bg-black/60 border border-emerald-500/30 rounded-lg px-2.5 py-1 text-xs text-white placeholder-emerald-600/50 focus:outline-none focus:border-emerald-400"
             />
             <div className="grid grid-cols-2 gap-1.5">
@@ -881,11 +891,12 @@ export const TasksPanel: React.FC<TasksPanelProps> = ({
                 onChange={(e: any) => setGoalCategory(e.target.value)}
                 className="bg-slate-900 text-xs text-emerald-300 border border-emerald-500/30 rounded px-2 py-1 focus:outline-none"
               >
-                <option value="nestlist">NestList Marketplace</option>
-                <option value="studies">Murang'a MLS Studies</option>
+                <option value="work">Work & Ventures</option>
+                <option value="study">Academic & Study</option>
                 <option value="skills">Technical & AI Skills</option>
                 <option value="business">Business & Income</option>
-                <option value="content">Content & Brand</option>
+                <option value="personal">Personal & Health</option>
+                <option value="general">General Responsibility</option>
               </select>
               <select
                 value={goalTier}
@@ -991,7 +1002,7 @@ export const TasksPanel: React.FC<TasksPanelProps> = ({
               type="text"
               value={commitText}
               onChange={(e) => setCommitText(e.target.value)}
-              placeholder="What are you committing to? (e.g. Finish 15 hematology practice questions)"
+              placeholder="What are you committing to? (e.g. Finish 15 practice questions, complete milestone)"
               className="w-full bg-black/60 border border-sky-500/30 rounded-lg px-2.5 py-1 text-xs text-white placeholder-sky-600/50 focus:outline-none focus:border-sky-400"
             />
             <div className="grid grid-cols-2 gap-1.5">
@@ -1130,7 +1141,7 @@ export const TasksPanel: React.FC<TasksPanelProps> = ({
                 rows={2}
                 value={reviewWins}
                 onChange={(e) => setReviewWins(e.target.value)}
-                placeholder="• Validated NestList caretaker signup flow&#10;• Completed 20 Hematology practice questions"
+                placeholder="• Validated core user flow&#10;• Completed 2 deep work focus blocks"
                 className="w-full bg-black/60 border border-cyan-500/30 rounded p-1.5 text-xs text-cyan-100 placeholder-cyan-600/40 focus:outline-none focus:border-cyan-400"
               />
             </div>
@@ -1225,19 +1236,19 @@ export const TasksPanel: React.FC<TasksPanelProps> = ({
       )}
 
       {/* ============================================================== */}
-      {/* 6. TIMETABLE & ROUTINE TAB (Murang'a University Routine) */}
+      {/* 6. TIMETABLE & ROUTINE TAB (Academic Routine) */}
       {/* ============================================================== */}
       {activeTab === 'timetable' && (
         <div className="flex-1 flex flex-col p-3 overflow-y-auto space-y-3 font-rajdhani">
           <div className="flex items-center justify-between">
             <span className="text-xs font-orbitron font-semibold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
               <GraduationCap className="w-4 h-4 text-amber-400" />
-              MURANG'A UNIVERSITY MLS ROUTINE
+              ACADEMIC & SCHEDULE ROUTINE
             </span>
           </div>
 
           <p className="text-[11px] text-cyan-400/80 leading-relaxed">
-            JARVIS plans your daily priorities around your actual lectures and laboratory sessions at Murang'a University of Technology.
+            JARVIS plans your daily priorities around your actual lectures, fixed commitments, and study windows.
           </p>
 
           <form onSubmit={handleSaveTimetableSubmit} className="space-y-2.5">
@@ -1249,7 +1260,7 @@ export const TasksPanel: React.FC<TasksPanelProps> = ({
                 rows={3}
                 value={editTimetableSchedule}
                 onChange={(e) => setEditTimetableSchedule(e.target.value)}
-                placeholder="• Mon: 8am-11am Clinical Chemistry&#10;• Tue: 2pm-5pm Hematology Lab&#10;• Wed: 9am-12pm Medical Microbiology"
+                placeholder="• Mon: 9am-12pm Core Lecture Block&#10;• Tue: 2pm-5pm Lab / Practical Session&#10;• Wed: 10am-1pm Seminar"
                 className="w-full bg-black/60 border border-cyan-500/30 rounded p-2 text-xs text-cyan-100 focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
               />
             </div>

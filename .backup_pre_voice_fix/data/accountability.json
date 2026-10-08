@@ -1,0 +1,16 @@
+{
+  "streak": 9,
+  "lastStreakDate": "2026-10-07",
+  "lastBriefedDate": "2026-10-07",
+  "checkIns": {
+    "morning": "08:00",
+    "midday": "12:30",
+    "evening": "19:30"
+  },
+  "weeklyStats": {
+    "completed": 9,
+    "total": 10,
+    "rate": 90
+  },
+  "history": []
+}

@@ -153,7 +153,6 @@ export const VisionModal: React.FC<VisionModalProps> = ({
         if (activeStream) break;
       } catch (err: any) {
         lastError = err;
-        // If permission explicitly denied, no need to retry with lower constraints
         if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
           break;
         }
@@ -166,7 +165,7 @@ export const VisionModal: React.FC<VisionModalProps> = ({
 
       if (lastError?.name === 'NotAllowedError' || lastError?.name === 'PermissionDeniedError') {
         setCameraError({
-          title: 'OPTICAL SENSOR PERMISSION DENIED',
+          title: 'CAMERA SENSOR PERMISSION DENIED',
           message:
             'Camera permission was blocked. Please click the camera or lock icon in your browser address bar to grant permission, then click "RETRY SENSOR".',
           action: 'permission',
@@ -180,14 +179,14 @@ export const VisionModal: React.FC<VisionModalProps> = ({
         });
       } else if (lastError?.name === 'NotReadableError' || lastError?.name === 'TrackStartError') {
         setCameraError({
-          title: 'OPTICAL SENSOR HARDWARE BUSY',
+          title: 'CAMERA SENSOR HARDWARE BUSY',
           message:
             'The camera is currently locked by another application (e.g. Zoom, Teams, Discord, or another browser window). Please close other camera apps and retry.',
           action: 'inuse',
         });
       } else {
         setCameraError({
-          title: 'OPTICAL SENSOR INITIALIZATION FAILED',
+          title: 'CAMERA SENSOR INITIALIZATION FAILED',
           message:
             lastError?.message ||
             'Unable to initialize optical video feed. Please verify camera connections or import an image directly.',
@@ -235,7 +234,6 @@ export const VisionModal: React.FC<VisionModalProps> = ({
       setIsInitializing(false);
     }
 
-    // Refresh devices list to populate device labels now that permission is granted
     updateDeviceList();
   }, [isOpen, mode, capturedImage, selectedDeviceId, facingMode, stopCamera, updateDeviceList]);
 
@@ -250,8 +248,7 @@ export const VisionModal: React.FC<VisionModalProps> = ({
     return () => {
       stopCamera();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, mode, capturedImage, selectedDeviceId, facingMode]);
+  }, [isOpen, mode, capturedImage, selectedDeviceId, facingMode, startCamera, stopCamera]);
 
   // Toggle front/back camera
   const handleToggleFacingMode = () => {
@@ -269,7 +266,6 @@ export const VisionModal: React.FC<VisionModalProps> = ({
     const video = videoRef.current;
     if (!video || !isStreaming) return;
 
-    // Trigger visual flash feedback
     setIsFlashing(true);
     setTimeout(() => setIsFlashing(false), 200);
 
@@ -282,7 +278,6 @@ export const VisionModal: React.FC<VisionModalProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Draw frame
     ctx.drawImage(video, 0, 0, width, height);
 
     try {
@@ -316,66 +311,66 @@ export const VisionModal: React.FC<VisionModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-xl bg-slate-950 border border-cyan-500/40 rounded-2xl hud-corner-box overflow-hidden shadow-[0_0_60px_rgba(0,240,255,0.25)] flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+      <div className="relative w-full max-w-xl bg-[#06140F] border border-[#134E39] rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh] text-[#ECFDF5]">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-cyan-500/30 bg-slate-900/80">
+        <div className="flex items-center justify-between p-4 border-b border-[#134E39] bg-[#091F16]">
           <div className="flex items-center gap-2">
-            <Scan className="w-5 h-5 text-cyan-400 animate-pulse" />
+            <Scan className="w-5 h-5 text-[#10B981] animate-pulse" />
             <div>
-              <h3 className="font-orbitron font-semibold text-sm text-cyan-300 tracking-wider">
-                OPTICAL INTELLIGENCE SCANNER
+              <h3 className="font-bold text-sm text-[#ECFDF5] tracking-wide">
+                CAMERA & VISION
               </h3>
-              <p className="text-[10px] font-mono-tech text-cyan-500/70">
-                MULTIMODAL NEURAL RECOGNITION &amp; TELEMETRY
+              <p className="text-[10px] text-emerald-400/80 font-mono">
+                Multimodal Image Analysis & Scanning
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded text-cyan-400 hover:text-cyan-200 hover:bg-cyan-950/60 transition-colors"
-            title="Close Optical Scanner"
+            className="p-1 rounded text-emerald-400 hover:text-white hover:bg-[#134E39] transition-colors"
+            title="Close Camera"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Mode Switcher */}
-        <div className="flex border-b border-cyan-500/20 bg-black/50">
+        <div className="flex border-b border-[#134E39] bg-[#091F16]/50">
           <button
             onClick={() => {
               setCapturedImage(null);
               setMode('camera');
             }}
-            className={`flex-1 py-2.5 text-xs font-orbitron tracking-wider flex items-center justify-center gap-2 transition-all ${
+            className={`flex-1 py-2.5 text-xs font-semibold tracking-wide flex items-center justify-center gap-2 transition-all ${
               mode === 'camera'
-                ? 'bg-cyan-500/20 text-cyan-300 border-b-2 border-cyan-400'
-                : 'text-cyan-500/60 hover:text-cyan-400'
+                ? 'bg-[#134E39] text-white border-b-2 border-[#10B981]'
+                : 'text-emerald-300/70 hover:text-white'
             }`}
           >
             <Camera className="w-4 h-4" />
-            LIVE OPTICAL FEED
+            LIVE CAMERA FEED
           </button>
           <button
             onClick={() => {
               stopCamera();
               setMode('upload');
             }}
-            className={`flex-1 py-2.5 text-xs font-orbitron tracking-wider flex items-center justify-center gap-2 transition-all ${
+            className={`flex-1 py-2.5 text-xs font-semibold tracking-wide flex items-center justify-center gap-2 transition-all ${
               mode === 'upload'
-                ? 'bg-cyan-500/20 text-cyan-300 border-b-2 border-cyan-400'
-                : 'text-cyan-500/60 hover:text-cyan-400'
+                ? 'bg-[#134E39] text-white border-b-2 border-[#10B981]'
+                : 'text-emerald-300/70 hover:text-white'
             }`}
           >
             <Upload className="w-4 h-4" />
-            IMPORT IMAGE FILE
+            UPLOAD IMAGE FILE
           </button>
         </div>
 
         {/* Viewport Content */}
         <div className="p-4 space-y-4 overflow-y-auto">
           {/* Video or Image Container */}
-          <div className="relative aspect-video w-full rounded-xl bg-black border border-cyan-500/40 overflow-hidden flex items-center justify-center shadow-inner">
+          <div className="relative aspect-video w-full rounded-xl bg-black border border-[#134E39] overflow-hidden flex items-center justify-center shadow-inner">
             {/* Flash Effect on capture */}
             {isFlashing && (
               <div className="absolute inset-0 z-30 bg-white/80 animate-fade-out pointer-events-none" />
@@ -388,14 +383,13 @@ export const VisionModal: React.FC<VisionModalProps> = ({
                   alt="Captured Target"
                   className="w-full h-full object-contain"
                 />
-                <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-400/50 text-[10px] font-mono-tech text-cyan-300 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3 h-3 text-cyan-400" />
-                  SNAPSHOT LOCKED
+                <div className="absolute top-2 left-2 px-2.5 py-1 rounded bg-[#091F16]/90 border border-[#10B981] text-[10px] font-mono text-[#ECFDF5] flex items-center gap-1.5 shadow">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
+                  IMAGE CAPTURED
                 </div>
               </div>
             ) : mode === 'camera' ? (
               <>
-                {/* Always render video element so videoRef attaches cleanly */}
                 <video
                   ref={videoRef}
                   autoPlay
@@ -409,9 +403,9 @@ export const VisionModal: React.FC<VisionModalProps> = ({
                 {/* Loading State */}
                 {isInitializing && !cameraError && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/90">
-                    <div className="w-10 h-10 border-2 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin" />
-                    <p className="text-xs font-orbitron text-cyan-300 tracking-wider animate-pulse">
-                      ACQUIRING OPTICAL SENSOR FEED...
+                    <div className="w-8 h-8 border-2 border-emerald-500/30 border-t-[#10B981] rounded-full animate-spin" />
+                    <p className="text-xs text-emerald-300 tracking-wide animate-pulse">
+                      Acquiring camera feed...
                     </p>
                   </div>
                 )}
@@ -426,16 +420,16 @@ export const VisionModal: React.FC<VisionModalProps> = ({
                         <CameraOff className="w-6 h-6" />
                       )}
                     </div>
-                    <h4 className="font-orbitron font-semibold text-xs text-rose-300 tracking-wider mb-2">
+                    <h4 className="font-semibold text-xs text-rose-300 tracking-wide mb-2">
                       {cameraError.title}
                     </h4>
-                    <p className="font-rajdhani text-xs text-slate-300 max-w-sm mb-4 leading-relaxed">
+                    <p className="text-xs text-emerald-200/80 max-w-sm mb-4 leading-relaxed">
                       {cameraError.message}
                     </p>
                     <div className="flex flex-wrap items-center justify-center gap-2">
                       <button
                         onClick={() => startCamera()}
-                        className="px-4 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-cyan-200 font-orbitron text-[11px] tracking-wider flex items-center gap-1.5 transition-all shadow-[0_0_15px_rgba(0,240,255,0.2)]"
+                        className="px-4 py-1.5 rounded-xl bg-[#10B981] hover:bg-[#059669] text-white font-medium text-xs flex items-center gap-1.5 transition-all shadow"
                       >
                         <RefreshCw className="w-3.5 h-3.5" />
                         RETRY SENSOR
@@ -445,7 +439,7 @@ export const VisionModal: React.FC<VisionModalProps> = ({
                           stopCamera();
                           setMode('upload');
                         }}
-                        className="px-4 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-orbitron text-[11px] tracking-wider transition-all"
+                        className="px-4 py-1.5 rounded-xl bg-[#091F16] hover:bg-[#134E39] border border-[#134E39] text-[#ECFDF5] text-xs transition-all"
                       >
                         USE FILE INSTEAD
                       </button>
@@ -453,35 +447,22 @@ export const VisionModal: React.FC<VisionModalProps> = ({
                   </div>
                 )}
 
-                {/* Holographic HUD Reticle & Telemetry */}
+                {/* Reticle & Live Telemetry */}
                 {isStreaming && !cameraError && (
                   <>
-                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                      <div className="w-44 h-44 border border-cyan-400/30 rounded-full animate-pulse" />
-                      <div className="w-48 h-48 border border-cyan-500/20 border-dashed rounded-full" />
-                      <div className="absolute w-2 h-2 bg-cyan-400 rounded-full shadow-[0_0_10px_#00f0ff]" />
-                      <div className="absolute w-full h-[1px] bg-cyan-500/25" />
-                      <div className="absolute h-full w-[1px] bg-cyan-500/25" />
-                      {/* Corner brackets */}
-                      <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-cyan-400/60" />
-                      <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-cyan-400/60" />
-                      <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-cyan-400/60" />
-                      <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-cyan-400/60" />
-                    </div>
-
                     {/* Status Pill */}
-                    <div className="absolute top-3 left-3 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur border border-cyan-500/40 text-[10px] font-mono-tech text-cyan-300 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <div className="absolute top-3 left-3 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur border border-[#134E39] text-[10px] font-mono text-[#10B981] flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
                       LIVE FEED {resolution ? `• ${resolution}` : ''}
                     </div>
 
-                    {/* Camera Switch / Facing Mode Controls */}
+                    {/* Camera Controls */}
                     <div className="absolute top-3 right-3 flex items-center gap-1.5">
                       {devices.length > 1 && (
                         <select
                           value={selectedDeviceId}
                           onChange={handleDeviceChange}
-                          className="bg-black/80 backdrop-blur border border-cyan-500/40 rounded-md px-2 py-0.5 text-[10px] font-mono-tech text-cyan-300 focus:outline-none"
+                          className="bg-black/80 backdrop-blur border border-[#134E39] rounded-md px-2 py-0.5 text-[10px] font-mono text-[#ECFDF5] focus:outline-none"
                         >
                           <option value="">Auto Camera</option>
                           {devices.map((d, idx) => (
@@ -494,7 +475,7 @@ export const VisionModal: React.FC<VisionModalProps> = ({
                       <button
                         onClick={handleToggleFacingMode}
                         title="Flip Front/Rear Camera"
-                        className="p-1 rounded-md bg-black/80 backdrop-blur border border-cyan-500/40 text-cyan-300 hover:text-cyan-100 hover:bg-cyan-950/60 transition-colors"
+                        className="p-1 rounded-md bg-black/80 backdrop-blur border border-[#134E39] text-emerald-300 hover:text-white transition-colors"
                       >
                         <SwitchCamera className="w-3.5 h-3.5" />
                       </button>
@@ -504,12 +485,12 @@ export const VisionModal: React.FC<VisionModalProps> = ({
               </>
             ) : (
               /* File Import Area */
-              <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer hover:bg-cyan-950/20 transition-colors p-6">
-                <Upload className="w-10 h-10 text-cyan-400 mb-2 animate-bounce" />
-                <span className="font-orbitron text-xs text-cyan-300 tracking-wider">
-                  CLICK TO SELECT IMAGE / INTEL PHOTO
+              <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer hover:bg-[#134E39]/20 transition-colors p-6">
+                <Upload className="w-10 h-10 text-[#10B981] mb-2 animate-bounce" />
+                <span className="font-semibold text-xs text-[#ECFDF5] tracking-wide">
+                  CLICK TO SELECT IMAGE FILE
                 </span>
-                <span className="text-[11px] font-mono-tech text-cyan-500/60 mt-1">
+                <span className="text-[11px] font-mono text-emerald-400/70 mt-1">
                   Supports JPEG, PNG, WebP, GIF
                 </span>
                 <input
@@ -520,36 +501,32 @@ export const VisionModal: React.FC<VisionModalProps> = ({
                 />
               </label>
             )}
-
-            {/* Scanline Overlay */}
-            <div className="absolute inset-0 pointer-events-none hud-scanlines opacity-50" />
           </div>
 
           {/* Capture Trigger */}
           {mode === 'camera' && !capturedImage && isStreaming && !cameraError && (
             <button
               onClick={handleCaptureSnapshot}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600/30 to-blue-600/30 hover:from-cyan-500/40 hover:to-blue-500/40 border border-cyan-400 text-cyan-100 font-orbitron text-xs tracking-wider flex items-center justify-center gap-2 glow-cyan-sm transition-all shadow-[0_0_20px_rgba(0,240,255,0.2)]"
+              className="w-full py-3 rounded-xl bg-[#10B981] hover:bg-[#059669] text-white font-semibold text-xs tracking-wide flex items-center justify-center gap-2 transition-all shadow"
             >
-              <Camera className="w-4 h-4 text-cyan-300" />
-              LOCK TARGET SNAPSHOT
+              <Camera className="w-4 h-4 text-white" />
+              CAPTURE SNAPSHOT
             </button>
           )}
 
           {/* Image Analysis Controls */}
           {capturedImage && (
             <div className="space-y-3 animate-fade-in">
-              {/* Preset Prompts Chips */}
               <div className="flex flex-wrap gap-1.5">
                 {PRESET_PROMPTS.map((p, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => setPrompt(p)}
-                    className={`text-[11px] px-2.5 py-1 rounded-full font-mono-tech border transition-all ${
+                    className={`text-[11px] px-2.5 py-1 rounded-full border transition-all ${
                       prompt === p
-                        ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200'
-                        : 'bg-black/40 border-cyan-500/20 text-cyan-500/70 hover:text-cyan-300'
+                        ? 'bg-[#10B981] text-white border-[#10B981]'
+                        : 'bg-[#091F16] border-[#134E39] text-emerald-300 hover:text-white'
                     }`}
                   >
                     {p.slice(0, 36)}...
@@ -562,15 +539,15 @@ export const VisionModal: React.FC<VisionModalProps> = ({
                   type="text"
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="Inquiry for JARVIS..."
-                  className="flex-1 bg-black/70 border border-cyan-500/40 rounded-xl px-3 py-2 text-xs text-cyan-100 placeholder-cyan-600/50 font-rajdhani focus:outline-none focus:border-cyan-300"
+                  placeholder="Ask Jarvis about this image..."
+                  className="flex-1 bg-[#091F16] border border-[#134E39] rounded-xl px-3 py-2 text-xs text-[#ECFDF5] placeholder-emerald-600 focus:outline-none focus:border-[#10B981]"
                 />
                 <button
                   onClick={() => {
                     setCapturedImage(null);
                     if (mode === 'camera') startCamera();
                   }}
-                  className="p-2 rounded-xl bg-slate-900 border border-cyan-500/30 text-cyan-400 hover:text-cyan-200"
+                  className="p-2 rounded-xl bg-[#091F16] border border-[#134E39] text-emerald-400 hover:text-white"
                   title="Retake image"
                 >
                   <RefreshCw className="w-4 h-4" />
@@ -580,17 +557,17 @@ export const VisionModal: React.FC<VisionModalProps> = ({
               <button
                 onClick={handleSubmitAnalysis}
                 disabled={isLoading}
-                className="w-full py-2.5 rounded-xl bg-cyan-500/30 hover:bg-cyan-500/50 border border-cyan-400 text-cyan-100 font-orbitron text-xs tracking-wider flex items-center justify-center gap-2 glow-cyan-md transition-all disabled:opacity-50"
+                className="w-full py-2.5 rounded-xl bg-[#10B981] hover:bg-[#059669] text-white font-medium text-xs tracking-wide flex items-center justify-center gap-2 transition-all disabled:opacity-50 shadow"
               >
                 {isLoading ? (
                   <>
-                    <Sparkles className="w-4 h-4 animate-spin text-amber-400" />
-                    PROCESSING NEURAL ANALYSIS...
+                    <Sparkles className="w-4 h-4 animate-spin text-amber-300" />
+                    <span>Analyzing Image with Jarvis...</span>
                   </>
                 ) : (
                   <>
-                    <Scan className="w-4 h-4 text-cyan-300" />
-                    TRANSMIT TO J.A.R.V.I.S.
+                    <Scan className="w-4 h-4" />
+                    <span>Send to Jarvis</span>
                   </>
                 )}
               </button>

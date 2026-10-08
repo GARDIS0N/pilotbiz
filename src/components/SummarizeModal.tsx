@@ -43,19 +43,19 @@ export const SummarizeModal: React.FC<SummarizeModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-lg bg-slate-950 border border-cyan-500/40 rounded-2xl hud-corner-box overflow-hidden shadow-[0_0_50px_rgba(0,240,255,0.2)]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+      <div className="relative w-full max-w-lg bg-[#06140F] border border-[#134E39] rounded-2xl overflow-hidden shadow-2xl text-[#ECFDF5]">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-cyan-500/30 bg-slate-900/60">
+        <div className="flex items-center justify-between p-4 border-b border-[#134E39] bg-[#091F16]">
           <div className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-cyan-400" />
-            <h3 className="font-orbitron font-semibold text-sm text-cyan-300 tracking-wider">
-              TACTICAL DOCUMENT / URL DIGEST
+            <FileText className="w-5 h-5 text-[#10B981]" />
+            <h3 className="font-bold text-sm tracking-wide text-[#ECFDF5]">
+              DOCUMENT / URL SUMMARY
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded text-cyan-400 hover:text-cyan-200 hover:bg-cyan-950 transition-colors"
+            className="p-1 rounded text-emerald-400 hover:text-white hover:bg-[#134E39] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -68,12 +68,12 @@ export const SummarizeModal: React.FC<SummarizeModalProps> = ({
                 rows={5}
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="Paste article text, technical documentation, or URL (https://...) for J.A.R.V.I.S. to distill..."
-                className="w-full bg-black/70 border border-cyan-500/30 rounded-xl p-3 text-xs text-cyan-100 placeholder-cyan-600/50 font-rajdhani focus:outline-none focus:border-cyan-400"
+                placeholder="Paste article text, notes, or URL (https://...) for Jarvis to summarize..."
+                className="w-full bg-[#091F16] border border-[#134E39] rounded-xl p-3 text-xs text-[#ECFDF5] placeholder-emerald-600 focus:outline-none focus:border-[#10B981]"
               />
               {isUrl && (
-                <div className="absolute top-2 right-2 flex items-center gap-1 text-[10px] font-mono-tech text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-500/40">
-                  <Link className="w-3 h-3" />
+                <div className="absolute top-2 right-2 flex items-center gap-1 text-[10px] font-mono text-emerald-300 bg-[#06140F] px-2 py-0.5 rounded border border-[#134E39]">
+                  <Link className="w-3 h-3 text-[#10B981]" />
                   <span>URL DETECTED</span>
                 </div>
               )}
@@ -82,35 +82,35 @@ export const SummarizeModal: React.FC<SummarizeModalProps> = ({
             <button
               type="submit"
               disabled={!inputText.trim() || isLoading}
-              className="w-full py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/35 border border-cyan-400 text-cyan-100 font-orbitron text-xs tracking-wider flex items-center justify-center gap-2 glow-cyan-sm transition-all disabled:opacity-40"
+              className="w-full py-2.5 rounded-xl bg-[#10B981] hover:bg-[#059669] text-white font-medium text-xs tracking-wide flex items-center justify-center gap-2 transition-all disabled:opacity-40 shadow"
             >
               {isLoading ? (
                 <>
-                  <Sparkles className="w-4 h-4 animate-spin text-amber-400" />
-                  ANALYZING & DISTILLING CONTENT...
+                  <Sparkles className="w-4 h-4 animate-spin text-amber-300" />
+                  <span>Analyzing & Distilling Content...</span>
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4 text-cyan-400" />
-                  GENERATE EXECUTIVE SUMMARY
+                  <Sparkles className="w-4 h-4" />
+                  <span>Generate Summary</span>
                 </>
               )}
             </button>
           </form>
 
           {result && (
-            <div className="space-y-2 pt-2 border-t border-cyan-500/20">
-              <div className="flex items-center justify-between text-xs font-mono-tech text-cyan-400">
-                <span>BRIEFING VERDICT:</span>
+            <div className="space-y-2 pt-2 border-t border-[#134E39]">
+              <div className="flex items-center justify-between text-xs font-mono text-[#10B981]">
+                <span>SUMMARY:</span>
                 <button
                   onClick={handleCopy}
-                  className="flex items-center gap-1 text-cyan-400 hover:text-cyan-200"
+                  className="flex items-center gap-1 text-emerald-400 hover:text-white"
                 >
                   {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                  <span>{copied ? 'COPIED' : 'COPY'}</span>
+                  <span>{copied ? 'Copied' : 'Copy'}</span>
                 </button>
               </div>
-              <div className="max-h-56 overflow-y-auto p-3 rounded-xl bg-black/60 border border-cyan-500/30 font-rajdhani text-xs text-cyan-100/90 leading-relaxed whitespace-pre-wrap">
+              <div className="max-h-56 overflow-y-auto p-3 rounded-xl bg-[#091F16] border border-[#134E39] text-xs text-[#ECFDF5] leading-relaxed whitespace-pre-wrap">
                 {result}
               </div>
             </div>

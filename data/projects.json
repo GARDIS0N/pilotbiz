@@ -1,0 +1,173 @@
+{
+  "projects": [
+    {
+      "id": "proj-nestlist",
+      "name": "NestList",
+      "slug": "nestlist",
+      "description": "Landlord onboarding and property listing workflow automation platform.",
+      "status": "ACTIVE",
+      "goals": [
+        "Streamline landlord property intake and automated lease documentation",
+        "Build reliable self-service landlord onboarding portal",
+        "Deploy MVP to pilot users"
+      ],
+      "tasks": [
+        {
+          "id": "task-nl-1",
+          "title": "Finalize landlord verification workflow",
+          "completed": false,
+          "due": "2026-10-15"
+        },
+        {
+          "id": "task-nl-2",
+          "title": "Refine tenant screening integration specs",
+          "completed": false,
+          "due": "2026-10-20"
+        }
+      ],
+      "decisions": [
+        {
+          "id": "dec-nl-1",
+          "title": "Use Supabase for auth and postgres row-level security",
+          "date": "2026-09-28",
+          "rationale": "High velocity and built-in auth"
+        }
+      ],
+      "importantFiles": [
+        "src/modules/landlord",
+        "docs/architecture.md"
+      ],
+      "technologies": [
+        "React",
+        "TypeScript",
+        "Node.js",
+        "Tailwind CSS"
+      ],
+      "knownProblems": [
+        "Ensuring secure multi-tenant isolation for landlord financial data"
+      ],
+      "nextActions": [
+        "Review landlord onboarding funnel friction points",
+        "Integrate automated document checklist"
+      ],
+      "createdAt": "2026-09-15T00:00:00.000Z",
+      "updatedAt": "2026-10-08T10:00:00.000Z"
+    },
+    {
+      "id": "proj-jarvis",
+      "name": "JARVIS",
+      "slug": "jarvis",
+      "description": "Iron Man-inspired personal AI manager, voice assistant, and productivity operating system.",
+      "status": "ACTIVE",
+      "goals": [
+        "Continuous natural voice and text intelligence",
+        "Multi-tier memory architecture (working, personal, project, Google Drive)",
+        "Proactive executive coaching and accountability enforcement"
+      ],
+      "tasks": [
+        {
+          "id": "task-jv-1",
+          "title": "Build Phase 1 multi-tier project and personal memory architecture",
+          "completed": true,
+          "due": "2026-10-08"
+        },
+        {
+          "id": "task-jv-2",
+          "title": "Integrate structured confirmation protocols for sensitive operations",
+          "completed": true,
+          "due": "2026-10-08"
+        },
+        {
+          "id": "task-jv-3",
+          "title": "Connect Google Drive live document search and retrieval",
+          "completed": false,
+          "due": "2026-10-12"
+        }
+      ],
+      "decisions": [
+        {
+          "id": "dec-jv-1",
+          "title": "Adopt clean dark-green tactical HUD interface",
+          "date": "2026-10-07",
+          "rationale": "High contrast, minimal clutter, focused execution"
+        },
+        {
+          "id": "dec-jv-2",
+          "title": "Implement 5-tier permission model (READ, SUGGEST, EXECUTE, CONFIRM, BLOCKED)",
+          "date": "2026-10-08",
+          "rationale": "Ensure safety and control over autonomous assistant actions"
+        }
+      ],
+      "importantFiles": [
+        "server.ts",
+        "src/App.tsx",
+        "src/types/jarvis.ts"
+      ],
+      "technologies": [
+        "TypeScript",
+        "React",
+        "Gemini 2.5",
+        "Web Audio API",
+        "Express"
+      ],
+      "knownProblems": [
+        "Low-latency Web Speech recognition across strict browser sandbox environments"
+      ],
+      "nextActions": [
+        "Complete multi-tier memory and project manager layer",
+        "Enable voice-activated continuous conversation loop"
+      ],
+      "createdAt": "2026-10-01T00:00:00.000Z",
+      "updatedAt": "2026-10-08T10:00:00.000Z"
+    },
+    {
+      "id": "proj-cbe-study",
+      "name": "CBE Study App",
+      "slug": "cbe-study-app",
+      "description": "Medical Laboratory Science (MLS) / Clinical Biology preparation system and hematology active recall platform.",
+      "status": "ACTIVE",
+      "goals": [
+        "Master MLS Year 2 clinical laboratory competencies",
+        "Build hematology review flashcards and diagnostic differential trees",
+        "Maintain daily spaced repetition discipline"
+      ],
+      "tasks": [
+        {
+          "id": "task-cbe-1",
+          "title": "Organize peripheral blood smear morphology flashcard deck",
+          "completed": false,
+          "due": "2026-10-18"
+        },
+        {
+          "id": "task-cbe-2",
+          "title": "Complete coagulation cascade review module",
+          "completed": false,
+          "due": "2026-10-22"
+        }
+      ],
+      "decisions": [
+        {
+          "id": "dec-cbe-1",
+          "title": "Focus high-yield study sessions on diagnostic differentials and clinical correlations",
+          "date": "2026-10-05"
+        }
+      ],
+      "importantFiles": [
+        "data/MLS Y2 Planner.md"
+      ],
+      "technologies": [
+        "Markdown",
+        "Active Recall",
+        "Spaced Repetition"
+      ],
+      "knownProblems": [
+        "Balancing intensive clinical study hours with software development deadlines"
+      ],
+      "nextActions": [
+        "Schedule 45-minute deep focus block for hematology red cell abnormalities review"
+      ],
+      "createdAt": "2026-09-20T00:00:00.000Z",
+      "updatedAt": "2026-10-08T10:00:00.000Z"
+    }
+  ]
+}
