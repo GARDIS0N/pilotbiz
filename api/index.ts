@@ -4,6 +4,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI, Modality, Type, FunctionDeclaration } from '@google/genai';
 import dotenv from 'dotenv';
+import { apiRouter } from '../server/apiRouter.js';
 
 dotenv.config();
 dotenv.config({ path: '.env.local' });
@@ -15,6 +16,8 @@ const PORT = 3000;
 
 const app = express();
 app.use(express.json({ limit: '25mb' }));
+app.use('/api', apiRouter);
+app.use(apiRouter);
 
 
 // -------------------------------------------------------------
