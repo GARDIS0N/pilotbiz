@@ -5,6 +5,7 @@ import { cbeApi } from '../../services/cbeApi.js';
 import { sound } from '../../utils/soundEffects.js';
 import { AVATARS } from '../../utils/avatars.js';
 import { useReducedMotionPreference, springTransition } from '../../utils/motion.js';
+import { signInWithEmail, signUpWithEmail, isSupabaseConfigured } from '../../services/supabaseClient.js';
 
 interface Props {
   currentUser: User | null;
@@ -123,6 +124,19 @@ export const LoginPage: React.FC<Props> = ({
       sound.playClick();
       setLoading(true);
       setErrorMsg(null);
+
+      // Attempt Supabase sign in if configured and password is provided
+      if (isSupabaseConfigured() && loginPassword.trim().length >= 6) {
+        try {
+          const { data: sbData, error: sbError } = await signInWithEmail(loginEmail.trim(), loginPassword.trim());
+          if (sbError) {
+            console.warn('[Supabase Auth Info]:', sbError.message);
+          } else if (sbData?.user) {
+            console.log('[Supabase Auth Success]: User authenticated via Supabase');
+          }
+        } catch (_) {}
+      }
+
       const res = await cbeApi.login(loginEmail.trim());
       sound.playCorrect();
       setSuccessMsg(`Hongera! Welcome back, ${res.user.name}!`);
@@ -149,6 +163,19 @@ export const LoginPage: React.FC<Props> = ({
       sound.playClick();
       setLoading(true);
       setErrorMsg(null);
+
+      // Attempt Supabase sign up if configured
+      if (isSupabaseConfigured() && loginPassword.trim().length >= 6) {
+        try {
+          await signUpWithEmail(signUpEmail.trim(), loginPassword.trim(), {
+            fullName: signUpName.trim(),
+            role: signUpRole,
+            gradeId: signUpGradeId,
+            county: signUpCounty
+          });
+        } catch (_) {}
+      }
+
       const res = await cbeApi.register({
         name: signUpName.trim(),
         email: signUpEmail.trim(),
@@ -571,18 +598,22 @@ export const LoginPage: React.FC<Props> = ({
           </div>
 
           {/* Child Safety & Educational Features Badges */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-center text-xs text-gray-400">
-            <div className="p-3 rounded-2xl bg-slate-900/50 border border-gray-800 flex items-center justify-center gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2 text-center text-xs text-gray-400">
+            <div className="p-2.5 rounded-2xl bg-slate-900/50 border border-gray-800 flex items-center justify-center gap-1.5">
               <span>🔒</span>
-              <span>100% Kid Safe & Ad-Free</span>
+              <span>100% Kid Safe</span>
             </div>
-            <div className="p-3 rounded-2xl bg-slate-900/50 border border-gray-800 flex items-center justify-center gap-2">
+            <div className="p-2.5 rounded-2xl bg-slate-900/50 border border-gray-800 flex items-center justify-center gap-1.5">
               <span>📚</span>
-              <span>CBC Competency Aligned</span>
+              <span>CBC Aligned</span>
             </div>
-            <div className="p-3 rounded-2xl bg-slate-900/50 border border-gray-800 flex items-center justify-center gap-2">
+            <div className="p-2.5 rounded-2xl bg-slate-900/50 border border-gray-800 flex items-center justify-center gap-1.5">
               <span>📱</span>
-              <span>Offline & Data-Friendly</span>
+              <span>Low-Data Ready</span>
+            </div>
+            <div className="p-2.5 rounded-2xl bg-slate-900/50 border border-emerald-900/40 text-emerald-300 flex items-center justify-center gap-1.5">
+              <span>⚡</span>
+              <span>Supabase Cloud</span>
             </div>
           </div>
         </div>
