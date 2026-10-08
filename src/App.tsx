@@ -9,6 +9,7 @@ import { AdminDashboard } from './components/admin/AdminDashboard.js';
 import { LearningSessionModal } from './components/session/LearningSessionModal.js';
 import { AuthModal } from './components/auth/AuthModal.js';
 import { AITutorModal } from './components/tutor/AITutorModal.js';
+import { LoginPage } from './components/auth/LoginPage.js';
 
 const DEFAULT_STUDENT_USER: User = {
   id: 'user-student-amina',
@@ -57,6 +58,7 @@ export function App() {
   const [grades, setGrades] = useState<Grade[]>(DEFAULT_GRADES);
   const [selectedGradeId, setSelectedGradeId] = useState<string>('grade-4');
   const [loading, setLoading] = useState(false);
+  const [currentView, setCurrentView] = useState<'DASHBOARD' | 'LOGIN'>('DASHBOARD');
 
   // Sound mute state
   const [isMuted, setIsMuted] = useState(false);
@@ -132,6 +134,26 @@ export function App() {
     );
   }
 
+  if (currentView === 'LOGIN') {
+    return (
+      <LoginPage
+        currentUser={currentUser}
+        grades={grades}
+        onLoginSuccess={(user) => {
+          setCurrentUser(user);
+          if (user.studentProfileId) {
+            cbeApi.getStudentStats(user.studentProfileId).then(res => {
+              setStudentProfile(res.student);
+              setSelectedGradeId(res.student.gradeId);
+            });
+          }
+          setCurrentView('DASHBOARD');
+        }}
+        onCancel={() => setCurrentView('DASHBOARD')}
+      />
+    );
+  }
+
   const currentGrade = grades.find(g => g.id === selectedGradeId) || grades[1] || grades[0];
 
   return (
@@ -199,6 +221,20 @@ export function App() {
           >
             <span>🦉</span>
             <span>Rafiki AI</span>
+          </button>
+
+          {/* Log In Page Trigger Button */}
+          <button
+            type="button"
+            onClick={() => {
+              sound.playClick();
+              setCurrentView('LOGIN');
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-emerald-900/60 hover:border-emerald-500 text-gray-300 hover:text-white font-bold text-xs cursor-pointer shadow-sm transition-all"
+            title="Open Full Log In Page"
+          >
+            <span>🔑</span>
+            <span className="hidden sm:inline">Log In</span>
           </button>
 
           {/* Role Pill Switcher */}
@@ -290,6 +326,7 @@ export function App() {
           setCurrentUser(user);
           initApp();
         }}
+        onOpenLoginPage={() => setCurrentView('LOGIN')}
       />
 
       {/* Global Socratic AI Tutor Modal */}

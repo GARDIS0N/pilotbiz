@@ -10,6 +10,7 @@ interface Props {
   currentUser: User | null;
   grades: Grade[];
   onAuthSuccess: (user: User) => void;
+  onOpenLoginPage?: () => void;
 }
 
 const KENYAN_COUNTIES = [
@@ -22,7 +23,8 @@ export const AuthModal: React.FC<Props> = ({
   onClose,
   currentUser,
   grades,
-  onAuthSuccess
+  onAuthSuccess,
+  onOpenLoginPage
 }) => {
   const [mode, setMode] = useState<'QUICK_SWITCH' | 'REGISTER' | 'LOGIN'>('QUICK_SWITCH');
   const [role, setRole] = useState<UserRole>('STUDENT');
@@ -359,6 +361,22 @@ export const AuthModal: React.FC<Props> = ({
               LOG IN TO JIFUNO ➔
             </button>
           </form>
+        )}
+
+        {onOpenLoginPage && (
+          <div className="pt-2 border-t border-slate-800 text-center">
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenLoginPage();
+              }}
+              className="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center justify-center gap-1.5 mx-auto cursor-pointer hover:underline"
+            >
+              <span>🔑</span>
+              <span>Open Dedicated Log In Page ➔</span>
+            </button>
+          </div>
         )}
       </div>
     </div>
