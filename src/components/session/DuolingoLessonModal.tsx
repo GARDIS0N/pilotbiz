@@ -7,6 +7,7 @@ import { QuestionRenderer } from '../questions/QuestionRenderer.js';
 import { evaluateAnswer, resolveCorrectAnswerText, normalizeQuestion } from '../../utils/answerValidation.js';
 import { validateQuestion } from '../../utils/questionValidator.js';
 import { QuestionErrorBoundary } from '../common/QuestionErrorBoundary.js';
+import { ReportProblemModal } from '../common/ReportProblemModal.js';
 
 interface Props {
   isOpen: boolean;
@@ -62,6 +63,8 @@ export const DuolingoLessonModal: React.FC<Props> = ({
   const [isCurrentCorrect, setIsCurrentCorrect] = useState<boolean | null>(null);
   const [activeHint, setActiveHint] = useState<string | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const questionStartTime = React.useRef<number>(Date.now());
 
   // Hearts tracking (persisted and strictly consistent)
   const [hearts, setHearts] = useState<number>(getInitialHearts);
@@ -158,9 +161,20 @@ export const DuolingoLessonModal: React.FC<Props> = ({
     if (!currentQ || currentAnswer === null || currentAnswer === undefined || currentAnswer === '') return;
     sound.playClick();
 
+    const timeMs = Math.max(100, Date.now() - questionStartTime.current);
     const correct = evaluateAnswer(currentQ, currentAnswer);
     setIsCurrentCorrect(correct);
     setAnswerSubmitted(true);
+
+    // Step 2: Log every answer attempt to Supabase attempts table
+    cbeApi.logAttempt({
+      learnerId: studentId,
+      questionId: currentQ.id,
+      isCorrect: correct,
+      timeMs
+    }).catch(err => {
+      console.warn('[Attempts Logging]: Background attempt logging deferred:', err);
+    });
 
     if (correct) {
       sound.playCorrect();
@@ -210,12 +224,13 @@ export const DuolingoLessonModal: React.FC<Props> = ({
     setIsCurrentCorrect(null);
   };
 
-  // Stop speech when question changes or modal unmounts
+  // Stop speech and reset question timer when question changes or modal unmounts
   useEffect(() => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
     setIsSpeaking(false);
+    questionStartTime.current = Date.now();
   }, [currentQ?.id, isOpen]);
 
   const handleReadAloud = () => {
@@ -575,16 +590,32 @@ export const DuolingoLessonModal: React.FC<Props> = ({
                   <span>{isSpeaking ? (language === 'sw' ? 'Inasoma...' : 'Reading...') : (language === 'sw' ? 'Soma kwa Sauti' : 'Read Aloud')}</span>
                 </button>
 
-                <button
-                  type="button"
-                  onClick={handleUseHint}
-                  disabled={answerSubmitted || Boolean(activeHint)}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-yellow-950/40 border-2 border-yellow-500/60 text-yellow-300 font-black text-xs hover:bg-yellow-950/80 transition-all cursor-pointer disabled:opacity-40 min-h-[40px]"
-                  title="Spend 1 Coin for a hint"
-                >
-                  <span className="text-base">💡</span>
-                  <span>{language === 'sw' ? 'Dokezo (1 🪙)' : 'Hint (1 🪙)'}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleUseHint}
+                    disabled={answerSubmitted || Boolean(activeHint)}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-yellow-950/40 border-2 border-yellow-500/60 text-yellow-300 font-black text-xs hover:bg-yellow-950/80 transition-all cursor-pointer disabled:opacity-40 min-h-[40px]"
+                    title="Spend 1 Coin for a hint"
+                  >
+                    <span className="text-base">💡</span>
+                    <span>{language === 'sw' ? 'Dokezo (1 🪙)' : 'Hint (1 🪙)'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playClick();
+                      setIsReportModalOpen(true);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 border-2 border-slate-700 text-gray-300 hover:text-white hover:border-amber-500/60 font-bold text-xs transition-all cursor-pointer min-h-[40px]"
+                    title={language === 'sw' ? 'Ripoti tatizo na swali hili' : 'Report a problem with this question'}
+                    aria-label="Report a problem"
+                  >
+                    <span className="text-sm">🚩</span>
+                    <span>{language === 'sw' ? 'Ripoti' : 'Report'}</span>
+                  </button>
+                </div>
               </div>
 
               {/* Hint Drawer */}
@@ -794,6 +825,17 @@ export const DuolingoLessonModal: React.FC<Props> = ({
           </div>
         )}
       </AnimatePresence>
+
+      {/* Report a Problem Modal */}
+      {currentQ && (
+        <ReportProblemModal
+          isOpen={isReportModalOpen}
+          onClose={() => setIsReportModalOpen(false)}
+          questionId={currentQ.id}
+          learnerId={studentId}
+          language={language}
+        />
+      )}
     </div>
   );
 };

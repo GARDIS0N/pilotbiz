@@ -3,6 +3,8 @@ import { cbeDb } from './cbeDb.js';
 import { gameEngine } from './gameEngine.js';
 import { tutorEngine } from './tutorEngine.js';
 import { UserRole, Question, ContentStatus } from '../src/types/cbe.js';
+import { evaluateAnswer, resolveCorrectAnswerText } from '../src/utils/answerValidation.js';
+import { supabase, isSupabaseConfigured } from '../src/services/supabaseClient.js';
 
 export const apiRouter = express.Router();
 
@@ -184,6 +186,17 @@ apiRouter.post('/game/submit-session', (req: Request, res: Response) => {
       heartsRemaining
     });
 
+    // Step 2: Log attempts to Supabase attempts table if configured
+    if (isSupabaseConfigured()) {
+      const attemptRecords = answers.map((ans: any) => ({
+        learner_id: studentId,
+        question_id: ans.questionId,
+        is_correct: questionReviews.find((r: any) => r.questionId === ans.questionId)?.isCorrect ?? false,
+        time_ms: (ans.timeSpentSeconds || 0) * 1000
+      }));
+      supabase.from('attempts').insert(attemptRecords).catch(e => console.warn('[Batch Attempt Log Error]:', e));
+    }
+
     return res.json({
       success: true,
       result,
@@ -193,6 +206,114 @@ apiRouter.post('/game/submit-session', (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('[Session Submission Error]:', error);
     return res.status(500).json({ error: error.message || 'Submission failed' });
+  }
+});
+
+// Single Shared Answer Validation Endpoint (Backend / Serverless Source of Truth)
+apiRouter.post('/check-answer', async (req: Request, res: Response) => {
+  try {
+    const { questionId, selectedAnswer, learnerId, timeMs, questionData } = req.body;
+    if (!questionId || selectedAnswer === undefined) {
+      return res.status(400).json({ error: 'Missing questionId or selectedAnswer' });
+    }
+
+    const question = questionData || cbeDb.getQuestions().find(q => q.id === questionId);
+    if (!question) {
+      return res.status(404).json({ error: 'Question not found' });
+    }
+
+    const isCorrect = evaluateAnswer(question, selectedAnswer);
+    const timeSpent = typeof timeMs === 'number' ? timeMs : 0;
+
+    // Log to Supabase attempts table
+    if (isSupabaseConfigured() && learnerId) {
+      try {
+        await supabase.from('attempts').insert({
+          learner_id: learnerId,
+          question_id: questionId,
+          is_correct: isCorrect,
+          time_ms: timeSpent
+        });
+      } catch (logErr) {
+        console.warn('[Attempts Logging Warning]:', logErr);
+      }
+    }
+
+    return res.json({
+      isCorrect,
+      questionId,
+      explanation: question.explanation,
+      socraticHint: question.socraticHint,
+      correctAnswerText: resolveCorrectAnswerText(question)
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Check answer failed' });
+  }
+});
+
+// Direct Attempt Logging Endpoint
+apiRouter.post('/attempts/log', async (req: Request, res: Response) => {
+  try {
+    const { learnerId, questionId, isCorrect, timeMs } = req.body;
+    if (!learnerId || !questionId || typeof isCorrect !== 'boolean') {
+      return res.status(400).json({ error: 'Missing required attempt fields' });
+    }
+
+    if (isSupabaseConfigured()) {
+      const { error } = await supabase.from('attempts').insert({
+        learner_id: learnerId,
+        question_id: questionId,
+        is_correct: isCorrect,
+        time_ms: timeMs || 0
+      });
+      if (error) {
+        console.warn('[Supabase Attempt Insert Warning]:', error.message);
+      }
+    }
+
+    return res.json({ success: true });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Problem Reporting Endpoint ("Report a problem" button)
+apiRouter.post('/reports', async (req: Request, res: Response) => {
+  try {
+    const { questionId, learnerId, note } = req.body;
+    if (!questionId || !note) {
+      return res.status(400).json({ error: 'questionId and note are required' });
+    }
+
+    const reportId = `rep-${Date.now()}`;
+    if (isSupabaseConfigured()) {
+      const { data, error } = await supabase.from('reports').insert({
+        question_id: questionId,
+        learner_id: learnerId || 'anonymous-learner',
+        note,
+        status: 'OPEN'
+      }).select().maybeSingle();
+
+      if (error) {
+        console.warn('[Supabase Report Insert Warning]:', error.message);
+      } else if (data?.id) {
+        return res.json({ success: true, report: data });
+      }
+    }
+
+    return res.json({
+      success: true,
+      report: {
+        id: reportId,
+        question_id: questionId,
+        learner_id: learnerId || 'anonymous-learner',
+        note,
+        status: 'OPEN',
+        created_at: new Date().toISOString()
+      }
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
   }
 });
 

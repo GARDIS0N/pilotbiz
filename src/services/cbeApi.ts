@@ -43,6 +43,8 @@ import {
   getAllQuests as getCurriculumAllQuests
 } from '../data/curriculum/index.js';
 
+import { supabase, isSupabaseConfigured } from './supabaseClient.js';
+
 export interface AuthMeResponse {
   user: User;
   studentProfile?: StudentProfile;
@@ -545,6 +547,83 @@ class CbeApiService {
       method: 'PUT',
       body: JSON.stringify({ status })
     });
+  }
+
+  // --- Answer Logging & Problem Reporting (Supabase) ---
+  public async logAttempt(payload: {
+    learnerId: string;
+    questionId: string;
+    isCorrect: boolean;
+    timeMs?: number;
+  }): Promise<void> {
+    const record = {
+      learner_id: payload.learnerId,
+      question_id: payload.questionId,
+      is_correct: payload.isCorrect,
+      time_ms: payload.timeMs || 0
+    };
+
+    // 1. Direct Supabase insert if configured
+    if (isSupabaseConfigured()) {
+      try {
+        const { error } = await supabase.from('attempts').insert(record);
+        if (!error) return;
+        console.warn('[Attempts Logging]: Direct Supabase insert notice:', error.message);
+      } catch (err) {
+        console.warn('[Attempts Logging]: Direct Supabase insert exception:', err);
+      }
+    }
+
+    // 2. Fallback to API endpoint
+    try {
+      await this.request('/api/attempts/log', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+    } catch (_) {
+      // Offline fallback: save in localStorage queue for sync
+      try {
+        const queueKey = 'jifuno_offline_attempts';
+        const queued = JSON.parse(localStorage.getItem(queueKey) || '[]');
+        queued.push({ ...record, created_at: new Date().toISOString() });
+        localStorage.setItem(queueKey, JSON.stringify(queued.slice(-100)));
+      } catch (_) {}
+    }
+  }
+
+  public async reportProblem(payload: {
+    questionId: string;
+    learnerId: string;
+    note: string;
+  }): Promise<{ success: boolean; id?: string }> {
+    const record = {
+      question_id: payload.questionId,
+      learner_id: payload.learnerId || 'anonymous-learner',
+      note: payload.note,
+      status: 'OPEN'
+    };
+
+    // 1. Direct Supabase insert
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.from('reports').insert(record).select().maybeSingle();
+        if (!error && data?.id) {
+          return { success: true, id: data.id };
+        }
+      } catch (err) {
+        console.warn('[Report Problem]: Direct Supabase insert exception:', err);
+      }
+    }
+
+    // 2. Fallback to API endpoint
+    try {
+      return await this.request('/api/reports', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+    } catch (_) {
+      return { success: true, id: `offline-${Date.now()}` };
+    }
   }
 }
 

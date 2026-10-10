@@ -264,10 +264,16 @@ export function evaluateAnswer(rawQ: Question, selectedAnswer: any): boolean {
       const pairs = q.matchingPairs || (q as any).pairs;
       if (Array.isArray(pairs) && pairs.length > 0) {
         if (selectedAnswer.length !== pairs.length) return false;
-        return selectedAnswer.every((m: any) => m.leftId === m.rightId || m.left === m.right);
+        return selectedAnswer.every((m: any) => {
+          return pairs.some((p: any) => {
+            const idMatch = Boolean(m.leftId && p.leftId && m.rightId && p.rightId && m.leftId === p.leftId && m.rightId === p.rightId);
+            const textMatch = Boolean(m.left && p.left && m.right && p.right && m.left === p.left && m.right === p.right);
+            return idMatch || textMatch;
+          });
+        });
       }
     }
-    return typeof selectedAnswer === 'object' && selectedAnswer !== null;
+    return false;
   }
 
   return true;
