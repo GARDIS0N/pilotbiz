@@ -8,14 +8,16 @@ interface Props {
   student: StudentProfile;
   onOpenShop?: () => void;
   onOpenPractice?: () => void;
+  language?: 'en' | 'sw';
 }
 
-type ExplainerMetric = 'STREAK' | 'COINS' | 'HEARTS' | 'XP' | null;
+type ExplainerMetric = 'STREAK' | 'HEARTS' | null;
 
 export const TopGameHUD: React.FC<Props> = ({
   student,
   onOpenShop,
-  onOpenPractice
+  onOpenPractice,
+  language = 'en'
 }) => {
   const [activeExplainer, setActiveExplainer] = useState<ExplainerMetric>(null);
 
@@ -26,40 +28,49 @@ export const TopGameHUD: React.FC<Props> = ({
 
   return (
     <>
-      {/* Top Strip HUD */}
+      {/* Top Strip HUD (Streak & Hearts Only) */}
       <header className="sticky top-0 z-30 bg-slate-950/95 backdrop-blur-md border-b border-emerald-900/60 px-3 sm:px-6 py-2.5 transition-all">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
-          {/* Streak Flame */}
+          {/* Streak Flame + Daily Goal Ring */}
           <button
             type="button"
             onClick={() => handleMetricClick('STREAK')}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-amber-950/40 border border-amber-600/50 hover:border-amber-400 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 group active:scale-95"
-            aria-label={`Streak: ${student.streakDays} days. Tap for info.`}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-amber-950/40 border border-amber-600/50 hover:border-amber-400 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 group active:scale-95"
+            aria-label={`Streak: ${student.streakDays} days. Daily goal: 70%. Tap for info.`}
           >
             <StreakFlame streakDays={student.streakDays} streakFrozen={student.streakFrozen} />
             <span className="text-xs sm:text-sm font-black text-amber-400 group-hover:text-amber-300">
               {student.streakDays}
             </span>
+
+            {/* Small Circular Progress Ring for Daily Goal */}
+            <div className="relative w-5 h-5 shrink-0 ml-0.5" title="Daily Goal: 70%">
+              <svg className="w-5 h-5 transform -rotate-90" viewBox="0 0 36 36">
+                <path
+                  className="text-slate-800"
+                  strokeWidth="4"
+                  stroke="currentColor"
+                  fill="none"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <path
+                  className="text-amber-400 transition-all duration-700"
+                  strokeDasharray="70, 100"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  stroke="currentColor"
+                  fill="none"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+              </svg>
+            </div>
           </button>
 
-          {/* Shilingi Coins */}
-          <button
-            type="button"
-            onClick={() => handleMetricClick('COINS')}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-yellow-950/40 border border-yellow-600/50 hover:border-yellow-400 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 group active:scale-95"
-            aria-label={`Coins: ${student.coins}. Tap for info.`}
-          >
-            <span className="text-sm sm:text-base select-none">🪙</span>
-            <span className="text-xs sm:text-sm font-black text-yellow-400 group-hover:text-yellow-300">
-              {student.coins}
-            </span>
-          </button>
-
-          {/* Hearts */}
+          {/* Hearts Energy */}
           <button
             type="button"
             onClick={() => handleMetricClick('HEARTS')}
-            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl border transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 group active:scale-95 ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 group active:scale-95 ${
               student.hearts <= 1
                 ? 'bg-rose-950/60 border-rose-500 animate-pulse'
                 : 'bg-rose-950/30 border-rose-700/50 hover:border-rose-400'
@@ -69,19 +80,6 @@ export const TopGameHUD: React.FC<Props> = ({
             <span className="text-sm sm:text-base select-none">❤️</span>
             <span className="text-xs sm:text-sm font-black text-rose-400 group-hover:text-rose-300">
               {student.hearts}/{student.maxHearts}
-            </span>
-          </button>
-
-          {/* XP */}
-          <button
-            type="button"
-            onClick={() => handleMetricClick('XP')}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-emerald-950/40 border border-emerald-600/50 hover:border-emerald-400 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 group active:scale-95"
-            aria-label={`XP: ${student.xp}. Tap for info.`}
-          >
-            <span className="text-sm sm:text-base select-none">⚡</span>
-            <span className="text-xs sm:text-sm font-black text-emerald-400 group-hover:text-emerald-300">
-              {student.xp}
             </span>
           </button>
         </div>
@@ -112,59 +110,42 @@ export const TopGameHUD: React.FC<Props> = ({
                       {student.streakDays}-Day Learning Streak!
                     </h3>
                     <p className="text-xs text-amber-400 font-bold uppercase tracking-wider mt-0.5">
-                      {student.streakDays > 0 ? 'Mfululizo wa Masomo' : 'Anza Mfululizo'}
+                      {language === 'sw' ? 'Mfululizo wa Masomo' : 'Daily Practice Streak'}
                     </p>
                   </div>
+
+                  {/* Daily Goal Mini Card */}
+                  <div className="p-3.5 rounded-2xl bg-slate-950 border border-amber-500/30 flex items-center justify-between gap-3 text-left">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-400 font-black text-xs">
+                        70%
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-white block">
+                          {language === 'sw' ? 'Lengo la Kila Siku' : 'Daily Goal'}
+                        </span>
+                        <span className="text-[11px] text-gray-400">
+                          {language === 'sw' ? 'Dakika 7 kati ya 10 zimekamilika' : '7 of 10 minutes completed'}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-xs font-bold text-emerald-400">
+                      {language === 'sw' ? 'Dakika 3 zimesalia' : '3 min left'}
+                    </span>
+                  </div>
+
                   <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
-                    Practise every day to keep your streak flame burning strong! Complete at least one quest daily. Protect your streak in Dukani with a Streak Freeze.
+                    {language === 'sw'
+                      ? 'Fanya mazoezi kila siku ili kudumisha mwali wako wa mfululizo. Kamilisha angalau somo moja kila siku!'
+                      : 'Practise every day to keep your streak flame burning strong! Complete at least one quest daily to stay sharp.'}
                   </p>
                   <button
                     type="button"
                     onClick={() => setActiveExplainer(null)}
-                    className="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm transition-all cursor-pointer shadow-md min-h-[48px]"
+                    className="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm transition-all cursor-pointer shadow-md min-h-[48px]"
                   >
-                    KEEP IT GOING ➔
+                    {language === 'sw' ? 'ENDELEA NA MAZOEZI' : 'KEEP IT GOING ➔'}
                   </button>
-                </>
-              )}
-
-              {activeExplainer === 'COINS' && (
-                <>
-                  <div className="w-16 h-16 mx-auto rounded-3xl bg-yellow-500/20 border-2 border-yellow-400 flex items-center justify-center text-4xl shadow-lg">
-                    🪙
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-black text-white">
-                      {student.coins} Shilingi Coins
-                    </h3>
-                    <p className="text-xs text-yellow-400 font-bold uppercase tracking-wider mt-0.5">
-                      Sarafu za Dukani
-                    </p>
-                  </div>
-                  <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
-                    Earn coins by answering questions correctly and mastering CBC strands. Spend your coins on lesson hints (1 coin each) or visit Dukani to refill hearts!
-                  </p>
-                  <div className="flex gap-2">
-                    {onOpenShop && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveExplainer(null);
-                          onOpenShop();
-                        }}
-                        className="flex-1 py-3 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-sm transition-all cursor-pointer shadow-md"
-                      >
-                        ENDA DUKANI 🏬
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setActiveExplainer(null)}
-                      className="flex-1 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm transition-all cursor-pointer"
-                    >
-                      SAWA (OK)
-                    </button>
-                  </div>
                 </>
               )}
 
@@ -175,16 +156,18 @@ export const TopGameHUD: React.FC<Props> = ({
                   </div>
                   <div>
                     <h3 className="text-lg font-black text-white">
-                      {student.hearts} of {student.maxHearts} Hearts Remaining
+                      {student.hearts} / {student.maxHearts} {language === 'sw' ? 'Mioyo Imesalia' : 'Hearts Remaining'}
                     </h3>
                     <p className="text-xs text-rose-400 font-bold uppercase tracking-wider mt-0.5">
-                      Nishati ya Kujifunza
+                      {language === 'sw' ? 'Nishati ya Kujifunza' : 'Learning Energy'}
                     </p>
                   </div>
                   <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
-                    Hearts give you energy to play lessons. Each wrong answer costs 1 heart. If you run out, do a quick practice round to earn hearts back or refill in Dukani!
+                    {language === 'sw'
+                      ? 'Mioyo inakupa nguvu ya kufanya masomo. Ukipoteza moyo, fanya zoezi la haraka au tembelea Dukani kujaza tena!'
+                      : 'Hearts give you energy to play lessons. If you run low, do a quick review practice round to refill or visit Dukani!'}
                   </p>
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 pt-1">
                     {onOpenPractice && (
                       <button
                         type="button"
@@ -192,46 +175,33 @@ export const TopGameHUD: React.FC<Props> = ({
                           setActiveExplainer(null);
                           onOpenPractice();
                         }}
-                        className="w-full py-3 rounded-2xl bg-rose-500 hover:bg-rose-400 text-white font-black text-sm transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5"
+                        className="w-full py-3.5 rounded-2xl bg-rose-500 hover:bg-rose-400 text-white font-black text-sm transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5 min-h-[48px]"
                       >
-                        <span>PRACTICE TO EARN HEARTS</span>
+                        <span>{language === 'sw' ? 'FANYA MAZOEZI KUJAZA MIOYO' : 'PRACTICE TO REFILL HEARTS'}</span>
                         <span>🎯</span>
+                      </button>
+                    )}
+                    {onOpenShop && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveExplainer(null);
+                          onOpenShop();
+                        }}
+                        className="w-full py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-yellow-400 font-bold text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        <span>{language === 'sw' ? 'TEMBELEA DUKANI' : 'VISIT DUKANI SHOP'}</span>
+                        <span>🏬</span>
                       </button>
                     )}
                     <button
                       type="button"
                       onClick={() => setActiveExplainer(null)}
-                      className="w-full py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-gray-300 font-bold text-xs transition-all cursor-pointer"
+                      className="w-full py-2.5 rounded-2xl bg-transparent hover:bg-slate-800 text-gray-400 hover:text-white font-bold text-xs transition-all cursor-pointer"
                     >
-                      FUNGA (CLOSE)
+                      {language === 'sw' ? 'FUNGA' : 'CLOSE'}
                     </button>
                   </div>
-                </>
-              )}
-
-              {activeExplainer === 'XP' && (
-                <>
-                  <div className="w-16 h-16 mx-auto rounded-3xl bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center text-4xl shadow-lg">
-                    ⚡
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-black text-white">
-                      {student.xp} Total Experience Points
-                    </h3>
-                    <p className="text-xs text-emerald-400 font-bold uppercase tracking-wider mt-0.5">
-                      Pointi za Umilisi (Level {student.level})
-                    </p>
-                  </div>
-                  <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
-                    XP shows your progress across all CBC learning areas! Earn XP by completing lessons, daily quests, and topic reviews to level up your savanna rank.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setActiveExplainer(null)}
-                    className="w-full py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm transition-all cursor-pointer shadow-md min-h-[48px]"
-                  >
-                    LEVEL UP ➔
-                  </button>
                 </>
               )}
             </motion.div>

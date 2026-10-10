@@ -4,12 +4,10 @@ import { StudentProfile, Grade, User } from '../../types/cbe.js';
 import { sound } from '../../utils/soundEffects.js';
 import { TopGameHUD } from '../navigation/TopGameHUD.js';
 import { AppNavigation, AppTab } from '../navigation/AppNavigation.js';
-import { RafikiFloatingButton } from '../common/RafikiFloatingButton.js';
 import { LearningPathView } from '../path/LearningPathView.js';
 import { PracticeHubView } from '../practice/PracticeHubView.js';
 import { DukaniShopView } from '../shop/DukaniShopView.js';
 import { MeProfileView } from './MeProfileView.js';
-import { CurriculumStrandsTab } from '../subject/CurriculumStrandsTab.js';
 import { AITutorModal } from '../tutor/AITutorModal.js';
 
 interface Props {
@@ -44,7 +42,6 @@ export const StudentDashboard: React.FC<Props> = ({
   onOpenTutor
 }) => {
   const [currentTab, setCurrentTab] = useState<AppTab>('LEARN');
-  const [showFullMatrix, setShowFullMatrix] = useState(false);
   const [isTutorOpen, setIsTutorOpen] = useState(false);
 
   const currentGrade = grades.find(g => g.id === student.gradeId) || grades[1] || grades[0];
@@ -59,11 +56,11 @@ export const StudentDashboard: React.FC<Props> = ({
 
   return (
     <div className="w-full min-h-screen bg-slate-950 text-gray-100 flex flex-col md:flex-row relative">
-      {/* 1. Duolingo Navigation: Desktop Left Sidebar + Mobile Bottom Tab Bar */}
+      {/* 1. Navigation: Desktop Left Sidebar + Mobile Bottom Tab Bar */}
       <AppNavigation
         currentTab={currentTab}
         onSelectTab={tab => {
-          setShowFullMatrix(false);
+          sound.playClick();
           setCurrentTab(tab);
         }}
         language={language}
@@ -71,17 +68,18 @@ export const StudentDashboard: React.FC<Props> = ({
         onToggleMute={onToggleMute}
       />
 
-      {/* 2. Main Content Canvas (offset by sidebar width on desktop) */}
+      {/* 2. Main Content Canvas */}
       <div className="flex-1 md:ml-64 lg:ml-72 flex flex-col min-h-screen pb-20 md:pb-8">
-        {/* Top Strip HUD: Streak flame, Coins, Hearts, XP (Tap for explainers) */}
+        {/* Top Strip HUD (Streak with Daily Goal Ring, Hearts) */}
         <TopGameHUD
           student={student}
           onOpenShop={() => setCurrentTab('SHOP')}
           onOpenPractice={() => setCurrentTab('PRACTICE')}
+          language={language}
         />
 
         {/* Tab View Container */}
-        <main className="flex-1 w-full max-w-4xl mx-auto px-3 sm:px-6 pt-4">
+        <main className="flex-1 w-full max-w-4xl mx-auto px-3 sm:px-6 pt-3">
           <AnimatePresence mode="wait">
             {currentTab === 'LEARN' && (
               <motion.div
@@ -89,37 +87,13 @@ export const StudentDashboard: React.FC<Props> = ({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="space-y-6"
               >
-                {/* Secondary Toggle to View Full CBC Matrix / Rubric */}
-                <div className="flex items-center justify-end px-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      sound.playClick();
-                      setShowFullMatrix(!showFullMatrix);
-                    }}
-                    className="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-emerald-900/60 hover:border-emerald-700 transition-all cursor-pointer"
-                  >
-                    <span>{showFullMatrix ? '🗺️ Winding Path' : '📊 Full Strands Rubric'}</span>
-                  </button>
-                </div>
-
-                {showFullMatrix ? (
-                  <CurriculumStrandsTab
-                    gradeId={student.gradeId}
-                    student={student}
-                    onStartQuest={onStartMission}
-                    language={language}
-                  />
-                ) : (
-                  <LearningPathView
-                    student={student}
-                    gradeId={student.gradeId}
-                    onStartQuest={onStartMission}
-                    language={language}
-                  />
-                )}
+                <LearningPathView
+                  student={student}
+                  gradeId={student.gradeId}
+                  onStartQuest={onStartMission}
+                  language={language}
+                />
               </motion.div>
             )}
 
@@ -174,18 +148,15 @@ export const StudentDashboard: React.FC<Props> = ({
                   onStudentUpdated={onStudentUpdated}
                   onLogout={onLogout || (() => {})}
                   onOpenAuthModal={onOpenAuthModal || (() => {})}
+                  onOpenTutor={handleOpenTutor}
+                  onStartMission={onStartMission}
+                  onOpenShop={() => setCurrentTab('SHOP')}
                 />
               </motion.div>
             )}
           </AnimatePresence>
         </main>
       </div>
-
-      {/* 3. Floating Rafiki AI Mascot Button (bottom right FAB) */}
-      <RafikiFloatingButton
-        onClick={handleOpenTutor}
-        language={language}
-      />
 
       {/* Internal AI Tutor Modal fallback */}
       <AITutorModal
