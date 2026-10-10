@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Question } from '../../types/cbe.js';
 import { sound } from '../../utils/soundEffects.js';
+import { VocabularyExplainer } from '../common/VocabularyExplainer.js';
 
 interface Props {
   question: Question;
@@ -46,6 +47,11 @@ export const OrderingQuestion: React.FC<Props> = ({
     onSelectAnswer(newItems.map(it => it.id));
   };
 
+  const isKiswahili = Boolean(
+    question.subStrandId?.includes('kisw') ||
+    question.id?.includes('-kisw-')
+  );
+
   return (
     <div className="w-full space-y-4">
       {question.storyScenario && (
@@ -55,33 +61,36 @@ export const OrderingQuestion: React.FC<Props> = ({
         </div>
       )}
 
-      <h3 className="text-lg md:text-xl font-bold text-emerald-100 leading-snug">
-        {question.prompt}
+      <h3 className="text-xl md:text-2xl font-black text-white leading-snug">
+        <VocabularyExplainer text={question.prompt} />
       </h3>
-      <p className="text-xs text-emerald-400 font-medium">
-        👆 Use the up and down arrows to arrange these in the correct sequence!
+      <p className="text-xs text-emerald-300 font-bold">
+        {isKiswahili
+          ? '👆 Tumia mishale ya juu na chini kupanga hivi kwa mtiririko sahihi!'
+          : '👆 Use the up and down arrows to arrange these in the correct sequence!'}
       </p>
 
-      <div className="space-y-2 pt-2">
+      <div className="space-y-3 pt-2">
         {items.map((item, idx) => (
           <div
             key={item.id}
-            className="flex items-center justify-between p-3.5 rounded-xl border-2 border-emerald-900/60 bg-emerald-950/40 transition-all text-gray-200 hover:border-emerald-600/60"
+            className="flex items-center justify-between p-4 rounded-2xl border-2 border-slate-700 bg-slate-900/95 transition-all text-white hover:border-emerald-400 min-h-[56px]"
           >
-            <div className="flex items-center gap-3">
-              <span className="w-7 h-7 rounded-lg bg-emerald-800 text-emerald-200 font-bold text-xs flex items-center justify-center shrink-0">
+            <div className="flex items-center gap-3.5">
+              <span className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-600 text-emerald-300 font-black text-sm flex items-center justify-center shrink-0">
                 {idx + 1}
               </span>
-              <span className="text-sm md:text-base font-medium">{item.text}</span>
+              <span className="text-lg font-bold text-white leading-snug">{item.text}</span>
             </div>
 
-            <div className="flex items-center gap-1.5 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
                 disabled={disabled || idx === 0}
                 onClick={() => moveItem(idx, 'UP')}
-                className="w-8 h-8 rounded-lg bg-emerald-900/80 hover:bg-emerald-700 text-emerald-200 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center font-bold text-sm"
+                className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 text-emerald-300 border border-slate-600 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center font-black text-base cursor-pointer"
                 title="Move up"
+                aria-label="Move item up"
               >
                 ▲
               </button>
@@ -89,8 +98,9 @@ export const OrderingQuestion: React.FC<Props> = ({
                 type="button"
                 disabled={disabled || idx === items.length - 1}
                 onClick={() => moveItem(idx, 'DOWN')}
-                className="w-8 h-8 rounded-lg bg-emerald-900/80 hover:bg-emerald-700 text-emerald-200 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center font-bold text-sm"
+                className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 text-emerald-300 border border-slate-600 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center font-black text-base cursor-pointer"
                 title="Move down"
+                aria-label="Move item down"
               >
                 ▼
               </button>

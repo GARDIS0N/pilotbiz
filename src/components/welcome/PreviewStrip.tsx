@@ -125,7 +125,7 @@ export const PreviewStrip: React.FC<Props> = ({ language, onTryGuestQuest }) => 
           >
             <div>
               <div className="flex items-center gap-2 text-xs font-black">
-                <span>{sampleQuestion.options[selectedOption!].isCorrect ? '🎉 Hongera Sana!' : '💡 Jaribu Tena!'}</span>
+                <span>{sampleQuestion.options[selectedOption!].isCorrect ? '🎉 Hongera!' : (language === 'sw' ? '💡 Jaribu Tena!' : '💡 Try Again!')}</span>
                 <span>•</span>
                 <span>{language === 'sw' ? 'Mwalimu Rafiki Anafafanua:' : 'Rafiki AI Explains:'}</span>
               </div>

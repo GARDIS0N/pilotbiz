@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "tsx test/e2eTestRunner.ts"
+    "test": "tsx test/validate-question-keys.test.ts && tsx test/e2eTestRunner.ts",
+    "test:questions": "tsx test/validate-question-keys.test.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

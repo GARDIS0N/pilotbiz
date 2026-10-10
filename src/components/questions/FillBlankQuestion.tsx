@@ -1,5 +1,6 @@
 import React from 'react';
 import { Question } from '../../types/cbe.js';
+import { VocabularyExplainer } from '../common/VocabularyExplainer.js';
 
 interface Props {
   question: Question;
@@ -26,12 +27,12 @@ export const FillBlankQuestion: React.FC<Props> = ({
         </div>
       )}
 
-      <h3 className="text-lg md:text-xl font-bold text-emerald-100 leading-snug">
-        {question.prompt}
+      <h3 className="text-xl md:text-2xl font-black text-white leading-snug">
+        <VocabularyExplainer text={question.prompt} />
       </h3>
 
-      <div className="bg-emerald-950/40 border border-emerald-800/60 rounded-2xl p-6 text-center space-y-4">
-        <div className="text-base md:text-lg text-emerald-200 leading-relaxed font-medium">
+      <div className="bg-slate-900/95 border-2 border-slate-700 rounded-3xl p-6 text-center space-y-4 shadow-xl">
+        <div className="text-lg md:text-xl text-white leading-relaxed font-bold">
           {parts[0]}
           <span className="inline-block mx-2">
             <input
@@ -39,15 +40,15 @@ export const FillBlankQuestion: React.FC<Props> = ({
               disabled={disabled}
               value={selectedAnswer || ''}
               onChange={(e) => onSelectAnswer(e.target.value)}
-              placeholder="type your answer..."
-              className="bg-emerald-900/80 border-2 border-emerald-400 focus:border-amber-400 focus:outline-none rounded-xl px-3 py-1.5 text-center text-white font-bold w-44 shadow-inner"
+              placeholder="type here..."
+              className="bg-slate-950 border-2 border-emerald-400 focus:border-amber-400 focus:outline-none rounded-2xl px-4 py-3 text-center text-white font-black text-lg w-52 shadow-inner min-h-[56px]"
             />
           </span>
           {parts[1] || ''}
         </div>
 
-        <p className="text-xs text-gray-400">
-          💡 Enter your calculation or term in the box above.
+        <p className="text-xs text-gray-300 font-medium">
+          💡 Enter your answer in the box above.
         </p>
       </div>
     </div>

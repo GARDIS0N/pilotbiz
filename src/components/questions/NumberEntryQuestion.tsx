@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Question } from '../../types/cbe.js';
 import { sound } from '../../utils/soundEffects.js';
+import { VocabularyExplainer } from '../common/VocabularyExplainer.js';
 
 interface Props {
   question: Question;
@@ -66,14 +67,9 @@ export const NumberEntryQuestion: React.FC<Props> = ({
             <p>{question.storyScenario}</p>
           </div>
         )}
-        <h3 className="text-base md:text-lg font-black text-white leading-snug">
-          {question.prompt}
+        <h3 className="text-xl md:text-2xl font-black text-white leading-snug">
+          <VocabularyExplainer text={question.prompt} />
         </h3>
-        {question.swahiliPrompt && (
-          <p className="text-xs text-emerald-400 font-medium">
-            {question.swahiliPrompt}
-          </p>
-        )}
       </div>
 
       {/* Number Display Input */}
@@ -87,17 +83,17 @@ export const NumberEntryQuestion: React.FC<Props> = ({
             onChange={handleChange}
             disabled={disabled}
             placeholder="0"
-            className="w-full text-center text-3xl font-black py-4 px-6 rounded-3xl bg-slate-900 border-2 border-emerald-500/50 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/20 text-white outline-none tracking-wider placeholder:text-gray-700 transition-all shadow-inner"
+            className="w-full text-center text-3xl font-black py-4 px-6 rounded-3xl bg-slate-900 border-2 border-emerald-400 focus:border-emerald-300 focus:ring-4 focus:ring-emerald-500/20 text-white outline-none tracking-wider placeholder:text-gray-600 transition-all shadow-inner"
           />
           {unit && (
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded-xl border border-emerald-800">
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black uppercase tracking-wider text-emerald-300 bg-slate-800 px-2.5 py-1 rounded-xl border border-emerald-700">
               {unit}
             </span>
           )}
         </div>
 
         {/* Friendly Kid On-Screen Numeric Keypad for low-end mobile touch */}
-        <div className="grid grid-cols-3 gap-2 w-full max-w-sm pt-2">
+        <div className="grid grid-cols-3 gap-2.5 w-full max-w-sm pt-2">
           {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'].map(k => {
             const isAction = k === 'C' || k === '⌫';
             return (
@@ -110,10 +106,10 @@ export const NumberEntryQuestion: React.FC<Props> = ({
                   else if (k === '⌫') handleBackspace();
                   else handleQuickKey(k);
                 }}
-                className={`py-3.5 rounded-2xl font-black text-base transition-all select-none cursor-pointer active:scale-95 min-h-[48px] ${
+                className={`py-4 rounded-2xl font-black text-xl transition-all select-none cursor-pointer active:scale-95 min-h-[56px] ${
                   isAction
-                    ? 'bg-slate-800 hover:bg-slate-700 text-gray-300 border border-slate-700'
-                    : 'bg-emerald-950/60 hover:bg-emerald-900/80 text-white border border-emerald-800/60 shadow-sm'
+                    ? 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-2 border-slate-600 shadow-md'
+                    : 'bg-slate-900/95 hover:bg-slate-800 text-white border-2 border-slate-700 shadow-md hover:border-emerald-400'
                 } disabled:opacity-50`}
                 aria-label={k === 'C' ? 'Clear' : k === '⌫' ? 'Backspace' : `Number ${k}`}
               >

@@ -6,10 +6,21 @@ import { StudentDashboard } from './components/student/StudentDashboard.js';
 import { ParentDashboard } from './components/parent/ParentDashboard.js';
 import { TeacherDashboard } from './components/teacher/TeacherDashboard.js';
 import { AdminDashboard } from './components/admin/AdminDashboard.js';
-import { LearningSessionModal } from './components/session/LearningSessionModal.js';
+import { DuolingoLessonModal } from './components/session/DuolingoLessonModal.js';
 import { AuthModal } from './components/auth/AuthModal.js';
 import { AITutorModal } from './components/tutor/AITutorModal.js';
 import { LoginPage } from './components/auth/LoginPage.js';
+
+const getPersistedHearts = (fallback = 5): number => {
+  try {
+    const val = localStorage.getItem('jifuno_hearts');
+    if (val !== null) {
+      const parsed = parseInt(val, 10);
+      if (!isNaN(parsed) && parsed >= 0 && parsed <= 5) return parsed;
+    }
+  } catch (e) {}
+  return fallback;
+};
 
 const DEFAULT_STUDENT_USER: User = {
   id: 'user-student-amina',
@@ -32,7 +43,7 @@ const DEFAULT_STUDENT_PROFILE: StudentProfile = {
   level: 3,
   xp: 420,
   coins: 185,
-  hearts: 5,
+  hearts: getPersistedHearts(5),
   maxHearts: 5,
   streakDays: 5,
   lastActiveDate: new Date().toISOString().split('T')[0],
@@ -63,6 +74,23 @@ export function App() {
   // Sound mute state
   const [isMuted, setIsMuted] = useState(false);
 
+  // Persistent Interface Language state (Default: 'en' English)
+  const [uiLanguage, setUiLanguage] = useState<'en' | 'sw'>(() => {
+    try {
+      const stored = localStorage.getItem('jifuno_ui_lang');
+      if (stored === 'en' || stored === 'sw') return stored;
+    } catch {}
+    return 'en';
+  });
+
+  const handleToggleLanguage = () => {
+    const next = uiLanguage === 'en' ? 'sw' : 'en';
+    setUiLanguage(next);
+    try {
+      localStorage.setItem('jifuno_ui_lang', next);
+    } catch {}
+  };
+
   // Active Mission Session Modal
   const [activeMissionId, setActiveMissionId] = useState<string | null>(null);
 
@@ -86,7 +114,8 @@ export function App() {
 
       setCurrentUser(authRes.user);
       if (authRes.studentProfile) {
-        setStudentProfile(authRes.studentProfile);
+        const hearts = getPersistedHearts(authRes.studentProfile.hearts ?? 5);
+        setStudentProfile({ ...authRes.studentProfile, hearts });
         setSelectedGradeId(authRes.studentProfile.gradeId);
       }
       setGrades(gRes.grades);
@@ -114,10 +143,11 @@ export function App() {
   };
 
   const handleMissionCompleted = () => {
-    // Refresh student data
+    // Refresh student data while strictly maintaining persisted hearts
     if (studentProfile) {
       cbeApi.getStudentStats(studentProfile.id).then(res => {
-        setStudentProfile(res.student);
+        const hearts = getPersistedHearts(res.student?.hearts ?? 5);
+        setStudentProfile({ ...res.student, hearts });
       });
     }
   };
@@ -286,6 +316,8 @@ export function App() {
             onLogout={() => setCurrentView('LOGIN')}
             onOpenAuthModal={() => setIsAuthModalOpen(true)}
             onOpenTutor={() => setIsGlobalTutorOpen(true)}
+            language={uiLanguage}
+            onToggleLanguage={handleToggleLanguage}
           />
         ) : currentUser?.role === 'PARENT' ? (
           <ParentDashboard />
@@ -310,16 +342,20 @@ export function App() {
         </p>
       </footer>
 
-      {/* Learning Session Modal */}
+      {/* Duolingo Gamified CBE Lesson Modal */}
       {activeMissionId && studentProfile && (
-        <LearningSessionModal
+        <DuolingoLessonModal
           isOpen={Boolean(activeMissionId)}
           missionId={activeMissionId}
           studentId={studentProfile.id}
           studentName={studentProfile.fullName}
-          gradeName={currentGrade?.name}
+          initialHearts={studentProfile.hearts ?? 5}
+          onHeartsChange={(newHearts) => {
+            setStudentProfile(prev => prev ? { ...prev, hearts: newHearts } : null);
+          }}
           onClose={() => setActiveMissionId(null)}
           onMissionCompleted={handleMissionCompleted}
+          language={uiLanguage}
         />
       )}
 

@@ -124,9 +124,9 @@ export const CelebrationModal: React.FC<Props> = ({
             sound.playClick();
             onClose();
           }}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-base shadow-xl shadow-emerald-950/80 transition-all cursor-pointer"
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-base shadow-xl shadow-emerald-950/80 transition-all cursor-pointer min-h-[56px]"
         >
-          ENDELEA! (CONTINUE) ➔
+          CONTINUE ➔
         </button>
       </motion.div>
     </div>

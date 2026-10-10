@@ -4,6 +4,7 @@ import { Question, LearningSessionResult } from '../../types/cbe.js';
 import { cbeApi } from '../../services/cbeApi.js';
 import { sound } from '../../utils/soundEffects.js';
 import { QuestionRenderer } from '../questions/QuestionRenderer.js';
+import { evaluateAnswer, resolveCorrectAnswerText, normalizeQuestion } from '../../utils/answerValidation.js';
 
 interface Props {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface Props {
   studentId: string;
   studentName?: string;
   initialHearts?: number;
+  onHeartsChange?: (hearts: number) => void;
   onClose: () => void;
   onMissionCompleted: (result: LearningSessionResult) => void;
   onOpenPractice?: () => void;
@@ -23,11 +25,23 @@ export const DuolingoLessonModal: React.FC<Props> = ({
   studentId,
   studentName = 'Amina',
   initialHearts = 5,
+  onHeartsChange,
   onClose,
   onMissionCompleted,
   onOpenPractice,
   language = 'en'
 }) => {
+  const getInitialHearts = (): number => {
+    try {
+      const stored = localStorage.getItem('jifuno_hearts');
+      if (stored !== null) {
+        const parsed = parseInt(stored, 10);
+        if (!isNaN(parsed) && parsed >= 0 && parsed <= 5) return parsed;
+      }
+    } catch (e) {}
+    return initialHearts ?? 5;
+  };
+
   const [loading, setLoading] = useState(true);
   const [questTitle, setQuestTitle] = useState('Learning Mission');
   const [questSwahiliTitle, setQuestSwahiliTitle] = useState('');
@@ -45,10 +59,12 @@ export const DuolingoLessonModal: React.FC<Props> = ({
   const [answerSubmitted, setAnswerSubmitted] = useState(false);
   const [isCurrentCorrect, setIsCurrentCorrect] = useState<boolean | null>(null);
   const [activeHint, setActiveHint] = useState<string | null>(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
-  // Hearts tracking
-  const [hearts, setHearts] = useState(initialHearts);
+  // Hearts tracking (persisted and strictly consistent)
+  const [hearts, setHearts] = useState<number>(getInitialHearts);
   const [isOutOfHearts, setIsOutOfHearts] = useState(false);
+  const [isPracticeMode, setIsPracticeMode] = useState(false);
 
   // End of session summary state
   const [isComplete, setIsComplete] = useState(false);
@@ -73,18 +89,22 @@ export const DuolingoLessonModal: React.FC<Props> = ({
     setIsComplete(false);
     setSolvedCount(0);
     setMistakesCount(0);
-    setHearts(initialHearts);
-    setIsOutOfHearts(false);
+    const initH = getInitialHearts();
+    setHearts(initH);
+    if (onHeartsChange) onHeartsChange(initH);
+    setIsOutOfHearts(initH === 0);
     setCurrentTeachCardIdx(0);
 
     try {
       const data = await cbeApi.getMissionDetails(mId);
-      setQuestTitle(data.mission.title);
-      setQuestSwahiliTitle(data.mission.swahiliTitle || '');
+      const isKisw = Boolean(mId.includes('kisw') || data.mission.subStrandId?.includes('kisw'));
+      setQuestTitle(isKisw && data.mission.swahiliTitle ? data.mission.swahiliTitle : data.mission.title);
+      setQuestSwahiliTitle('');
       setXpReward(data.mission.xpReward || 25);
       setCoinReward(data.mission.coinReward || 10);
-      setQueue(data.questions);
-      setTotalInitialCount(data.questions.length);
+      const normalizedQuestions = (data.questions || []).map(q => normalizeQuestion(q));
+      setQueue(normalizedQuestions);
+      setTotalInitialCount(normalizedQuestions.length);
 
       if (data.lesson?.teachCards && data.lesson.teachCards.length > 0) {
         setTeachCards(data.lesson.teachCards);
@@ -104,77 +124,39 @@ export const DuolingoLessonModal: React.FC<Props> = ({
 
   const currentQ = queue[0];
 
-  // Helper to validate current answer correctness
+  // Answer validation and human-readable answer label from universal evaluator
   const checkIsCorrect = (q: Question, ans: any): boolean => {
-    if (!q || ans === null || ans === undefined) return false;
-
-    if (q.type === 'MULTIPLE_CHOICE' || q.type === 'IMAGE_LABEL' || q.type === 'LISTEN_CHOOSE') {
-      return ans === q.correctOptionId;
-    }
-
-    if (q.type === 'TRUE_FALSE') {
-      return ans === q.correctBoolean;
-    }
-
-    if (q.type === 'NUMBER_ENTRY' || q.type === 'KENYAN_MONEY') {
-      if (typeof q.numericAnswer?.value === 'number') {
-        const tol = q.numericAnswer.tolerance || 0;
-        return Math.abs(Number(ans) - q.numericAnswer.value) <= tol;
-      }
-      return false;
-    }
-
-    if (q.type === 'FILL_BLANK') {
-      if (q.fillBlankAnswers && q.fillBlankAnswers.length > 0) {
-        return q.fillBlankAnswers.some(
-          a => a.toLowerCase().trim() === String(ans).toLowerCase().trim()
-        );
-      }
-      return typeof ans === 'string' && ans.trim().length > 0;
-    }
-
-    if (q.type === 'ORDERING') {
-      if (q.correctOrderIds && Array.isArray(ans)) {
-        return JSON.stringify(ans) === JSON.stringify(q.correctOrderIds);
-      }
-      return Array.isArray(ans) && ans.length > 0;
-    }
-
-    if (q.type === 'MATCHING') {
-      if (Array.isArray(ans) && q.matchingPairs && q.matchingPairs.length > 0) {
-        if (ans.length !== q.matchingPairs.length) return false;
-        return ans.every((m: any) => m.leftId === m.rightId);
-      }
-      return typeof ans === 'object' && ans !== null && Object.keys(ans).length > 0;
-    }
-
-    return true;
+    return evaluateAnswer(q, ans);
   };
 
-  // Human readable correct answer snippet
   const getCorrectAnswerLabel = (q: Question): string => {
-    if (!q) return '';
-    if (q.type === 'MULTIPLE_CHOICE' || q.type === 'IMAGE_LABEL' || q.type === 'LISTEN_CHOOSE') {
-      const correct = q.options?.find(o => o.id === q.correctOptionId);
-      return correct?.text || 'Correct option';
+    return resolveCorrectAnswerText(q);
+  };
+
+  const getFirstSentence = (text?: string): string => {
+    if (!text) return '';
+    const cleaned = text.trim();
+    const match = cleaned.match(/^.*?[.!?](?:\s|$)/);
+    return match ? match[0].trim() : cleaned;
+  };
+
+  const handleQuickRefill = () => {
+    sound.playLevelUp();
+    setHearts(5);
+    try {
+      localStorage.setItem('jifuno_hearts', '5');
+    } catch (e) {}
+    if (onHeartsChange) {
+      onHeartsChange(5);
     }
-    if (q.type === 'TRUE_FALSE') {
-      return q.correctBoolean ? 'True (Kweli)' : 'False (Si Kweli)';
-    }
-    if (q.type === 'NUMBER_ENTRY' || q.type === 'KENYAN_MONEY') {
-      return `${q.numericAnswer?.value || ''} ${q.numericAnswer?.unit || ''}`.trim();
-    }
-    if (q.type === 'FILL_BLANK' && q.fillBlankAnswers) {
-      return q.fillBlankAnswers.join(', ');
-    }
-    return 'Correct answer';
+    setIsOutOfHearts(false);
   };
 
   const handleCheckAnswer = () => {
     if (!currentQ || currentAnswer === null || currentAnswer === undefined || currentAnswer === '') return;
     sound.playClick();
 
-    const correct = checkIsCorrect(currentQ, currentAnswer);
+    const correct = evaluateAnswer(currentQ, currentAnswer);
     setIsCurrentCorrect(correct);
     setAnswerSubmitted(true);
 
@@ -184,11 +166,21 @@ export const DuolingoLessonModal: React.FC<Props> = ({
     } else {
       sound.playIncorrect();
       setMistakesCount(prev => prev + 1);
-      const nextHearts = Math.max(0, hearts - 1);
-      setHearts(nextHearts);
 
-      if (nextHearts === 0) {
-        setIsOutOfHearts(true);
+      // In Practice Mode, mistakes never cost hearts
+      if (!isPracticeMode) {
+        const nextHearts = Math.max(0, hearts - 1);
+        setHearts(nextHearts);
+        try {
+          localStorage.setItem('jifuno_hearts', String(nextHearts));
+        } catch (e) {}
+        if (onHeartsChange) {
+          onHeartsChange(nextHearts);
+        }
+
+        if (nextHearts === 0) {
+          setIsOutOfHearts(true);
+        }
       }
     }
   };
@@ -216,10 +208,68 @@ export const DuolingoLessonModal: React.FC<Props> = ({
     setIsCurrentCorrect(null);
   };
 
-  const handleUseHint = () => {
-    if (!currentQ) return;
+  // Stop speech when question changes or modal unmounts
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    setIsSpeaking(false);
+  }, [currentQ?.id, isOpen]);
+
+  const handleReadAloud = () => {
+    if (!currentQ || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
     sound.playClick();
-    const hintText = currentQ.socraticHint || 'Think about the problem step by step: read carefully and break it down.';
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    // Prepare text to read aloud: scenario, prompt, and options
+    const parts: string[] = [];
+    if (currentQ.storyScenario) {
+      parts.push(currentQ.storyScenario);
+    }
+    parts.push(currentQ.prompt);
+
+    if (currentQ.options && currentQ.options.length > 0) {
+      currentQ.options.forEach((opt, idx) => {
+        const letter = String.fromCharCode(65 + idx);
+        parts.push(`Option ${letter}: ${opt.text}`);
+      });
+    }
+
+    const fullText = parts.join('. ');
+    const utterance = new SpeechSynthesisUtterance(fullText);
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+
+    const isKisw = Boolean(
+      currentQ.subStrandId?.includes('kisw') ||
+      currentQ.id?.includes('-kisw-')
+    );
+    utterance.lang = isKisw ? 'sw' : 'en-US';
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleUseHint = () => {
+    if (!currentQ || activeHint) return;
+    sound.playClick();
+    const isKisw = Boolean(
+      currentQ.subStrandId?.includes('kisw') ||
+      currentQ.id?.includes('-kisw-')
+    );
+    const hintText = (isKisw && currentQ.swahiliSocraticHint)
+      ? currentQ.swahiliSocraticHint
+      : (currentQ.socraticHint || 'Think carefully about the clues in the problem.');
     setActiveHint(hintText);
   };
 
@@ -248,7 +298,15 @@ export const DuolingoLessonModal: React.FC<Props> = ({
     onMissionCompleted(result);
   };
 
-  const progressPercent = Math.min(100, Math.round((solvedCount / Math.max(1, totalInitialCount)) * 100));
+  // Progress Bar: Fills smoothly as questions are answered and completed
+  const completedQuestions = Math.max(
+    0,
+    totalInitialCount - queue.length + (answerSubmitted && isCurrentCorrect ? 1 : 0)
+  );
+  const progressPercent = Math.min(
+    100,
+    Math.max(8, Math.round((completedQuestions / Math.max(1, totalInitialCount)) * 100))
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-slate-950 text-white select-none animate-fade-in overflow-hidden">
@@ -279,16 +337,41 @@ export const DuolingoLessonModal: React.FC<Props> = ({
           />
         </div>
 
-        {/* Hearts HUD */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-rose-950/40 border border-rose-700/60 font-black text-rose-400 text-sm">
-          <span>❤️</span>
-          <span>{hearts}</span>
+        {/* Hearts HUD & Practice Mode Toggle */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              sound.playClick();
+              setIsPracticeMode(prev => !prev);
+            }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-bold transition-all cursor-pointer ${
+              isPracticeMode
+                ? 'bg-emerald-950 border-emerald-400 text-emerald-300 ring-2 ring-emerald-400/40 shadow-sm'
+                : 'bg-slate-900 border-slate-700 text-gray-300 hover:border-slate-500 hover:text-white'
+            }`}
+            title={isPracticeMode ? 'Practice Mode: Infinite Hearts' : 'Enable Practice Mode (No heart loss)'}
+          >
+            <span>🛡️</span>
+            <span className="hidden sm:inline">{isPracticeMode ? 'Practice Mode' : 'Practice'}</span>
+          </button>
+
+          <div
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border font-black text-sm transition-all ${
+              isPracticeMode
+                ? 'bg-emerald-950/60 border-emerald-500/60 text-emerald-300'
+                : 'bg-rose-950/40 border-rose-700/60 text-rose-400'
+            }`}
+          >
+            <span>❤️</span>
+            <span>{isPracticeMode ? '∞' : hearts}</span>
+          </div>
         </div>
       </div>
 
       {/* 2. Main Question Body (One question per screen, big tap targets) */}
-      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-6 flex flex-col items-center justify-center">
-        <div className="w-full max-w-2xl mx-auto space-y-6">
+      <div className="flex-1 overflow-y-auto px-4 md:px-6 pt-3 pb-8 flex flex-col items-center justify-start">
+        <div className="w-full max-w-2xl mx-auto space-y-4">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 space-y-4">
               <div className="w-14 h-14 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
@@ -436,22 +519,33 @@ export const DuolingoLessonModal: React.FC<Props> = ({
             </div>
           ) : currentQ ? (
             /* Active Question Challenge */
-            <div className="space-y-6 animate-fade-in pb-24">
-              {/* Question Header & Hint Trigger */}
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-950 px-2.5 py-1 rounded-xl border border-emerald-800">
-                  Question {solvedCount + 1} of {totalInitialCount}
-                </span>
+            <div className="space-y-4 animate-fade-in pb-24 w-full">
+              {/* Question Header: Read Aloud + Single Hint Button (No Stars, No Badges, No Question X of Y) */}
+              <div className="flex items-center justify-between gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={handleReadAloud}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border-2 font-bold text-xs transition-all cursor-pointer min-h-[40px] ${
+                    isSpeaking
+                      ? 'bg-emerald-500 text-slate-950 border-emerald-400 animate-pulse ring-2 ring-emerald-400/50'
+                      : 'bg-slate-900 hover:bg-slate-800 text-white border-slate-700 hover:border-emerald-500'
+                  }`}
+                  title={language === 'sw' ? 'Soma swali kwa sauti' : 'Read question aloud'}
+                  aria-label="Read question aloud"
+                >
+                  <span className="text-base">{isSpeaking ? '🔊' : '🔉'}</span>
+                  <span>{isSpeaking ? (language === 'sw' ? 'Inasoma...' : 'Reading...') : (language === 'sw' ? 'Soma kwa Sauti' : 'Read Aloud')}</span>
+                </button>
 
                 <button
                   type="button"
                   onClick={handleUseHint}
-                  disabled={answerSubmitted}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-yellow-950/40 border border-yellow-500/60 text-yellow-300 font-black text-xs hover:bg-yellow-950/80 transition-all cursor-pointer"
+                  disabled={answerSubmitted || Boolean(activeHint)}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-yellow-950/40 border-2 border-yellow-500/60 text-yellow-300 font-black text-xs hover:bg-yellow-950/80 transition-all cursor-pointer disabled:opacity-40 min-h-[40px]"
                   title="Spend 1 Coin for a hint"
                 >
-                  <span>💡</span>
-                  <span>Hint (1 🪙)</span>
+                  <span className="text-base">💡</span>
+                  <span>{language === 'sw' ? 'Dokezo (1 🪙)' : 'Hint (1 🪙)'}</span>
                 </button>
               </div>
 
@@ -485,47 +579,73 @@ export const DuolingoLessonModal: React.FC<Props> = ({
             answerSubmitted
               ? isCurrentCorrect
                 ? 'bg-emerald-950/95 border-emerald-400 shadow-2xl'
-                : 'bg-rose-950/95 border-rose-500 shadow-2xl'
+                : 'bg-amber-950/95 border-amber-500 shadow-2xl'
               : 'bg-slate-950 border-slate-900'
           }`}
         >
           <div className="max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             {/* Feedback Message */}
             {answerSubmitted ? (
-              <div className="flex items-start gap-3 w-full sm:w-auto">
-                <div
-                  className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-lg ${
-                    isCurrentCorrect ? 'bg-emerald-400 text-slate-950' : 'bg-rose-500 text-white'
-                  }`}
-                >
-                  {isCurrentCorrect ? '✓' : '✕'}
-                </div>
-                <div className="text-left space-y-0.5">
-                  <h4 className="text-base sm:text-lg font-black text-white">
-                    {isCurrentCorrect
-                      ? (language === 'sw' ? 'Safi Sana! / Correct!' : 'Nicely Done!')
-                      : (language === 'sw' ? 'Si Sahihi (Jaribu Tena)' : 'Not quite!')}
-                  </h4>
-                  {!isCurrentCorrect && (
+              <div className="flex items-start gap-3.5 w-full sm:w-auto">
+                {isCurrentCorrect ? (
+                  <motion.div
+                    initial={{ scale: 0.5, rotate: -20 }}
+                    animate={{ scale: [0.5, 1.25, 1], rotate: [-20, 15, 0] }}
+                    transition={{ type: 'spring', damping: 12, stiffness: 200 }}
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-lg bg-emerald-400 text-slate-950 font-black relative overflow-hidden"
+                  >
+                    <span>✓</span>
+                    <motion.span
+                      animate={{ scale: [1, 1.6, 1], opacity: [0.8, 1, 0] }}
+                      transition={{ duration: 0.8, repeat: Infinity, repeatDelay: 1 }}
+                      className="absolute inset-0 bg-white/20 rounded-2xl pointer-events-none"
+                    />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ scale: 0.8 }}
+                    animate={{ scale: [0.8, 1.08, 1] }}
+                    transition={{ duration: 0.3 }}
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-lg bg-amber-500 text-slate-950 font-black"
+                  >
+                    <span>💡</span>
+                  </motion.div>
+                )}
+
+                <div className="text-left space-y-1">
+                  {isCurrentCorrect ? (
                     <>
-                      <p className="text-xs text-rose-200 font-bold">
-                        Correct Answer: {getCorrectAnswerLabel(currentQ)}
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-base sm:text-lg font-black text-white">
+                          Hongera!
+                        </h4>
+                        <span className="text-sm">🎉</span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-emerald-200 font-medium leading-snug">
+                        {getFirstSentence(currentQ?.explanation) || (language === 'sw' ? 'Umefanya vizuri sana! Endelea hivi!' : 'Great job! You found the right solution!')}
                       </p>
-                      <p className="text-xs text-gray-300 leading-snug line-clamp-2">
-                        {currentQ.explanation || 'Review the clue and try again at the end of the lesson.'}
+                      <p className="text-xs text-emerald-400 font-bold">
+                        +10 XP ⚡
                       </p>
                     </>
-                  )}
-                  {isCurrentCorrect && (
-                    <p className="text-xs text-emerald-300 font-bold">
-                      +10 XP ⚡
-                    </p>
+                  ) : (
+                    <>
+                      <h4 className="text-base sm:text-lg font-black text-amber-300">
+                        {language === 'sw' ? 'Karibu upate! Jaribu tena' : 'Almost! Try again'}
+                      </h4>
+                      <p className="text-xs sm:text-sm text-amber-200 font-bold">
+                        {language === 'sw' ? 'Jibu Sahihi' : 'Correct Answer'}: {getCorrectAnswerLabel(currentQ)}
+                      </p>
+                      <p className="text-xs text-slate-100 font-medium leading-relaxed max-w-md">
+                        {getFirstSentence(currentQ?.explanation) || (language === 'sw' ? 'Kumbuka dokezo na jaribu tena mwishoni mwa somo.' : 'Think about the clues and try again at the end of the lesson.')}
+                      </p>
+                    </>
                   )}
                 </div>
               </div>
             ) : (
               <div className="hidden sm:block text-xs text-gray-400 font-medium">
-                {language === 'sw' ? 'Chagua jibu kisha bonyeza Kagua' : 'Select an answer to continue'}
+                {language === 'sw' ? 'Chagua jibu kisha kagua' : 'Select an answer to continue'}
               </div>
             )}
 
@@ -538,7 +658,7 @@ export const DuolingoLessonModal: React.FC<Props> = ({
                   className={`w-full sm:w-48 py-4 px-6 rounded-2xl font-black text-base shadow-xl transition-all cursor-pointer active:scale-95 min-h-[56px] ${
                     isCurrentCorrect
                       ? 'bg-emerald-400 hover:bg-emerald-300 text-slate-950 shadow-emerald-500/30'
-                      : 'bg-rose-500 hover:bg-rose-400 text-white shadow-rose-500/30'
+                      : 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/30'
                   }`}
                 >
                   {language === 'sw' ? 'ENDELEA' : 'CONTINUE'} ➔
@@ -562,7 +682,7 @@ export const DuolingoLessonModal: React.FC<Props> = ({
         </div>
       )}
 
-      {/* 5. Out of Hearts Emergency Sheet */}
+      {/* 5. Out of Hearts Emergency Sheet (With Refill & Practice Mode Options) */}
       <AnimatePresence>
         {isOutOfHearts && (
           <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
@@ -570,39 +690,49 @@ export const DuolingoLessonModal: React.FC<Props> = ({
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-slate-900 border-2 border-rose-500 rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl"
+              className="bg-slate-900 border-2 border-amber-500 rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl"
             >
-              <div className="w-18 h-18 mx-auto rounded-3xl bg-rose-500/20 border-2 border-rose-400 flex items-center justify-center text-4xl shadow-lg">
-                💔
+              <div className="w-18 h-18 mx-auto rounded-3xl bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-4xl shadow-lg">
+                💖
               </div>
               <div>
                 <h3 className="text-xl font-black text-white">
                   {language === 'sw' ? 'Mioyo Imeisha!' : 'Out of Hearts!'}
                 </h3>
-                <p className="text-xs text-rose-300 font-bold mt-1">
+                <p className="text-xs text-amber-300 font-bold mt-1">
                   Don't worry, mistakes help our brains grow!
                 </p>
               </div>
-              <p className="text-xs text-gray-300 leading-relaxed">
-                Practise foundational questions to earn hearts back, or refill instantly in Dukani.
+              <p className="text-xs text-slate-100 leading-relaxed">
+                Refill your hearts instantly with a quick review, or continue in Practice Mode with infinite hearts.
               </p>
-              <div className="space-y-2 pt-2">
-                {onOpenPractice && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onClose();
-                      onOpenPractice();
-                    }}
-                    className="w-full py-3.5 rounded-2xl bg-rose-500 hover:bg-rose-400 text-white font-black text-sm cursor-pointer shadow-md"
-                  >
-                    PRACTICE TO EARN HEARTS 🎯
-                  </button>
-                )}
+              <div className="space-y-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={handleQuickRefill}
+                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm cursor-pointer shadow-lg active:scale-98 transition-all flex items-center justify-center gap-2 min-h-[52px]"
+                >
+                  <span>✨</span>
+                  <span>QUICK REVIEW TO REFILL (+5 ❤️)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.playClick();
+                    setIsPracticeMode(true);
+                    setIsOutOfHearts(false);
+                  }}
+                  className="w-full py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border-2 border-emerald-500/60 text-emerald-300 font-black text-xs cursor-pointer shadow-md active:scale-98 transition-all flex items-center justify-center gap-2 min-h-[48px]"
+                >
+                  <span>🛡️</span>
+                  <span>CONTINUE IN PRACTICE MODE (∞ Hearts)</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-full py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-gray-300 font-bold text-xs cursor-pointer"
+                  className="w-full py-2.5 rounded-2xl bg-transparent hover:bg-slate-800 text-gray-400 hover:text-white font-bold text-xs cursor-pointer transition-all"
                 >
                   RETURN TO HOME 🏠
                 </button>

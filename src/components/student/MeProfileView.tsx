@@ -121,14 +121,14 @@ export const MeProfileView: React.FC<Props> = ({
         <div className="p-4 rounded-3xl bg-slate-900 border border-emerald-500/50 space-y-3 animate-fade-in">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
-              Choose Your Savanna Avatar / Chagua Picha:
+              {language === 'sw' ? 'Chagua Picha ya Mnyama:' : 'Choose Your Savanna Avatar:'}
             </span>
             <button
               type="button"
               onClick={() => setIsChangingAvatar(false)}
               className="text-xs text-gray-400 hover:text-white"
             >
-              ✕ Close
+              ✕ {language === 'sw' ? 'Funga' : 'Close'}
             </button>
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
@@ -160,10 +160,12 @@ export const MeProfileView: React.FC<Props> = ({
         <div>
           <h3 className="text-sm font-black text-white flex items-center gap-2">
             <span>📚</span>
-            <span>CBC Grade Level / Darasa la Mwanafunzi</span>
+            <span>{language === 'sw' ? 'Darasa la Mwanafunzi' : 'CBC Grade Level'}</span>
           </h3>
           <p className="text-xs text-gray-400 mt-0.5">
-            Select your current school grade to adjust KICD curriculum subjects and quests.
+            {language === 'sw'
+              ? 'Chagua darasa lako ili kubadilisha masomo na majukumu ya KICD.'
+              : 'Select your current school grade to adjust KICD curriculum subjects and quests.'}
           </p>
         </div>
 
@@ -192,10 +194,12 @@ export const MeProfileView: React.FC<Props> = ({
       <div className="p-5 rounded-3xl bg-slate-950 border border-emerald-900/80 space-y-3">
         <h3 className="text-sm font-black text-white flex items-center gap-2">
           <span>🎯</span>
-          <span>Daily Practice Goal / Lengo la Kila Siku</span>
+          <span>{language === 'sw' ? 'Lengo la Kila Siku' : 'Daily Practice Goal'}</span>
         </h3>
         <p className="text-xs text-gray-400">
-          How many minutes of learning do you aim to complete each day?
+          {language === 'sw'
+            ? 'Je, unakusudia kufanya mazoezi kwa dakika ngapi kila siku?'
+            : 'How many minutes of learning do you aim to complete each day?'}
         </p>
 
         <div className="grid grid-cols-3 gap-2.5">
@@ -212,7 +216,9 @@ export const MeProfileView: React.FC<Props> = ({
             >
               <div className="text-base font-black text-white">{min} Min</div>
               <div className="text-[10px] text-gray-400 mt-0.5">
-                {min === 5 ? 'Easy • Rahisi' : min === 10 ? 'Regular • Kawaida' : 'Intense • Makini'}
+                {language === 'sw'
+                  ? (min === 5 ? 'Rahisi' : min === 10 ? 'Kawaida' : 'Makini')
+                  : (min === 5 ? 'Easy' : min === 10 ? 'Regular' : 'Intense')}
               </div>
             </button>
           ))}
@@ -223,16 +229,18 @@ export const MeProfileView: React.FC<Props> = ({
       <div className="p-5 rounded-3xl bg-slate-950 border border-emerald-900/80 space-y-4">
         <h3 className="text-sm font-black text-white flex items-center gap-2">
           <span>⚙️</span>
-          <span>App Preferences / Mipangilio</span>
+          <span>{language === 'sw' ? 'Mipangilio ya Programu' : 'App Preferences'}</span>
         </h3>
 
         <div className="divide-y divide-emerald-950/60">
           {/* Language Toggle */}
           <div className="py-3 flex items-center justify-between gap-4">
             <div>
-              <span className="text-xs font-bold text-white block">Language / Lugha</span>
+              <span className="text-xs font-bold text-white block">
+                {language === 'sw' ? 'Lugha ya Mfumo' : 'Interface Language'}
+              </span>
               <span className="text-[11px] text-gray-400">
-                {language === 'en' ? 'Currently English' : 'Hivi sasa Kiswahili'}
+                {language === 'en' ? 'English (Default)' : 'Kiswahili'}
               </span>
             </div>
             <button

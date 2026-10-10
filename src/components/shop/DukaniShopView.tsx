@@ -89,6 +89,11 @@ export const DukaniShopView: React.FC<Props> = ({
 
     sound.playLevelUp();
     const updates = item.action(student);
+    if (updates.hearts !== undefined) {
+      try {
+        localStorage.setItem('jifuno_hearts', String(updates.hearts));
+      } catch (e) {}
+    }
     const updatedStudent: StudentProfile = {
       ...student,
       ...updates,

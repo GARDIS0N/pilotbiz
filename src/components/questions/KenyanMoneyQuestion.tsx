@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Question } from '../../types/cbe.js';
 import { sound } from '../../utils/soundEffects.js';
+import { VocabularyExplainer } from '../common/VocabularyExplainer.js';
 
 interface Props {
   question: Question;
@@ -94,21 +95,16 @@ export const KenyanMoneyQuestion: React.FC<Props> = ({
             <p>{question.storyScenario}</p>
           </div>
         )}
-        <h3 className="text-lg md:text-xl font-black text-white leading-snug">
-          {question.prompt}
+        <h3 className="text-xl md:text-2xl font-black text-white leading-snug">
+          <VocabularyExplainer text={question.prompt} />
         </h3>
-        {question.swahiliPrompt && (
-          <p className="text-sm text-emerald-400 font-medium italic">
-            {question.swahiliPrompt}
-          </p>
-        )}
       </div>
 
       {/* Target Amount vs Current Amount Display */}
       <div className="grid grid-cols-2 gap-3 p-4 rounded-3xl bg-slate-900 border-2 border-emerald-900/80 shadow-inner">
         <div className="p-3 rounded-2xl bg-slate-950 border border-emerald-800/60 text-center">
-          <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 block">
-            Target Amount / Lengo
+          <span className="text-[10px] font-black uppercase tracking-wider text-gray-300 block">
+            Target Amount
           </span>
           <span className="text-2xl md:text-3xl font-black text-amber-400 mt-1 block">
             KES {targetAmount}
@@ -124,8 +120,8 @@ export const KenyanMoneyQuestion: React.FC<Props> = ({
               : 'bg-slate-950 border-emerald-900/60'
           }`}
         >
-          <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 block">
-            Your Total / Jumla Yako
+          <span className="text-[10px] font-black uppercase tracking-wider text-gray-300 block">
+            Your Total
           </span>
           <span
             className={`text-2xl md:text-3xl font-black mt-1 block ${
@@ -153,13 +149,13 @@ export const KenyanMoneyQuestion: React.FC<Props> = ({
               onClick={handleClear}
               className="text-[11px] text-rose-400 hover:text-rose-300 font-bold underline cursor-pointer"
             >
-              Clear All / Futa
+              Clear All
             </button>
           )}
         </div>
 
         {tappedItems.length === 0 ? (
-          <p className="text-xs text-gray-500 italic py-2">
+          <p className="text-xs text-gray-400 italic py-2">
             Tap coins or notes below to add Kenyan Shillings to your payment.
           </p>
         ) : (
@@ -184,8 +180,8 @@ export const KenyanMoneyQuestion: React.FC<Props> = ({
 
       {/* Denominations Touch Grid */}
       <div className="space-y-2">
-        <span className="text-xs font-black text-gray-400 uppercase tracking-wider block">
-          Tap Money to Add (Sarafu na Noti za Kenya):
+        <span className="text-xs font-black text-gray-300 uppercase tracking-wider block">
+          Tap Money to Add:
         </span>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {DENOMINATIONS.map(denom => (

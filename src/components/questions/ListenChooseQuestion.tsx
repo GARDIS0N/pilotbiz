@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Question } from '../../types/cbe.js';
 import { sound } from '../../utils/soundEffects.js';
+import { VocabularyExplainer } from '../common/VocabularyExplainer.js';
 
 interface Props {
   question: Question;
@@ -45,14 +46,9 @@ export const ListenChooseQuestion: React.FC<Props> = ({
     <div className="space-y-6">
       {/* Prompt */}
       <div className="space-y-2">
-        <h3 className="text-base md:text-lg font-black text-white leading-snug">
-          {question.prompt}
+        <h3 className="text-xl md:text-2xl font-black text-white leading-snug">
+          <VocabularyExplainer text={question.prompt} />
         </h3>
-        {question.swahiliPrompt && (
-          <p className="text-xs text-amber-400 font-medium">
-            {question.swahiliPrompt}
-          </p>
-        )}
       </div>
 
       {/* Audio Play Button Hero */}
@@ -70,7 +66,7 @@ export const ListenChooseQuestion: React.FC<Props> = ({
           {isPlaying ? '🔊' : '▶️'}
         </button>
         <span className="text-xs font-bold text-amber-300">
-          {isPlaying ? 'Sikiliza kwa makini... (Listening)' : 'Tap to Listen (Bonyeza Kusikiliza)'}
+          {isPlaying ? 'Listening carefully...' : 'Tap to Listen'}
         </span>
         <span className="text-[10px] text-gray-400">
           Pronunciation speed tuned for CBC learners
@@ -78,7 +74,7 @@ export const ListenChooseQuestion: React.FC<Props> = ({
       </div>
 
       {/* Answer Options */}
-      <div className="space-y-2.5">
+      <div className="space-y-3">
         {question.options?.map(opt => {
           const isSelected = selectedAnswer === opt.id;
 
@@ -91,18 +87,18 @@ export const ListenChooseQuestion: React.FC<Props> = ({
                 sound.playClick();
                 onSelectAnswer(opt.id);
               }}
-              className={`w-full p-4 rounded-2xl border-2 text-left font-bold text-sm transition-all cursor-pointer flex items-center justify-between min-h-[48px] ${
+              className={`w-full p-4 rounded-2xl border-2 text-left font-bold transition-all cursor-pointer flex items-center justify-between min-h-[56px] ${
                 isSelected
-                  ? 'border-amber-400 bg-amber-950/70 text-white shadow-lg ring-2 ring-amber-400/30'
-                  : 'border-slate-800 bg-slate-950 hover:border-amber-700 text-gray-200'
+                  ? 'border-amber-400 bg-amber-950 text-white shadow-xl shadow-amber-950/80 ring-2 ring-amber-400'
+                  : 'border-slate-700 bg-slate-900/95 text-white hover:border-amber-400 hover:bg-slate-800'
               } disabled:opacity-50`}
             >
-              <span>{opt.text}</span>
+              <span className="text-lg font-bold text-white leading-snug">{opt.text}</span>
               <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs border ${
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs border shrink-0 ${
                   isSelected
                     ? 'border-amber-300 bg-amber-400 text-slate-950 font-black'
-                    : 'border-gray-700 bg-slate-900 text-gray-500'
+                    : 'border-slate-600 bg-slate-800 text-slate-400'
                 }`}
               >
                 {isSelected ? '✓' : ''}

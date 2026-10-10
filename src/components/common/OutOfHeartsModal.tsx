@@ -27,7 +27,7 @@ export const OutOfHeartsModal: React.FC<Props> = ({
 
         <div className="space-y-1.5">
           <span className="text-[11px] font-black uppercase tracking-wider text-amber-400">
-            Pumzika Kiasi! • Take a Breather
+            Take a Breather
           </span>
           <h3 className="text-xl font-black text-white">
             You're Out of Hearts for Now
@@ -38,18 +38,21 @@ export const OutOfHeartsModal: React.FC<Props> = ({
         </div>
 
         <div className="space-y-2.5">
-          {/* Option 1: Practice to restore heart */}
+          {/* Option 1: Quick Review Refill */}
           <button
             type="button"
             onClick={() => {
-              sound.playClick();
+              sound.playLevelUp();
+              try {
+                localStorage.setItem('jifuno_hearts', '5');
+              } catch (e) {}
               onQuickPractice();
               onClose();
             }}
             className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm flex items-center justify-center gap-2 shadow-lg cursor-pointer"
           >
-            <span>🌱</span>
-            <span>Practise to Earn +1 Heart (Free!)</span>
+            <span>✨</span>
+            <span>Quick Review to Refill (+5 ❤️)</span>
           </button>
 
           {/* Option 2: Buy hearts in shop */}

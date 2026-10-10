@@ -159,25 +159,20 @@ apiRouter.get('/game/mission/:id', (req: Request, res: Response) => {
   const mission = cbeDb.getMissionById(req.params.id);
   if (!mission) return res.status(404).json({ error: 'Mission not found' });
 
-  // Get sanitized questions (omit direct answers for MCQ to prevent DevTools cheating)
+  // Pass complete questions to allow client-side validation and rich feedback
   const rawQuestions = cbeDb.getQuestionsForMission(mission.id);
-  const clientSafeQuestions = rawQuestions.map(q => {
-    const { correctOptionId, correctBoolean, correctOrderIds, fillBlankAnswers, ...safe } = q;
-    return safe;
-  });
-
   const lesson = cbeDb.getLessonById(mission.lessonId);
 
   res.json({
     mission,
     lesson,
-    questions: clientSafeQuestions
+    questions: rawQuestions
   });
 });
 
 apiRouter.post('/game/submit-session', (req: Request, res: Response) => {
   try {
-    const { studentId, missionId, answers } = req.body;
+    const { studentId, missionId, answers, heartsRemaining } = req.body;
     if (!studentId || !missionId || !Array.isArray(answers)) {
       return res.status(400).json({ error: 'Invalid submission payload' });
     }
@@ -185,7 +180,8 @@ apiRouter.post('/game/submit-session', (req: Request, res: Response) => {
     const { result, student, questionReviews } = gameEngine.processSessionSubmission({
       studentId,
       missionId,
-      answers
+      answers,
+      heartsRemaining
     });
 
     return res.json({

@@ -110,6 +110,7 @@ export const StudentDashboard: React.FC<Props> = ({
                     gradeId={student.gradeId}
                     student={student}
                     onStartQuest={onStartMission}
+                    language={language}
                   />
                 ) : (
                   <LearningPathView

@@ -6,6 +6,7 @@ import {
   DifficultyLevel,
   StudentProfile
 } from '../src/types/cbe.js';
+import { evaluateAnswer } from '../src/utils/answerValidation.js';
 
 export interface SubmittedAnswer {
   questionId: string;
@@ -18,6 +19,7 @@ export interface SessionSubmissionPayload {
   studentId: string;
   missionId: string;
   answers: SubmittedAnswer[];
+  heartsRemaining?: number;
 }
 
 export function calculateLevelFromXp(xp: number): number {
@@ -50,41 +52,7 @@ export function getTitleForLevel(level: number): string {
 
 export class GameEngine {
   public evaluateQuestionAnswer(q: Question, answer: any): boolean {
-    if (!q) return false;
-
-    switch (q.type) {
-      case 'MULTIPLE_CHOICE':
-      case 'SCENARIO':
-        return answer === q.correctOptionId;
-
-      case 'TRUE_FALSE':
-        return Boolean(answer) === Boolean(q.correctBoolean);
-
-      case 'MATCHING':
-        // Expecting array of { leftId, rightId }
-        if (!Array.isArray(answer) || !q.matchingPairs) return false;
-        if (answer.length !== q.matchingPairs.length) return false;
-        return q.matchingPairs.every(pair => {
-          const userMatch = answer.find((a: any) => a.leftId === pair.leftId);
-          return userMatch && userMatch.rightId === pair.rightId;
-        });
-
-      case 'ORDERING':
-        // Expecting array of IDs in order
-        if (!Array.isArray(answer) || !q.correctOrderIds) return false;
-        if (answer.length !== q.correctOrderIds.length) return false;
-        return q.correctOrderIds.every((id, idx) => answer[idx] === id);
-
-      case 'FILL_BLANK': {
-        if (typeof answer !== 'string') return false;
-        const normalized = answer.trim().toLowerCase();
-        if (!q.fillBlankAnswers) return false;
-        return q.fillBlankAnswers.some(acceptable => acceptable.trim().toLowerCase() === normalized);
-      }
-
-      default:
-        return false;
-    }
+    return evaluateAnswer(q, answer);
   }
 
   public processSessionSubmission(payload: SessionSubmissionPayload): {
@@ -206,9 +174,9 @@ export class GameEngine {
       student.lastActiveDate = today;
     }
 
-    // Check hearts (only deduct 1 heart if not passing and hearts > 1)
-    if (!isPassing && student.hearts > 1) {
-      student.hearts -= 1;
+    // Synchronize hearts if provided in payload (decrease only on wrong answers)
+    if (payload.heartsRemaining !== undefined) {
+      student.hearts = Math.max(0, Math.min(student.maxHearts, payload.heartsRemaining));
     }
 
     // Apply XP and Coins

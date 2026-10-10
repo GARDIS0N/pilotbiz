@@ -2,6 +2,8 @@ import React from 'react';
 import { Question } from '../../types/cbe.js';
 import { sound } from '../../utils/soundEffects.js';
 
+import { VocabularyExplainer } from '../common/VocabularyExplainer.js';
+
 interface Props {
   question: Question;
   selectedAnswer: string | null;
@@ -26,8 +28,8 @@ export const MultipleChoiceQuestion: React.FC<Props> = ({
         </div>
       )}
 
-      <h3 className="text-lg md:text-xl font-bold text-emerald-100 leading-snug">
-        {question.prompt}
+      <h3 className="text-xl md:text-2xl font-black text-white leading-snug">
+        <VocabularyExplainer text={question.prompt} />
       </h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
@@ -44,23 +46,23 @@ export const MultipleChoiceQuestion: React.FC<Props> = ({
                 sound.playClick();
                 onSelectAnswer(opt.id);
               }}
-              className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left font-medium transition-all transform active:scale-98 ${
+              className={`flex items-center gap-3.5 p-4 rounded-2xl border-2 text-left font-medium transition-all transform active:scale-98 min-h-[56px] ${
                 isSelected
-                  ? 'border-emerald-400 bg-emerald-950/80 text-emerald-100 shadow-lg shadow-emerald-900/40 ring-2 ring-emerald-400/40'
-                  : 'border-emerald-900/60 bg-emerald-950/30 text-gray-200 hover:border-emerald-600/60 hover:bg-emerald-900/30'
+                  ? 'border-emerald-400 bg-emerald-950 text-white shadow-xl shadow-emerald-950/80 ring-2 ring-emerald-400'
+                  : 'border-slate-700 bg-slate-900/95 text-white hover:border-emerald-400 hover:bg-slate-800'
               } ${disabled ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}`}
             >
               <div
-                className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 transition-colors ${
+                className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-base shrink-0 transition-colors ${
                   isSelected
-                    ? 'bg-emerald-400 text-gray-950 font-black'
-                    : 'bg-emerald-900/60 text-emerald-300'
+                    ? 'bg-emerald-400 text-slate-950 font-black shadow-md'
+                    : 'bg-slate-800 border border-slate-600 text-emerald-300'
                 }`}
               >
                 {letter}
               </div>
               <div className="flex-1">
-                <span className="text-base">{opt.text}</span>
+                <span className="text-lg font-bold text-white leading-snug">{opt.text}</span>
               </div>
             </button>
           );

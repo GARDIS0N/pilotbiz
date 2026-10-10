@@ -121,9 +121,9 @@ export const TopGameHUD: React.FC<Props> = ({
                   <button
                     type="button"
                     onClick={() => setActiveExplainer(null)}
-                    className="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm transition-all cursor-pointer shadow-md"
+                    className="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm transition-all cursor-pointer shadow-md min-h-[48px]"
                   >
-                    NITAENDELEA! (KEEP IT GOING)
+                    KEEP IT GOING ➔
                   </button>
                 </>
               )}
@@ -228,9 +228,9 @@ export const TopGameHUD: React.FC<Props> = ({
                   <button
                     type="button"
                     onClick={() => setActiveExplainer(null)}
-                    className="w-full py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm transition-all cursor-pointer shadow-md"
+                    className="w-full py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm transition-all cursor-pointer shadow-md min-h-[48px]"
                   >
-                    ENDELEA MBELE! (LEVEL UP)
+                    LEVEL UP ➔
                   </button>
                 </>
               )}

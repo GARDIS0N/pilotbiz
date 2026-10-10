@@ -139,10 +139,14 @@ export const LearningPathView: React.FC<Props> = ({
                 CURRENT GOAL • {activeSubject?.title.en}
               </span>
               <h2 className="text-xl md:text-2xl font-black text-white mt-1">
-                {nextLessonItem.quest.title.en}
+                {activeSubject?.id?.includes('kisw')
+                  ? nextLessonItem.quest.title.sw
+                  : nextLessonItem.quest.title.en}
               </h2>
-              <p className="text-xs text-emerald-300 font-medium italic">
-                {nextLessonItem.quest.title.sw} • {nextLessonItem.strand.title.en}
+              <p className="text-xs text-emerald-300 font-medium">
+                {activeSubject?.id?.includes('kisw')
+                  ? nextLessonItem.strand.title.sw
+                  : nextLessonItem.strand.title.en}
               </p>
             </div>
 
