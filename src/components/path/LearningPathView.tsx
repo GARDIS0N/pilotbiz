@@ -11,6 +11,7 @@ import {
 import { sound } from '../../utils/soundEffects.js';
 import { CurriculumIcon } from '../common/CurriculumIcon.js';
 import { useReducedMotionPreference, springTransition } from '../../utils/motion.js';
+import { recommendNextLesson } from '../../utils/learningEngine.js';
 
 interface Props {
   student: StudentProfile;
@@ -82,11 +83,22 @@ export const LearningPathView: React.FC<Props> = ({
     return list;
   }, [activeSubject, student.completedMissionIds]);
 
-  // Find the current NEXT lesson (first uncompleted or first available)
+  // Learning Engine: Authoritative Next Lesson Recommendation
+  const recommendedResult = useMemo(() => {
+    return recommendNextLesson({
+      gradeId,
+      completedLessonIds: student.completedMissionIds,
+      preferredSubjectId: selectedSubjectId
+    });
+  }, [gradeId, student.completedMissionIds, selectedSubjectId]);
+
+  // Find the authoritative NEXT lesson node (highlighted on the learning path)
   const nextLessonItem = useMemo(() => {
+    const matched = subjectQuests.find(q => q.quest.id === recommendedResult.questId);
+    if (matched) return matched;
     const uncompleted = subjectQuests.find(q => !q.isCompleted);
     return uncompleted || subjectQuests[0] || null;
-  }, [subjectQuests]);
+  }, [subjectQuests, recommendedResult.questId]);
 
   // Selected or active strand (unit) for the short lesson path
   const [selectedStrandId, setSelectedStrandId] = useState<string | null>(null);

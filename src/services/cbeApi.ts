@@ -625,6 +625,80 @@ class CbeApiService {
       return { success: true, id: `offline-${Date.now()}` };
     }
   }
+
+  // --- Learning Engine (Review Queue, Mastery, Recommendation) ---
+  public async getReviewQueue(learnerId: string): Promise<any[]> {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase
+          .from('review_queue')
+          .select('*, questions(*)')
+          .eq('learner_id', learnerId)
+          .eq('status', 'PENDING')
+          .lte('next_review_at', new Date().toISOString());
+        if (!error && Array.isArray(data)) {
+          return data;
+        }
+      } catch (err) {
+        console.warn('[Review Queue]: Direct Supabase query exception:', err);
+      }
+    }
+
+    try {
+      const res = await this.request<{ items: any[] }>(`/api/learning/review-queue?learnerId=${encodeURIComponent(learnerId)}`);
+      return res.items || [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  public async processReviewItem(learnerId: string, questionId: string, isCorrect: boolean): Promise<any> {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.rpc('process_review_result', {
+          p_learner_id: learnerId,
+          p_question_id: questionId,
+          p_is_correct: isCorrect
+        });
+        if (!error && data) {
+          return data;
+        }
+      } catch (err) {
+        console.warn('[Review Queue]: RPC exception:', err);
+      }
+    }
+
+    try {
+      return await this.request('/api/learning/process-review', {
+        method: 'POST',
+        body: JSON.stringify({ learnerId, questionId, isCorrect })
+      });
+    } catch (_) {
+      return { success: true };
+    }
+  }
+
+  public async getRecommendedLesson(learnerId: string, gradeId = 'grade-4'): Promise<any> {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.rpc('recommend_next_lesson', {
+          p_learner_id: learnerId,
+          p_grade_id: gradeId
+        });
+        if (!error && data && data.length > 0) {
+          return data[0];
+        }
+      } catch (err) {
+        console.warn('[Recommend Lesson]: RPC exception:', err);
+      }
+    }
+
+    try {
+      return await this.request(`/api/learning/recommended-lesson?learnerId=${encodeURIComponent(learnerId)}&gradeId=${encodeURIComponent(gradeId)}`);
+    } catch (_) {
+      return { recommended_lesson_id: 'quest-g4-math-place-value', grade_id: gradeId };
+    }
+  }
 }
 
 export const cbeApi = new CbeApiService();

@@ -5,6 +5,7 @@ import { tutorEngine } from './tutorEngine.js';
 import { UserRole, Question, ContentStatus } from '../src/types/cbe.js';
 import { evaluateAnswer, resolveCorrectAnswerText } from '../src/utils/answerValidation.js';
 import { supabase, isSupabaseConfigured } from '../src/services/supabaseClient.js';
+import { recommendNextLesson, calculateNextReviewInterval } from '../src/utils/learningEngine.js';
 
 export const apiRouter = express.Router();
 
@@ -312,6 +313,77 @@ apiRouter.post('/reports', async (req: Request, res: Response) => {
         created_at: new Date().toISOString()
       }
     });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Learning Engine: Recommended Next Lesson (Grade, Curriculum Order, Completed Lessons)
+apiRouter.get('/learning/recommended-lesson', async (req: Request, res: Response) => {
+  try {
+    const learnerId = (req.query.learnerId as string) || 'student-amina';
+    const gradeId = (req.query.gradeId as string) || 'grade-4';
+    const preferredSubjectId = req.query.subjectId as string | undefined;
+
+    const student = cbeDb.getStudentProfile(learnerId);
+    const completedLessonIds = student?.completedMissionIds || [];
+
+    const recommendation = recommendNextLesson({
+      gradeId,
+      completedLessonIds,
+      preferredSubjectId
+    });
+
+    return res.json({ success: true, recommendation });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Learning Engine: Review Queue Query for Practice
+apiRouter.get('/learning/review-queue', async (req: Request, res: Response) => {
+  try {
+    const learnerId = (req.query.learnerId as string) || 'student-amina';
+
+    if (isSupabaseConfigured()) {
+      const { data, error } = await supabase
+        .from('review_queue')
+        .select('*')
+        .eq('learner_id', learnerId)
+        .eq('status', 'PENDING')
+        .lte('next_review_at', new Date().toISOString());
+
+      if (!error && Array.isArray(data)) {
+        return res.json({ success: true, items: data });
+      }
+    }
+
+    return res.json({ success: true, items: [] });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Learning Engine: Process Practice Review Item
+apiRouter.post('/learning/process-review', async (req: Request, res: Response) => {
+  try {
+    const { learnerId, questionId, isCorrect } = req.body;
+    if (!learnerId || !questionId || typeof isCorrect !== 'boolean') {
+      return res.status(400).json({ error: 'Missing required parameters' });
+    }
+
+    if (isSupabaseConfigured()) {
+      const { data, error } = await supabase.rpc('process_review_result', {
+        p_learner_id: learnerId,
+        p_question_id: questionId,
+        p_is_correct: isCorrect
+      });
+      if (!error && data) {
+        return res.json({ success: true, result: data });
+      }
+    }
+
+    return res.json({ success: true, updated: true });
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }

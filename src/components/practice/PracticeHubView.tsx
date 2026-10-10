@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { StudentProfile } from '../../types/cbe.js';
 import { sound } from '../../utils/soundEffects.js';
+import { cbeApi } from '../../services/cbeApi.js';
 
 interface Props {
   student: StudentProfile;
@@ -14,6 +15,15 @@ export const PracticeHubView: React.FC<Props> = ({
   onStartPractice,
   language = 'en'
 }) => {
+  const [dueItems, setDueItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (student?.id) {
+      cbeApi.getReviewQueue(student.id)
+        .then(items => setDueItems(items))
+        .catch(() => setDueItems([]));
+    }
+  }, [student?.id]);
   return (
     <div className="w-full max-w-3xl mx-auto space-y-6 text-left py-4 px-2 sm:px-0">
       {/* Header Banner */}
@@ -85,14 +95,20 @@ export const PracticeHubView: React.FC<Props> = ({
                 <h4 className="text-sm font-black text-white">
                   {language === 'sw' ? 'Kurekebisha Makosa (Mistake Review)' : 'Mistake Review'}
                 </h4>
-                <span className="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-full border border-amber-500/30">
-                  +15 XP ⚡
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                  dueItems.length > 0
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                    : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                }`}>
+                  {dueItems.length > 0
+                    ? (language === 'sw' ? `${dueItems.length} za kurudia` : `${dueItems.length} due for review`)
+                    : (language === 'sw' ? 'Hakuna makosa! 🎉' : 'All caught up! 🎉')}
                 </span>
               </div>
               <p className="text-xs text-gray-400 mt-1 leading-relaxed">
                 {language === 'sw'
-                  ? 'Rudia maswali uliyokosea hapo awali hadi uyaelewe vizuri kabisa.'
-                  : 'Replay questions you missed in past lessons until you reach complete mastery.'}
+                  ? 'Rudia maswali uliyokosea kwa mfumo wa siku 1, 3, na 7 hadi ufikie umahiri kamili.'
+                  : 'Scheduled reviews (+1, +3, +7 days) for mistakes until you reach full CBC mastery.'}
               </p>
             </div>
           </div>
@@ -103,9 +119,11 @@ export const PracticeHubView: React.FC<Props> = ({
               sound.playClick();
               onStartPractice('quest-g4-math-market-money');
             }}
-            className="px-5 py-2.5 rounded-2xl bg-slate-900 hover:bg-amber-500 hover:text-slate-950 border border-amber-500/60 text-amber-300 font-black text-xs transition-all cursor-pointer shadow-md shrink-0 active:scale-95 text-center"
+            className="px-5 py-2.5 rounded-2xl bg-slate-900 hover:bg-amber-500 hover:text-slate-950 border border-amber-500/60 text-amber-300 font-black text-xs transition-all cursor-pointer shadow-md shrink-0 active:scale-95 text-center min-h-[44px]"
           >
-            {language === 'sw' ? 'Pitia Makosa' : 'Review Mistakes'} ➔
+            {language === 'sw'
+              ? (dueItems.length > 0 ? `Pitia Makosa (${dueItems.length}) ➔` : 'Mazoezi ya Kawaida ➔')
+              : (dueItems.length > 0 ? `Review Mistakes (${dueItems.length}) ➔` : 'Practice Mode ➔')}
           </button>
         </div>
 
