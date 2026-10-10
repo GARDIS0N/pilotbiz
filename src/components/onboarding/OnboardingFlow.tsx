@@ -385,7 +385,14 @@ export const OnboardingFlow: React.FC<Props> = ({
 
         {/* Progress Dots Indicator */}
         {currentStep !== 'SIGNUP' ? (
-          <div className="flex items-center gap-2" aria-label={`Step ${stepIndex} of 4`}>
+          <div
+            className="flex items-center gap-2"
+            role="progressbar"
+            aria-valuenow={stepIndex}
+            aria-valuemin={1}
+            aria-valuemax={4}
+            aria-label={`Step ${stepIndex} of 4`}
+          >
             {[1, 2, 3, 4].map(idx => (
               <div
                 key={idx}
