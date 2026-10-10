@@ -8,7 +8,13 @@ export type QuestionType =
   | 'MATCHING'
   | 'ORDERING'
   | 'FILL_BLANK'
-  | 'SCENARIO';
+  | 'SCENARIO'
+  | 'NUMBER_ENTRY'
+  | 'IMAGE_LABEL'
+  | 'LISTEN_CHOOSE'
+  | 'READING_COMPREHENSION'
+  | 'WORD_BUILDER'
+  | 'KENYAN_MONEY';
 
 export type DifficultyLevel = 'BEGINNER' | 'EASY' | 'MEDIUM' | 'ADVANCED' | 'MASTERY';
 
@@ -141,6 +147,12 @@ export interface Lesson {
   keyVocabulary: { term: string; meaning: string; swahiliTerm?: string }[];
   didYouKnowKenyanFact?: string;
   activitiesCount: number;
+  teachCards?: {
+    heading: { en: string; sw: string };
+    body: { en: string; sw: string };
+    workedExample: { en: string; sw: string };
+    imagePrompt: string;
+  }[];
 }
 
 // -------------------------------------------------------------
@@ -202,7 +214,9 @@ export interface Question {
   subStrandId: string;
   type: QuestionType;
   prompt: string;
+  swahiliPrompt?: string;
   storyScenario?: string;
+  swahiliStoryScenario?: string;
   difficulty: DifficultyLevel;
   options?: QuestionOption[];
   correctOptionId?: string; // For MCQ
@@ -211,8 +225,29 @@ export interface Question {
   correctOrderIds?: string[]; // For ORDERING
   fillBlankAnswers?: string[]; // For FILL_BLANK acceptable answers
   blankTemplate?: string; // "Amina had [BLANK] shillings left after buying bread."
+  numericAnswer?: {
+    value: number;
+    tolerance?: number;
+    unit?: string;
+  };
+  imageLabelData?: {
+    imageUrl: string;
+    hotspots: { id: string; label: string; swahiliLabel?: string; xPercent: number; yPercent: number }[];
+  };
+  audioSpeechPrompt?: {
+    textToSpeak: string;
+    language: string;
+  };
+  readingPassage?: string;
+  swahiliReadingPassage?: string;
+  wordBuilderTokens?: {
+    correctSentence: string;
+    scrambledTokens: string[];
+  };
   explanation: string;
+  swahiliExplanation?: string;
   socraticHint: string; // Hint that guides reasoning without spoiling the answer
+  swahiliSocraticHint?: string;
   kenyanCulturalContext: string;
   sourceType: 'CURRICULUM_ALIGNED' | 'AI_PRACTICE' | 'OFFICIAL_CBE_REF';
   contentStatus: ContentStatus;

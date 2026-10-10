@@ -2,12 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Mission, Lesson, Question, LearningSessionResult } from '../../types/cbe.js';
 import { cbeApi } from '../../services/cbeApi.js';
 import { sound } from '../../utils/soundEffects.js';
-import { MultipleChoiceQuestion } from '../questions/MultipleChoiceQuestion.js';
-import { TrueFalseQuestion } from '../questions/TrueFalseQuestion.js';
-import { MatchingQuestion } from '../questions/MatchingQuestion.js';
-import { OrderingQuestion } from '../questions/OrderingQuestion.js';
-import { FillBlankQuestion } from '../questions/FillBlankQuestion.js';
-import { ScenarioQuestion } from '../questions/ScenarioQuestion.js';
+import { QuestionRenderer } from '../questions/QuestionRenderer.js';
 import { AITutorModal } from '../tutor/AITutorModal.js';
 import { CelebrationModal } from '../common/CelebrationModal.js';
 
@@ -282,54 +277,12 @@ export const LearningSessionModal: React.FC<Props> = ({
               </div>
 
               {/* Question Renderer */}
-              {currentQ.type === 'MULTIPLE_CHOICE' && (
-                <MultipleChoiceQuestion
-                  question={currentQ}
-                  selectedAnswer={currentAnswer}
-                  onSelectAnswer={setCurrentAnswer}
-                  disabled={stage === 'FEEDBACK'}
-                />
-              )}
-              {currentQ.type === 'TRUE_FALSE' && (
-                <TrueFalseQuestion
-                  question={currentQ}
-                  selectedAnswer={currentAnswer}
-                  onSelectAnswer={setCurrentAnswer}
-                  disabled={stage === 'FEEDBACK'}
-                />
-              )}
-              {currentQ.type === 'MATCHING' && (
-                <MatchingQuestion
-                  question={currentQ}
-                  selectedAnswer={currentAnswer}
-                  onSelectAnswer={setCurrentAnswer}
-                  disabled={stage === 'FEEDBACK'}
-                />
-              )}
-              {currentQ.type === 'ORDERING' && (
-                <OrderingQuestion
-                  question={currentQ}
-                  selectedAnswer={currentAnswer}
-                  onSelectAnswer={setCurrentAnswer}
-                  disabled={stage === 'FEEDBACK'}
-                />
-              )}
-              {currentQ.type === 'FILL_BLANK' && (
-                <FillBlankQuestion
-                  question={currentQ}
-                  selectedAnswer={currentAnswer}
-                  onSelectAnswer={setCurrentAnswer}
-                  disabled={stage === 'FEEDBACK'}
-                />
-              )}
-              {currentQ.type === 'SCENARIO' && (
-                <ScenarioQuestion
-                  question={currentQ}
-                  selectedAnswer={currentAnswer}
-                  onSelectAnswer={setCurrentAnswer}
-                  disabled={stage === 'FEEDBACK'}
-                />
-              )}
+              <QuestionRenderer
+                question={currentQ}
+                selectedAnswer={currentAnswer}
+                onSelectAnswer={setCurrentAnswer}
+                disabled={stage === 'FEEDBACK'}
+              />
 
               {/* Feedback Drawer */}
               {stage === 'FEEDBACK' && lastFeedback && (

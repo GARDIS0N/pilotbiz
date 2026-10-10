@@ -1,6 +1,7 @@
 import { cbeDb } from '../server/cbeDb.js';
 import { gameEngine } from '../server/gameEngine.js';
 import { tutorEngine } from '../server/tutorEngine.js';
+import { getCurriculumValidationReport, getAllGrades, getSubjectsForGrade, searchCurriculum } from '../src/data/curriculum/index.js';
 
 interface TestResult {
   suite: string;
@@ -254,6 +255,29 @@ async function runAllTests() {
   cbeDb.updateQuestion(testAdminQ.id, { contentStatus: 'PUBLISHED' });
   const updatedQ = cbeDb.getQuestionById(testAdminQ.id);
   assert(updatedQ?.contentStatus === 'PUBLISHED', 'Admin', 'Admin can approve and publish questions');
+
+  // -----------------------------------------------------------
+  // 7. SYSTEMATIC CBC CURRICULUM SCHEMA & SOURCING INTEGRITY
+  // -----------------------------------------------------------
+  console.log('\n--- SUITE 7: Systematic CBC Curriculum Schema & Sourcing Integrity ---');
+  const curriculumReport = getCurriculumValidationReport();
+  assert(curriculumReport.isValid, 'CurriculumSchema', 'Curriculum schema validator reports zero errors');
+  assert(curriculumReport.errors.length === 0, 'CurriculumSchema', 'Zero orphan prerequisites or broken foreign keys');
+  assert(curriculumReport.stats.gradesCount === 4, 'CurriculumSchema', 'All 4 grades (G3, G4, G5, G6) registered in hierarchy');
+  assert(curriculumReport.stats.subjectsCount >= 32, 'CurriculumSchema', 'Comprehensive CBC learning area coverage (>= 32 subjects across grades)');
+  assert(curriculumReport.stats.questsCount >= 60, 'CurriculumSchema', '2 complete sample quests per subject per grade seeded (>= 60 quests)');
+  assert(curriculumReport.stats.unverifiedTodoCount > 0, 'CurriculumSchema', 'Unverified content strictly flagged with "TODO: verify with KICD design"');
+  
+  const g3Subjects = getSubjectsForGrade('grade-3');
+  assert(g3Subjects.some(s => s.code === 'MATH-ACT-G3'), 'CurriculumSchema', 'Grade 3 includes Mathematical Activities');
+  assert(g3Subjects.some(s => s.code === 'ENV-ACT-G3'), 'CurriculumSchema', 'Grade 3 includes Environmental Activities');
+
+  const g4Subjects = getSubjectsForGrade('grade-4');
+  assert(g4Subjects.some(s => s.code === 'AGRI-G4'), 'CurriculumSchema', 'Grade 4 includes Agriculture and Nutrition');
+  assert(g4Subjects.some(s => s.code === 'CA-G4'), 'CurriculumSchema', 'Grade 4 includes Creative Arts');
+
+  const searchResults = searchCurriculum('seedlings', 'grade-4');
+  assert(searchResults.length > 0, 'CurriculumSchema', 'Cross-subject topic search engine functions correctly');
 
   // -----------------------------------------------------------
   // SUMMARY

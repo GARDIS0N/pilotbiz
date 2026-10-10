@@ -2,19 +2,40 @@
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Jifuno — Learn. Play. Level Up.</title>
-    <meta name="description" content="Jifuno is a gamified learning platform designed to help Kenyan learners master the CBE curriculum through interactive lessons, games and challenges." />
-    <meta property="og:title" content="Jifuno — Learn. Play. Level Up." />
-    <meta property="og:description" content="Jifuno is a gamified learning platform designed to help Kenyan learners master the CBE curriculum through interactive lessons, games and challenges." />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <title>Jifuno — Kenya's Gamified CBC Learning App (Grades 3–6)</title>
+    <meta name="description" content="Master Kenya's CBC curriculum for Grades 3–6 with Jifuno. Fun story-based quests in Mathematics, Science & Tech, Kiswahili, and English with animal avatars and Socratic AI tutor Rafiki." />
+    <meta name="keywords" content="Jifuno, CBC Kenya, KICD curriculum, Grade 3, Grade 4, Grade 5, Grade 6, KPSEA, primary school Kenya, gamified learning" />
+    <meta name="theme-color" content="#022C22" />
+
+    <!-- Open Graph / WhatsApp / Facebook Meta Tags -->
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://jifuno.vercel.app/" />
+    <meta property="og:site_name" content="Jifuno" />
+    <meta property="og:title" content="Jifuno — Learn. Play. Level Up. (Kenyan CBC Grades 3–6)" />
+    <meta property="og:description" content="Kenya's gamified learning adventure aligned to KICD CBC designs. Interactive quests, Shilingi coins, animal avatars, and friendly Socratic AI tutor Rafiki." />
+    <meta property="og:image" content="https://jifuno.vercel.app/og-share.png" />
+    <meta property="og:locale" content="en_KE" />
+    <meta property="og:locale:alternate" content="sw_KE" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Jifuno — Learn. Play. Level Up. (Kenyan CBC)" />
+    <meta name="twitter:description" content="Kenya's gamified learning adventure for Grades 3–6. Interactive CBC quests, Shilingi coins, and Rafiki AI tutor." />
+    <meta name="twitter:image" content="https://jifuno.vercel.app/og-share.png" />
+
+    <!-- App Identity -->
     <meta name="application-name" content="Jifuno" />
     <meta name="apple-mobile-web-app-title" content="Jifuno" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23022C22'/%3E%3Ccircle cx='50' cy='22' r='10' fill='%23F59E0B'/%3E%3Cpath d='M55 24V64C55 76 43 84 31 82C22 80 18 72 20 64' stroke='%2310B981' stroke-width='14' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Cpath d='M55 42C68 36 78 44 76 56C64 56 56 48 55 42Z' fill='%2334D399'/%3E%3Ccircle cx='34' cy='68' r='4' fill='%23F59E0B'/%3E%3C/svg%3E" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   </head>
-  <body class="bg-slate-950 text-gray-100 antialiased selection:bg-emerald-500 selection:text-black">
+  <body class="bg-slate-950 text-gray-100 antialiased selection:bg-emerald-500 selection:text-black min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

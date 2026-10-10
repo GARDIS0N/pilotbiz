@@ -11,6 +11,7 @@ interface Props {
   grades: Grade[];
   onAuthSuccess: (user: User) => void;
   onOpenLoginPage?: () => void;
+  onLogout?: () => void;
 }
 
 const KENYAN_COUNTIES = [
@@ -24,7 +25,8 @@ export const AuthModal: React.FC<Props> = ({
   currentUser,
   grades,
   onAuthSuccess,
-  onOpenLoginPage
+  onOpenLoginPage,
+  onLogout
 }) => {
   const [mode, setMode] = useState<'QUICK_SWITCH' | 'REGISTER' | 'LOGIN'>('QUICK_SWITCH');
   const [role, setRole] = useState<UserRole>('STUDENT');
@@ -238,6 +240,23 @@ export const AuthModal: React.FC<Props> = ({
                 </div>
               </button>
             </div>
+
+            {currentUser && onLogout && (
+              <div className="pt-3 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.playClick();
+                    onLogout();
+                    onClose();
+                  }}
+                  className="w-full py-2.5 rounded-xl border border-rose-500/40 hover:bg-rose-950/40 text-rose-300 font-bold text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <span>🚪</span>
+                  <span>Log Out to Welcome Screen / Ondoka</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
 

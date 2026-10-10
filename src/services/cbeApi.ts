@@ -34,6 +34,15 @@ import {
   fallbackMasteries
 } from '../data/cbeFallback.js';
 
+import {
+  getAllGrades as getCurriculumGrades,
+  getSubjectsForGrade as getCurriculumSubjects,
+  getStrandsForSubject as getCurriculumStrands,
+  getSubStrandsForStrand as getCurriculumSubStrands,
+  getQuest as getCurriculumQuest,
+  getAllQuests as getCurriculumAllQuests
+} from '../data/curriculum/index.js';
+
 export interface AuthMeResponse {
   user: User;
   studentProfile?: StudentProfile;
@@ -151,6 +160,21 @@ class CbeApiService {
       const query = gradeId ? `?gradeId=${encodeURIComponent(gradeId)}` : '';
       return await this.request(`/api/curriculum/learning-areas${query}`);
     } catch {
+      const targetGrade = gradeId || 'grade-4';
+      const subjects = getCurriculumSubjects(targetGrade);
+      if (subjects.length > 0) {
+        const mapped: LearningArea[] = subjects.map(s => ({
+          id: s.id,
+          gradeId: s.gradeId,
+          name: s.title.en,
+          swahiliName: s.title.sw,
+          icon: s.icon,
+          color: s.color,
+          description: s.description.en,
+          strandsCount: s.strands.length
+        }));
+        return { learningAreas: mapped };
+      }
       return { learningAreas: fallbackLearningAreas };
     }
   }
@@ -160,6 +184,22 @@ class CbeApiService {
       const query = learningAreaId ? `?learningAreaId=${encodeURIComponent(learningAreaId)}` : '';
       return await this.request(`/api/curriculum/strands${query}`);
     } catch {
+      if (learningAreaId) {
+        const curStrands = getCurriculumStrands(learningAreaId);
+        if (curStrands.length > 0) {
+          return {
+            strands: curStrands.map(st => ({
+              id: st.id,
+              learningAreaId: st.subjectId,
+              code: st.code,
+              title: st.title.en,
+              swahiliTitle: st.title.sw,
+              description: st.description.en,
+              icon: st.icon
+            }))
+          };
+        }
+      }
       return { strands: fallbackStrands };
     }
   }
@@ -169,6 +209,22 @@ class CbeApiService {
       const query = strandId ? `?strandId=${encodeURIComponent(strandId)}` : '';
       return await this.request(`/api/curriculum/sub-strands${query}`);
     } catch {
+      if (strandId) {
+        const curSubStrands = getCurriculumSubStrands(strandId);
+        if (curSubStrands.length > 0) {
+          return {
+            subStrands: curSubStrands.map(ss => ({
+              id: ss.id,
+              strandId: ss.strandId,
+              learningAreaId: strandId,
+              title: ss.title.en,
+              description: ss.description.en,
+              cbeCompetency: ss.cbeCompetencies.join(', '),
+              estimatedMinutes: ss.estimatedMinutes
+            }))
+          };
+        }
+      }
       return { subStrands: fallbackSubStrands };
     }
   }
@@ -214,6 +270,93 @@ class CbeApiService {
     try {
       return await this.request(`/api/game/mission/${encodeURIComponent(missionId)}`);
     } catch {
+      const curQuest = getCurriculumQuest(missionId);
+      if (curQuest) {
+        const mission: Mission = {
+          id: curQuest.id,
+          worldId: 'world-math-kingdom',
+          subStrandId: curQuest.subStrandId,
+          lessonId: `lesson-${curQuest.id}`,
+          order: curQuest.order,
+          title: curQuest.title.en,
+          swahiliTitle: curQuest.title.sw,
+          storyContext: curQuest.storyContext.en,
+          characterName: curQuest.characterName,
+          characterAvatar: curQuest.characterAvatar,
+          difficulty: curQuest.difficulty === 1 ? 'BEGINNER' : curQuest.difficulty === 2 ? 'EASY' : 'MEDIUM',
+          xpReward: curQuest.xpReward,
+          coinReward: curQuest.coinReward,
+          questionIds: curQuest.questions.map(q => q.id),
+          badgeUnlockId: curQuest.badgeUnlockId,
+          isBossChallenge: curQuest.isBossChallenge
+        };
+
+        const lesson: Lesson = {
+          id: `lesson-${curQuest.id}`,
+          subStrandId: curQuest.subStrandId,
+          title: curQuest.title.en,
+          conceptIntro: curQuest.storyContext.en,
+          kenyanContextNote: curQuest.questions[0]?.kenyanCulturalContext || 'Authentic Kenyan CBC Inquiry',
+          keyVocabulary: [
+            { term: 'Competency', meaning: curQuest.cbeCompetencies[0] || 'Problem Solving', swahiliTerm: 'Uwezo' }
+          ],
+          didYouKnowKenyanFact: curQuest.questions[0]?.kenyanCulturalContext || 'Kenyan CBC develops values and practical inquiry.',
+          activitiesCount: curQuest.questions.length,
+          teachCards: curQuest.teachCards
+        };
+
+        const questions: Question[] = curQuest.questions.map(q => ({
+          id: q.id,
+          subStrandId: q.subStrandId,
+          type: q.type as any,
+          prompt: q.prompt.en,
+          swahiliPrompt: q.prompt.sw,
+          storyScenario: q.storyScenario?.en,
+          swahiliStoryScenario: q.storyScenario?.sw,
+          difficulty: q.difficulty === 1 ? 'BEGINNER' : q.difficulty === 2 ? 'EASY' : 'MEDIUM',
+          options: q.options?.map(opt => ({
+            id: opt.id,
+            text: typeof opt.text === 'string' ? opt.text : opt.text.en,
+            explanation: typeof opt.explanation === 'string' ? opt.explanation : opt.explanation?.en
+          })),
+          correctOptionId: q.correctOptionId,
+          correctBoolean: q.correctBoolean,
+          matchingPairs: q.matchingPairs?.map(mp => ({
+            leftId: mp.leftId,
+            leftText: typeof mp.leftText === 'string' ? mp.leftText : mp.leftText.en,
+            rightId: mp.rightId,
+            rightText: typeof mp.rightText === 'string' ? mp.rightText : mp.rightText.en
+          })),
+          correctOrderIds: q.correctOrderIds,
+          fillBlankAnswers: q.fillBlankAnswers,
+          blankTemplate: q.blankTemplate?.en,
+          numericAnswer: q.numericAnswer,
+          imageLabelData: q.imageLabelData ? {
+            imageUrl: q.imageLabelData.imageUrl,
+            hotspots: q.imageLabelData.hotspots.map(h => ({
+              id: h.id,
+              label: typeof h.label === 'string' ? h.label : h.label.en,
+              swahiliLabel: typeof h.label === 'string' ? h.label : h.label.sw,
+              xPercent: h.xPercent,
+              yPercent: h.yPercent
+            }))
+          } : undefined,
+          audioSpeechPrompt: q.audioSpeechPrompt,
+          readingPassage: q.readingPassage?.en,
+          swahiliReadingPassage: q.readingPassage?.sw,
+          wordBuilderTokens: q.wordBuilderTokens,
+          explanation: q.explanation.en,
+          swahiliExplanation: q.explanation.sw,
+          socraticHint: q.socraticHint.en,
+          swahiliSocraticHint: q.socraticHint.sw,
+          kenyanCulturalContext: q.kenyanCulturalContext,
+          sourceType: q.sourceStatus === 'OFFICIAL_KICD' ? 'CURRICULUM_ALIGNED' : 'AI_PRACTICE',
+          contentStatus: 'PUBLISHED'
+        }));
+
+        return { mission, lesson, questions };
+      }
+
       const mission = fallbackMissions.find(m => m.id === missionId) || fallbackMissions[0];
       const lesson = fallbackLessons.find(l => l.id === mission.lessonId) || fallbackLessons[0];
       const questions = fallbackQuestions.filter(q => mission.questionIds.includes(q.id));

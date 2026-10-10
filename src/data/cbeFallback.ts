@@ -152,7 +152,7 @@ export const fallbackMissions: Mission[] = [
     difficulty: 'EASY',
     xpReward: 60,
     coinReward: 30,
-    questionIds: ['q-mult-01', 'q-mult-02']
+    questionIds: ['q-kongowea-01', 'q-mult-01', 'q-mult-tf-01']
   }
 ];
 
@@ -327,6 +327,20 @@ export const fallbackQuestions: Question[] = [
     explanation: 'Multiplication is repeated addition. 7 × 3 means 7 groups of 3, which is 21.',
     socraticHint: 'Count how many 3s are added together. Are there seven of them?',
     kenyanCulturalContext: 'Repeated addition is the foundation of mental math.',
+    sourceType: 'CURRICULUM_ALIGNED',
+    contentStatus: 'PUBLISHED'
+  },
+  {
+    id: 'q-kongowea-01',
+    subStrandId: 'substrand-currency',
+    type: 'KENYAN_MONEY',
+    prompt: 'Baraka buys fresh mangoes at Kongowea Market for KES 45. Tap the coins and notes to make an exact payment of KES 45.',
+    storyScenario: 'The vendor packs 3 ripe apple mangoes from Kilifi. The total bill is 45 Kenyan Shillings.',
+    difficulty: 'EASY',
+    numericAnswer: { value: 45, unit: 'KES' },
+    explanation: 'Two KES 20 coins and one KES 5 coin make exactly KES 45 (20 + 20 + 5 = 45).',
+    socraticHint: 'Try combining KES 20 coins with a KES 5 coin.',
+    kenyanCulturalContext: 'Kenyan coins come in 1, 5, 10, and 20 shilling denominations.',
     sourceType: 'CURRICULUM_ALIGNED',
     contentStatus: 'PUBLISHED'
   }
