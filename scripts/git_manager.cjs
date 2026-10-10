@@ -10,13 +10,13 @@ function getPatToken() {
   }
   try {
     const clip = execSync('powershell -Command "(Get-Clipboard).Trim()"').toString().trim();
-    if (clip && (clip.startsWith('ghp_') || clip.startsWith('github_pat_') || clip.length >= 30)) {
+    if (clip && (clip.startsWith('ghp_') || clip.startsWith('github_pat_'))) {
       return clip;
     }
   } catch (e) {
     // ignore
   }
-  throw new Error('GitHub Personal Access Token not found in GH_PAT or clipboard!');
+  throw new Error('GitHub Personal Access Token (starts with ghp_ or github_pat_) not found in GH_PAT or clipboard!');
 }
 
 async function status() {
