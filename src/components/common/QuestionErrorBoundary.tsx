@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { errorTracker } from '../../utils/errorTracking.js';
 
 interface Props {
   questionId: string;
@@ -28,6 +29,11 @@ export class QuestionErrorBoundary extends Component<Props, State> {
       error,
       errorInfo
     );
+    errorTracker.captureException(error, {
+      questionId: this.props.questionId,
+      component: 'QuestionErrorBoundary',
+      extra: { componentStack: errorInfo.componentStack }
+    });
   }
 
   componentDidUpdate(prevProps: Props) {

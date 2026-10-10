@@ -44,6 +44,7 @@ import {
 } from '../data/curriculum/index.js';
 
 import { supabase, isSupabaseConfigured } from './supabaseClient.js';
+import { offlineSyncService } from './offlineSync.js';
 
 export interface AuthMeResponse {
   user: User;
@@ -659,13 +660,13 @@ class CbeApiService {
         body: JSON.stringify(payload)
       });
     } catch (_) {
-      // Offline fallback: save in localStorage queue for sync
-      try {
-        const queueKey = 'jifuno_offline_attempts';
-        const queued = JSON.parse(localStorage.getItem(queueKey) || '[]');
-        queued.push({ ...record, created_at: new Date().toISOString() });
-        localStorage.setItem(queueKey, JSON.stringify(queued.slice(-100)));
-      } catch (_) {}
+      // Offline fallback: queue for sync upon reconnection
+      offlineSyncService.queueAttempt({
+        learnerId: payload.learnerId,
+        questionId: payload.questionId,
+        isCorrect: payload.isCorrect,
+        timeMs: payload.timeMs || 0
+      });
     }
   }
 
@@ -700,6 +701,12 @@ class CbeApiService {
         body: JSON.stringify(payload)
       });
     } catch (_) {
+      // Offline fallback: queue for sync upon reconnection
+      offlineSyncService.queueReport({
+        questionId: payload.questionId,
+        learnerId: payload.learnerId,
+        note: payload.note
+      });
       return { success: true, id: `offline-${Date.now()}` };
     }
   }
@@ -883,6 +890,10 @@ class CbeApiService {
       }
     }
     return this.request(`/api/parent/weekly-summary/${encodeURIComponent(learnerId)}`);
+  }
+
+  public async checkHealth(): Promise<any> {
+    return this.request('/api/health');
   }
 }
 

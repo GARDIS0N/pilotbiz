@@ -1030,3 +1030,42 @@ apiRouter.get('/parent/weekly-summary/:learnerId', async (req: Request, res: Res
 apiRouter.get('/analytics/events', (_req: Request, res: Response) => {
   res.json({ events: cbeDb.getAnalyticsEvents(50) });
 });
+
+// -------------------------------------------------------------
+// Step 7: Reliability & System Health Check Endpoint
+// -------------------------------------------------------------
+apiRouter.get('/health', async (_req: Request, res: Response) => {
+  let dbStatus = 'disconnected';
+  let dbLatencyMs = 0;
+
+  if (isSupabaseConfigured()) {
+    try {
+      const start = Date.now();
+      const { error } = await supabase.from('questions').select('id').limit(1);
+      dbLatencyMs = Date.now() - start;
+      dbStatus = error ? 'error' : 'connected';
+    } catch (_) {
+      dbStatus = 'unreachable';
+    }
+  } else {
+    dbStatus = 'local_mock';
+  }
+
+  const isHealthy = dbStatus !== 'error' && dbStatus !== 'unreachable';
+
+  return res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? 'healthy' : 'degraded',
+    service: 'jifuno-api',
+    version: '1.0.0',
+    uptime_seconds: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
+    database: {
+      status: dbStatus,
+      latency_ms: dbLatencyMs
+    },
+    memory: {
+      rss_mb: Math.round(process.memoryUsage().rss / 1024 / 1024),
+      heap_used_mb: Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
+    }
+  });
+});

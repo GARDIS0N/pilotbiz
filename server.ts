@@ -18,6 +18,7 @@ const PORT = 3000;
 
 const app = express();
 app.use(express.json({ limit: '25mb' }));
+app.get('/health', (_req, res) => res.redirect('/api/health'));
 app.use('/api', apiRouter);
 
 const server = http.createServer(app);
