@@ -15,10 +15,21 @@ export const ParentDashboard: React.FC = () => {
   const [selectedChildIdx, setSelectedChildIdx] = useState(0);
   const [nudgeSent, setNudgeSent] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [weeklySummary, setWeeklySummary] = useState<any>(null);
 
   useEffect(() => {
     loadParentData();
   }, []);
+
+  const activeChild = childrenData[selectedChildIdx];
+
+  useEffect(() => {
+    if (activeChild?.student?.id) {
+      cbeApi.getParentWeeklySummary(activeChild.student.id)
+        .then(res => setWeeklySummary(res.summary))
+        .catch(err => console.warn('Weekly summary fetch notice:', err));
+    }
+  }, [activeChild?.student?.id]);
 
   const loadParentData = async () => {
     try {
@@ -122,6 +133,57 @@ export const ParentDashboard: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* Automated Weekly Learning Summary Card (Step 6 Scheduled Job Integration) */}
+          {weeklySummary && (
+            <div className="bg-gradient-to-r from-emerald-950/80 via-slate-900 to-teal-950/80 border-2 border-emerald-500/50 rounded-2xl p-5 space-y-3 shadow-lg">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">📬</span>
+                  <div>
+                    <h4 className="text-sm font-black text-white">Weekly Learning Summary</h4>
+                    <p className="text-[11px] text-emerald-400">
+                      Report for {weeklySummary.week_start_date} to {weeklySummary.week_end_date}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/40">
+                  {weeklySummary.accuracy_percentage}% Weekly Accuracy
+                </span>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 pt-1 text-center">
+                <div className="bg-slate-950/60 p-2.5 rounded-xl border border-emerald-900/60">
+                  <span className="text-[10px] text-gray-400 block font-bold">Lessons Completed</span>
+                  <span className="text-lg font-black text-white">{weeklySummary.lessons_completed}</span>
+                </div>
+                <div className="bg-slate-950/60 p-2.5 rounded-xl border border-emerald-900/60">
+                  <span className="text-[10px] text-gray-400 block font-bold">Active Time</span>
+                  <span className="text-lg font-black text-teal-300">{weeklySummary.total_time_minutes} min</span>
+                </div>
+                <div className="bg-slate-950/60 p-2.5 rounded-xl border border-emerald-900/60">
+                  <span className="text-[10px] text-gray-400 block font-bold">Total Questions</span>
+                  <span className="text-lg font-black text-emerald-300">{weeklySummary.total_attempts}</span>
+                </div>
+              </div>
+
+              {/* Weak Topics and Strong Topics breakdown */}
+              {Array.isArray(weeklySummary.weak_topics) && weeklySummary.weak_topics.length > 0 && (
+                <div className="pt-2 border-t border-emerald-950/80">
+                  <span className="text-xs font-bold text-amber-300 block mb-1">
+                    🎯 Weekly Focus Topics (Needing Practice):
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {weeklySummary.weak_topics.map((t: any, idx: number) => (
+                      <span key={idx} className="text-[11px] bg-amber-950/60 text-amber-200 border border-amber-600/40 px-2 py-0.5 rounded-lg">
+                        {t.topic}: {t.accuracy_pct}% ({t.attempts} attempts)
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Mastered vs Needing Attention Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

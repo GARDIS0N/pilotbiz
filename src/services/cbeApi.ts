@@ -828,6 +828,62 @@ class CbeApiService {
       return { success: true };
     }
   }
+
+  // --- Step 6: Scheduled Jobs & Summaries ---
+
+  public async triggerNightlyMaintenance(): Promise<any> {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.rpc('run_nightly_maintenance');
+        if (!error && data) return { success: true, result: data };
+      } catch (err) {
+        console.warn('[Nightly Maintenance RPC Warning]:', err);
+      }
+    }
+    return this.request('/api/jobs/nightly-maintenance', { method: 'POST' });
+  }
+
+  public async triggerWeeklySummary(): Promise<any> {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.rpc('run_weekly_summaries');
+        if (!error && data) return { success: true, result: data };
+      } catch (err) {
+        console.warn('[Weekly Summary RPC Warning]:', err);
+      }
+    }
+    return this.request('/api/jobs/weekly-summary', { method: 'POST' });
+  }
+
+  public async getAdminSystemHealth(): Promise<any> {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.rpc('generate_weekly_system_health_report');
+        if (!error && data) return { success: true, healthReport: data };
+      } catch (err) {
+        console.warn('[System Health RPC Warning]:', err);
+      }
+    }
+    return this.request('/api/admin/system-health');
+  }
+
+  public async getParentWeeklySummary(learnerId: string): Promise<any> {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase
+          .from('weekly_learner_summaries')
+          .select('*')
+          .eq('learner_id', learnerId)
+          .order('week_start_date', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (!error && data) return { summary: data };
+      } catch (err) {
+        console.warn('[Parent Weekly Summary Supabase Warning]:', err);
+      }
+    }
+    return this.request(`/api/parent/weekly-summary/${encodeURIComponent(learnerId)}`);
+  }
 }
 
 export const cbeApi = new CbeApiService();
