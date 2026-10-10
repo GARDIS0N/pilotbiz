@@ -453,7 +453,7 @@ export function App() {
         ) : currentUser?.role === 'TEACHER' ? (
           <TeacherDashboard />
         ) : currentUser?.role === 'ADMIN' ? (
-          <AdminDashboard />
+          <AdminDashboard currentUser={currentUser} />
         ) : (
           <div className="text-center py-20">
             <p className="text-gray-400 text-sm">Please log in or select a demo account.</p>

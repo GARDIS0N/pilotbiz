@@ -549,6 +549,84 @@ class CbeApiService {
     });
   }
 
+  // --- Step 5: Admin Analytics & QA Views ---
+
+  public async getAdminReports(): Promise<{ reports: any[] }> {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.rpc('get_admin_open_reports');
+        if (!error && Array.isArray(data)) {
+          return { reports: data };
+        }
+      } catch (err) {
+        console.warn('[Admin Reports RPC Warning]:', err);
+      }
+    }
+    return this.request('/api/admin/reports');
+  }
+
+  public async resolveAdminReport(id: string, status = 'RESOLVED'): Promise<{ success: boolean }> {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.rpc('resolve_problem_report', {
+          p_report_id: id,
+          p_status: status
+        });
+        if (!error && data) {
+          return { success: true };
+        }
+      } catch (err) {
+        console.warn('[Admin Resolve Report RPC Warning]:', err);
+      }
+    }
+    return this.request(`/api/admin/reports/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status })
+    });
+  }
+
+  public async getAdminFailureRates(limit = 50): Promise<{ failureRates: any[] }> {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.rpc('get_admin_question_failure_rates', { p_limit: limit });
+        if (!error && Array.isArray(data)) {
+          return { failureRates: data };
+        }
+      } catch (err) {
+        console.warn('[Admin Failure Rates RPC Warning]:', err);
+      }
+    }
+    return this.request('/api/admin/failure-rates');
+  }
+
+  public async getAdminLessonCompletionRates(): Promise<{ completionRates: any[] }> {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.rpc('get_admin_lesson_completion_rates');
+        if (!error && Array.isArray(data)) {
+          return { completionRates: data };
+        }
+      } catch (err) {
+        console.warn('[Admin Completion Rates RPC Warning]:', err);
+      }
+    }
+    return this.request('/api/admin/lesson-completion-rates');
+  }
+
+  public async getAdminDailyActiveLearners(days = 14): Promise<{ dailyActiveLearners: any[] }> {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.rpc('get_admin_daily_active_learners', { p_days: days });
+        if (!error && Array.isArray(data)) {
+          return { dailyActiveLearners: data };
+        }
+      } catch (err) {
+        console.warn('[Admin Daily Active Learners RPC Warning]:', err);
+      }
+    }
+    return this.request('/api/admin/daily-active-learners');
+  }
+
   // --- Answer Logging & Problem Reporting (Supabase) ---
   public async logAttempt(payload: {
     learnerId: string;
