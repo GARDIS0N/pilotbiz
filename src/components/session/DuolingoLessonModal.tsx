@@ -5,6 +5,8 @@ import { cbeApi } from '../../services/cbeApi.js';
 import { sound } from '../../utils/soundEffects.js';
 import { QuestionRenderer } from '../questions/QuestionRenderer.js';
 import { evaluateAnswer, resolveCorrectAnswerText, normalizeQuestion } from '../../utils/answerValidation.js';
+import { validateQuestion } from '../../utils/questionValidator.js';
+import { QuestionErrorBoundary } from '../common/QuestionErrorBoundary.js';
 
 interface Props {
   isOpen: boolean;
@@ -298,6 +300,42 @@ export const DuolingoLessonModal: React.FC<Props> = ({
     onMissionCompleted(result);
   };
 
+  // Content Integrity: Handle invalid question skipping safely
+  const [skippedNotice, setSkippedNotice] = useState<string | null>(null);
+
+  const handleSkipInvalidQuestion = (qId: string, reason?: string) => {
+    console.warn(`[Content Integrity] Skipping invalid question ${qId}: ${reason || 'unspecified'}`);
+    const noticeText = language === 'sw' ? 'Hebu tujaribu swali lifuatalo' : "Let's try the next one";
+    setSkippedNotice(noticeText);
+    setTimeout(() => {
+      setSkippedNotice(null);
+    }, 3000);
+
+    sound.playClick();
+    setCurrentAnswer(null);
+    setAnswerSubmitted(false);
+    setIsCurrentCorrect(null);
+    setActiveHint(null);
+
+    setQueue(prev => {
+      const remaining = prev.filter(q => q.id !== qId);
+      if (remaining.length === 0) {
+        finishSession();
+      }
+      return remaining;
+    });
+  };
+
+  // Pre-validate current question: if invalid, automatically skip so learner is never stuck
+  useEffect(() => {
+    if (currentQ && !isComplete && !loading && !isTeaching) {
+      const validationError = validateQuestion(currentQ);
+      if (validationError) {
+        handleSkipInvalidQuestion(currentQ.id, validationError);
+      }
+    }
+  }, [currentQ?.id, isComplete, loading, isTeaching]);
+
   // Progress Bar: Fills smoothly as questions are answered and completed
   const completedQuestions = Math.max(
     0,
@@ -560,13 +598,28 @@ export const DuolingoLessonModal: React.FC<Props> = ({
                 </div>
               )}
 
-              {/* Question Renderer Engine */}
-              <QuestionRenderer
-                question={currentQ}
-                selectedAnswer={currentAnswer}
-                onSelectAnswer={setCurrentAnswer}
-                disabled={answerSubmitted}
-              />
+              {/* Content Integrity: Notice if previous question was invalid and skipped */}
+              {skippedNotice && (
+                <div className="p-3.5 bg-amber-950/60 border border-amber-500/50 rounded-2xl flex items-center gap-3 text-amber-200 text-xs sm:text-sm font-bold animate-fade-in">
+                  <span className="text-xl shrink-0">🦉</span>
+                  <span>{skippedNotice}</span>
+                </div>
+              )}
+
+              {/* Question Renderer Engine with Error Boundary */}
+              <QuestionErrorBoundary
+                key={currentQ.id}
+                questionId={currentQ.id}
+                language={language}
+                onSkip={() => handleSkipInvalidQuestion(currentQ.id, 'Runtime rendering exception')}
+              >
+                <QuestionRenderer
+                  question={currentQ}
+                  selectedAnswer={currentAnswer}
+                  onSelectAnswer={setCurrentAnswer}
+                  disabled={answerSubmitted}
+                />
+              </QuestionErrorBoundary>
             </div>
           ) : null}
         </div>
