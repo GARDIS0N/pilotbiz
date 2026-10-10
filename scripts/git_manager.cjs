@@ -81,6 +81,18 @@ async function commit(message) {
   return sha;
 }
 
+const customHttp = {
+  request: async (opts) => {
+    return http.request({
+      ...opts,
+      fetchOptions: {
+        ...opts.fetchOptions,
+        timeout: 600000 // 10 minutes timeout
+      }
+    });
+  }
+};
+
 async function push() {
   const token = getPatToken();
   const currentBranch = await git.currentBranch({ fs, dir: '.' }) || 'main';
@@ -88,11 +100,18 @@ async function push() {
   console.log(`Pushing branch '${currentBranch}' to origin...`);
   const response = await git.push({
     fs,
-    http,
+    http: customHttp,
     dir: '.',
     remote: 'origin',
     ref: currentBranch,
     force: false,
+    onProgress: (evt) => {
+      if (evt.total) {
+        console.log(`Push progress: ${evt.phase} ${evt.loaded}/${evt.total} (${Math.round((evt.loaded / evt.total) * 100)}%)`);
+      } else {
+        console.log(`Push progress: ${evt.phase} ${evt.loaded}`);
+      }
+    },
     onAuth: () => ({
       username: 'GARDIS0N',
       password: token
