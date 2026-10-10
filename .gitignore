@@ -17,4 +17,5 @@ coverage/
 *.pfx
 *.backup.*
 .backup_*
+scratch/
 

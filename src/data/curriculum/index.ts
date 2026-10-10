@@ -15,9 +15,19 @@ import { grade4Curriculum } from './grades/grade4.js';
 import { grade5Curriculum } from './grades/grade5.js';
 import { grade6Curriculum } from './grades/grade6.js';
 import { validateCurriculum, ValidationReport } from './validator.js';
+import {
+  getComprehensiveGrade,
+  getAllComprehensiveGrades,
+  getComprehensiveSubject,
+  getComprehensiveStrand,
+  getComprehensiveSubStrand,
+  getComprehensiveQuest,
+  getAllComprehensiveQuests
+} from './comprehensiveCurriculum.js';
 
 export * from './types.js';
 export * from './validator.js';
+export * from './comprehensiveCurriculum.js';
 
 export const ALL_CURRICULUM_GRADES: CurriculumGrade[] = [
   grade3Curriculum,
@@ -67,10 +77,12 @@ export function getCurriculumValidationReport(): ValidationReport {
 // --- Query Functions ---
 
 export function getAllGrades(): CurriculumGrade[] {
-  return ALL_CURRICULUM_GRADES;
+  return getAllComprehensiveGrades();
 }
 
 export function getGrade(gradeId: string): CurriculumGrade | undefined {
+  const comp = getComprehensiveGrade(gradeId);
+  if (comp) return comp;
   const normalized = gradeId.replace('_', '-');
   const withHyphen = normalized.includes('grade-') ? normalized : normalized.replace('grade', 'grade-');
   return gradesMap.get(gradeId) || gradesMap.get(normalized) || gradesMap.get(withHyphen) || gradesMap.get('grade-4') || ALL_CURRICULUM_GRADES[1];
@@ -85,7 +97,7 @@ export function getSubjectsForGrade(
     includeOptional?: boolean;
   }
 ): CurriculumSubject[] {
-  const grade = gradesMap.get(gradeId) || gradesMap.get('grade-4');
+  const grade = getGrade(gradeId);
   if (!grade) return [];
 
   return grade.subjects.filter(subj => {
@@ -102,40 +114,40 @@ export function getSubjectsForGrade(
 }
 
 export function getSubject(subjectId: string): CurriculumSubject | undefined {
-  return subjectsMap.get(subjectId);
+  return getComprehensiveSubject(subjectId) || subjectsMap.get(subjectId);
 }
 
 export function getStrandsForSubject(subjectId: string): CurriculumStrand[] {
-  const subj = subjectsMap.get(subjectId);
+  const subj = getSubject(subjectId);
   return subj ? subj.strands : [];
 }
 
 export function getStrand(strandId: string): CurriculumStrand | undefined {
-  return strandsMap.get(strandId);
+  return getComprehensiveStrand(strandId) || strandsMap.get(strandId);
 }
 
 export function getSubStrandsForStrand(strandId: string): CurriculumSubStrand[] {
-  const strand = strandsMap.get(strandId);
+  const strand = getStrand(strandId);
   return strand ? strand.subStrands : [];
 }
 
 export function getSubStrand(subStrandId: string): CurriculumSubStrand | undefined {
-  return subStrandsMap.get(subStrandId);
+  return getComprehensiveSubStrand(subStrandId) || subStrandsMap.get(subStrandId);
 }
 
 export function getQuestsForSubStrand(subStrandId: string): CurriculumQuest[] {
-  const ss = subStrandsMap.get(subStrandId);
+  const ss = getSubStrand(subStrandId);
   return ss ? ss.quests : [];
 }
 
 export function getQuest(questId: string): CurriculumQuest | undefined {
-  return questsMap.get(questId);
+  return getComprehensiveQuest(questId) || questsMap.get(questId);
 }
 
 export const getCurriculumQuest = getQuest;
 
 export function getAllQuests(): CurriculumQuest[] {
-  return Array.from(questsMap.values());
+  return getAllComprehensiveQuests();
 }
 
 export function getQuestion(questionId: string): CurriculumQuestion | undefined {
@@ -164,17 +176,17 @@ export function searchCurriculum(
     matchedText: string;
   }[] = [];
 
-  const gradesToSearch = gradeId ? [gradesMap.get(gradeId)].filter(Boolean) as CurriculumGrade[] : ALL_CURRICULUM_GRADES;
+  const gradesToSearch = gradeId ? [getGrade(gradeId)].filter(Boolean) as CurriculumGrade[] : getAllGrades();
 
   gradesToSearch.forEach(grade => {
     grade.subjects.forEach(subject => {
       subject.strands.forEach(strand => {
         strand.subStrands.forEach(subStrand => {
           subStrand.quests.forEach(quest => {
-            const matchesTitle = quest.title.en.toLowerCase().includes(q) || quest.title.sw.toLowerCase().includes(q);
-            const matchesStory = quest.storyContext.en.toLowerCase().includes(q) || quest.storyContext.sw.toLowerCase().includes(q);
-            const matchesSubStrand = subStrand.title.en.toLowerCase().includes(q) || subStrand.title.sw.toLowerCase().includes(q);
-            const matchesSubject = subject.title.en.toLowerCase().includes(q) || subject.title.sw.toLowerCase().includes(q);
+            const matchesTitle = (quest.title?.en && quest.title.en.toLowerCase().includes(q)) || (quest.title?.sw && quest.title.sw.toLowerCase().includes(q));
+            const matchesStory = (quest.storyContext?.en && quest.storyContext.en.toLowerCase().includes(q)) || (quest.storyContext?.sw && quest.storyContext.sw.toLowerCase().includes(q));
+            const matchesSubStrand = (subStrand.title?.en && subStrand.title.en.toLowerCase().includes(q)) || (subStrand.title?.sw && subStrand.title.sw.toLowerCase().includes(q));
+            const matchesSubject = (subject.title?.en && subject.title.en.toLowerCase().includes(q)) || (subject.title?.sw && subject.title.sw.toLowerCase().includes(q));
 
             if (matchesTitle || matchesStory || matchesSubStrand || matchesSubject) {
               results.push({

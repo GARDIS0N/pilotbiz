@@ -1591,6 +1591,33 @@
       "avatar": "owl",
       "createdAt": "2026-10-10T11:27:11.923Z",
       "studentProfileId": "test-std-1791631631923"
+    },
+    {
+      "id": "test-usr-1791633603475",
+      "name": "Wanjiku Test Learner",
+      "email": "wanjiku.1791633603480@jifuno.ke",
+      "role": "STUDENT",
+      "avatar": "owl",
+      "createdAt": "2026-10-10T12:00:03.480Z",
+      "studentProfileId": "test-std-1791633603480"
+    },
+    {
+      "id": "test-usr-1791635058232",
+      "name": "Wanjiku Test Learner",
+      "email": "wanjiku.1791635058232@jifuno.ke",
+      "role": "STUDENT",
+      "avatar": "owl",
+      "createdAt": "2026-10-10T12:24:18.232Z",
+      "studentProfileId": "test-std-1791635058232"
+    },
+    {
+      "id": "test-usr-1791635440490",
+      "name": "Wanjiku Test Learner",
+      "email": "wanjiku.1791635440490@jifuno.ke",
+      "role": "STUDENT",
+      "avatar": "owl",
+      "createdAt": "2026-10-10T12:30:40.490Z",
+      "studentProfileId": "test-std-1791635440490"
     }
   ],
   "students": [
@@ -6617,6 +6644,93 @@
         "badge-seedling-starter"
       ],
       "equippedTitle": "Safari Scout"
+    },
+    {
+      "id": "test-std-1791633603480",
+      "userId": "test-usr-1791633603475",
+      "fullName": "Wanjiku Test Learner",
+      "gradeId": "grade-4",
+      "schoolName": "Moi Nyeri Academy",
+      "county": "Nyeri",
+      "avatar": "owl",
+      "level": 1,
+      "xp": 110,
+      "coins": 80,
+      "hearts": 5,
+      "maxHearts": 5,
+      "streakDays": 1,
+      "lastActiveDate": "2026-10-10",
+      "streakFrozen": false,
+      "unlockedWorldIds": [
+        "world-math-kingdom",
+        "world-creative-studio",
+        "world-faith-values"
+      ],
+      "completedMissionIds": [
+        "mission-01-seedlings"
+      ],
+      "badges": [
+        "badge-seedling-starter"
+      ],
+      "equippedTitle": "Safari Scout"
+    },
+    {
+      "id": "test-std-1791635058232",
+      "userId": "test-usr-1791635058232",
+      "fullName": "Wanjiku Test Learner",
+      "gradeId": "grade-4",
+      "schoolName": "Moi Nyeri Academy",
+      "county": "Nyeri",
+      "avatar": "owl",
+      "level": 1,
+      "xp": 110,
+      "coins": 80,
+      "hearts": 5,
+      "maxHearts": 5,
+      "streakDays": 1,
+      "lastActiveDate": "2026-10-10",
+      "streakFrozen": false,
+      "unlockedWorldIds": [
+        "world-math-kingdom",
+        "world-creative-studio",
+        "world-faith-values"
+      ],
+      "completedMissionIds": [
+        "mission-01-seedlings"
+      ],
+      "badges": [
+        "badge-seedling-starter"
+      ],
+      "equippedTitle": "Safari Scout"
+    },
+    {
+      "id": "test-std-1791635440490",
+      "userId": "test-usr-1791635440490",
+      "fullName": "Wanjiku Test Learner",
+      "gradeId": "grade-4",
+      "schoolName": "Moi Nyeri Academy",
+      "county": "Nyeri",
+      "avatar": "owl",
+      "level": 1,
+      "xp": 110,
+      "coins": 80,
+      "hearts": 5,
+      "maxHearts": 5,
+      "streakDays": 1,
+      "lastActiveDate": "2026-10-10",
+      "streakFrozen": false,
+      "unlockedWorldIds": [
+        "world-math-kingdom",
+        "world-creative-studio",
+        "world-faith-values"
+      ],
+      "completedMissionIds": [
+        "mission-01-seedlings"
+      ],
+      "badges": [
+        "badge-seedling-starter"
+      ],
+      "equippedTitle": "Safari Scout"
     }
   ],
   "parents": [
@@ -8406,15 +8520,6 @@
       "description": "Kutambua ngeli za viumbe hai na vitu visivyo na uhai katika sentensi.",
       "cbeCompetency": "Linguistic competence and cultural appreciation",
       "estimatedMinutes": 20
-    },
-    {
-      "id": "substrand-seedbeds",
-      "strandId": "strand-agri-crops",
-      "learningAreaId": "la-agri-g4",
-      "title": "Nursery Beds & Seedling Transplanting",
-      "description": "Preparing fertile seedbed soil, sowing sukuma wiki seeds, and caring for young seedlings.",
-      "cbeCompetency": "Practical agricultural skills and self-reliance",
-      "estimatedMinutes": 25
     },
     {
       "id": "substrand-g3-math-u3",
@@ -24486,6 +24591,38 @@
       "durationMinutes": 15,
       "learningAreaId": "la-hre-g6",
       "grade": "G6"
+    },
+    {
+      "id": "lesson-habitats-g4",
+      "subStrandId": "substrand-habitats",
+      "title": "Kenyan Wildlife Habitats & National Parks",
+      "conceptIntro": "Explore how elephants in Tsavo and lions in Maasai Mara adapt to savannah grasslands and water pans.",
+      "kenyanContextNote": "Kenya Wildlife Service (KWS) conservation corridors in Tsavo and Amboseli.",
+      "keyVocabulary": [
+        {
+          "term": "Habitat",
+          "meaning": "Natural home of an organism",
+          "swahiliTerm": "Makazi"
+        }
+      ],
+      "didYouKnowKenyanFact": "Tsavo National Park is one of the largest wildlife sanctuaries in Africa.",
+      "activitiesCount": 4
+    },
+    {
+      "id": "lesson-ngeli-g4",
+      "subStrandId": "substrand-ngeli",
+      "title": "Ngeli za Nomino (A-WA na KI-VI)",
+      "conceptIntro": "Jifunze jinsi ya kupatanisha vitenzi na nomino katika ngeli ya A-WA (mtu/watu) na KI-VI (kitabu/vitabu).",
+      "kenyanContextNote": "Mifano halisi ya Kiswahili fasaha katika maisha ya kila siku nchini Kenya.",
+      "keyVocabulary": [
+        {
+          "term": "Ngeli",
+          "meaning": "Noun class system in Kiswahili",
+          "swahiliTerm": "Ngeli"
+        }
+      ],
+      "didYouKnowKenyanFact": "Kiswahili kina zaidi ya ngeli kumi na nane zinazofundishwa katika mtaala wa CBC.",
+      "activitiesCount": 4
     }
   ],
   "gameWorlds": [
@@ -26717,7 +26854,8 @@
         "q-g3-env-u5-010",
         "q-g3-env-u5-011",
         "q-g3-env-u5-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-env-u5"
     },
     {
       "id": "mission-g3-env-u5-02",
@@ -26742,7 +26880,8 @@
         "q-g3-env-u5-022",
         "q-g3-env-u5-023",
         "q-g3-env-u5-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-env-u5"
     },
     {
       "id": "mission-g3-env-u6-01",
@@ -26767,7 +26906,8 @@
         "q-g3-env-u6-010",
         "q-g3-env-u6-011",
         "q-g3-env-u6-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-env-u6"
     },
     {
       "id": "mission-g3-env-u6-02",
@@ -26792,7 +26932,8 @@
         "q-g3-env-u6-022",
         "q-g3-env-u6-023",
         "q-g3-env-u6-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-env-u6"
     },
     {
       "id": "mission-g3-env-u7-01",
@@ -26817,7 +26958,8 @@
         "q-g3-env-u7-010",
         "q-g3-env-u7-011",
         "q-g3-env-u7-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-env-u7"
     },
     {
       "id": "mission-g3-env-u7-02",
@@ -26842,7 +26984,8 @@
         "q-g3-env-u7-022",
         "q-g3-env-u7-023",
         "q-g3-env-u7-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-env-u7"
     },
     {
       "id": "mission-g3-env-u8-01",
@@ -26867,7 +27010,8 @@
         "q-g3-env-u8-010",
         "q-g3-env-u8-011",
         "q-g3-env-u8-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-env-u8"
     },
     {
       "id": "mission-g3-env-u8-02",
@@ -26892,7 +27036,8 @@
         "q-g3-env-u8-022",
         "q-g3-env-u8-023",
         "q-g3-env-u8-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-env-u8"
     },
     {
       "id": "mission-g3-env-u9-01",
@@ -26917,7 +27062,8 @@
         "q-g3-env-u9-010",
         "q-g3-env-u9-011",
         "q-g3-env-u9-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-env-u9"
     },
     {
       "id": "mission-g3-env-u9-02",
@@ -26942,7 +27088,8 @@
         "q-g3-env-u9-022",
         "q-g3-env-u9-023",
         "q-g3-env-u9-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-env-u9"
     },
     {
       "id": "mission-g3-env-u10-01",
@@ -26967,7 +27114,8 @@
         "q-g3-env-u10-010",
         "q-g3-env-u10-011",
         "q-g3-env-u10-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-env-u10"
     },
     {
       "id": "mission-g3-env-u10-02",
@@ -26992,7 +27140,8 @@
         "q-g3-env-u10-022",
         "q-g3-env-u10-023",
         "q-g3-env-u10-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-env-u10"
     },
     {
       "id": "mission-g3-cr-u1-01",
@@ -27017,7 +27166,8 @@
         "q-g3-cr-u1-010",
         "q-g3-cr-u1-011",
         "q-g3-cr-u1-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cr-u1"
     },
     {
       "id": "mission-g3-cr-u1-02",
@@ -27042,7 +27192,8 @@
         "q-g3-cr-u1-022",
         "q-g3-cr-u1-023",
         "q-g3-cr-u1-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cr-u1"
     },
     {
       "id": "mission-g3-cr-u2-01",
@@ -27067,7 +27218,8 @@
         "q-g3-cr-u2-010",
         "q-g3-cr-u2-011",
         "q-g3-cr-u2-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cr-u2"
     },
     {
       "id": "mission-g3-cr-u2-02",
@@ -27092,7 +27244,8 @@
         "q-g3-cr-u2-022",
         "q-g3-cr-u2-023",
         "q-g3-cr-u2-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cr-u2"
     },
     {
       "id": "mission-g3-cr-u3-01",
@@ -27117,7 +27270,8 @@
         "q-g3-cr-u3-010",
         "q-g3-cr-u3-011",
         "q-g3-cr-u3-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cr-u3"
     },
     {
       "id": "mission-g3-cr-u3-02",
@@ -27142,7 +27296,8 @@
         "q-g3-cr-u3-022",
         "q-g3-cr-u3-023",
         "q-g3-cr-u3-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cr-u3"
     },
     {
       "id": "mission-g3-cr-u4-01",
@@ -27167,7 +27322,8 @@
         "q-g3-cr-u4-010",
         "q-g3-cr-u4-011",
         "q-g3-cr-u4-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cr-u4"
     },
     {
       "id": "mission-g3-cr-u4-02",
@@ -27192,7 +27348,8 @@
         "q-g3-cr-u4-022",
         "q-g3-cr-u4-023",
         "q-g3-cr-u4-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cr-u4"
     },
     {
       "id": "mission-g3-cr-u5-01",
@@ -27217,7 +27374,8 @@
         "q-g3-cr-u5-010",
         "q-g3-cr-u5-011",
         "q-g3-cr-u5-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cr-u5"
     },
     {
       "id": "mission-g3-cr-u5-02",
@@ -27242,7 +27400,8 @@
         "q-g3-cr-u5-022",
         "q-g3-cr-u5-023",
         "q-g3-cr-u5-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cr-u5"
     },
     {
       "id": "mission-g3-cr-u6-01",
@@ -27267,7 +27426,8 @@
         "q-g3-cr-u6-010",
         "q-g3-cr-u6-011",
         "q-g3-cr-u6-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cr-u6"
     },
     {
       "id": "mission-g3-cr-u6-02",
@@ -27292,7 +27452,8 @@
         "q-g3-cr-u6-022",
         "q-g3-cr-u6-023",
         "q-g3-cr-u6-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cr-u6"
     },
     {
       "id": "mission-g3-cr-u7-01",
@@ -27317,7 +27478,8 @@
         "q-g3-cr-u7-010",
         "q-g3-cr-u7-011",
         "q-g3-cr-u7-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cr-u7"
     },
     {
       "id": "mission-g3-cr-u7-02",
@@ -27342,7 +27504,8 @@
         "q-g3-cr-u7-022",
         "q-g3-cr-u7-023",
         "q-g3-cr-u7-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cr-u7"
     },
     {
       "id": "mission-g3-cr-u8-01",
@@ -27367,7 +27530,8 @@
         "q-g3-cr-u8-010",
         "q-g3-cr-u8-011",
         "q-g3-cr-u8-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cr-u8"
     },
     {
       "id": "mission-g3-cr-u8-02",
@@ -27392,7 +27556,8 @@
         "q-g3-cr-u8-022",
         "q-g3-cr-u8-023",
         "q-g3-cr-u8-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cr-u8"
     },
     {
       "id": "mission-g3-cr-u9-01",
@@ -27417,7 +27582,8 @@
         "q-g3-cr-u9-010",
         "q-g3-cr-u9-011",
         "q-g3-cr-u9-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cr-u9"
     },
     {
       "id": "mission-g3-cr-u9-02",
@@ -27442,7 +27608,8 @@
         "q-g3-cr-u9-022",
         "q-g3-cr-u9-023",
         "q-g3-cr-u9-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cr-u9"
     },
     {
       "id": "mission-g3-cre-u1-01",
@@ -27467,7 +27634,8 @@
         "q-g3-cre-u1-010",
         "q-g3-cre-u1-011",
         "q-g3-cre-u1-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cre-u1"
     },
     {
       "id": "mission-g3-cre-u1-02",
@@ -27492,7 +27660,8 @@
         "q-g3-cre-u1-022",
         "q-g3-cre-u1-023",
         "q-g3-cre-u1-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cre-u1"
     },
     {
       "id": "mission-g3-cre-u2-01",
@@ -27517,7 +27686,8 @@
         "q-g3-cre-u2-010",
         "q-g3-cre-u2-011",
         "q-g3-cre-u2-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cre-u2"
     },
     {
       "id": "mission-g3-cre-u2-02",
@@ -27542,7 +27712,8 @@
         "q-g3-cre-u2-022",
         "q-g3-cre-u2-023",
         "q-g3-cre-u2-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cre-u2"
     },
     {
       "id": "mission-g3-cre-u3-01",
@@ -27567,7 +27738,8 @@
         "q-g3-cre-u3-010",
         "q-g3-cre-u3-011",
         "q-g3-cre-u3-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cre-u3"
     },
     {
       "id": "mission-g3-cre-u3-02",
@@ -27592,7 +27764,8 @@
         "q-g3-cre-u3-022",
         "q-g3-cre-u3-023",
         "q-g3-cre-u3-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cre-u3"
     },
     {
       "id": "mission-g3-cre-u4-01",
@@ -27617,7 +27790,8 @@
         "q-g3-cre-u4-010",
         "q-g3-cre-u4-011",
         "q-g3-cre-u4-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cre-u4"
     },
     {
       "id": "mission-g3-cre-u4-02",
@@ -27642,7 +27816,8 @@
         "q-g3-cre-u4-022",
         "q-g3-cre-u4-023",
         "q-g3-cre-u4-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cre-u4"
     },
     {
       "id": "mission-g3-cre-u5-01",
@@ -27667,7 +27842,8 @@
         "q-g3-cre-u5-010",
         "q-g3-cre-u5-011",
         "q-g3-cre-u5-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cre-u5"
     },
     {
       "id": "mission-g3-cre-u5-02",
@@ -27692,7 +27868,8 @@
         "q-g3-cre-u5-022",
         "q-g3-cre-u5-023",
         "q-g3-cre-u5-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-cre-u5"
     },
     {
       "id": "mission-g3-ire-u1-01",
@@ -27717,7 +27894,8 @@
         "q-g3-ire-u1-010",
         "q-g3-ire-u1-011",
         "q-g3-ire-u1-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-ire-u1"
     },
     {
       "id": "mission-g3-ire-u1-02",
@@ -27742,7 +27920,8 @@
         "q-g3-ire-u1-022",
         "q-g3-ire-u1-023",
         "q-g3-ire-u1-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-ire-u1"
     },
     {
       "id": "mission-g3-ire-u2-01",
@@ -27767,7 +27946,8 @@
         "q-g3-ire-u2-010",
         "q-g3-ire-u2-011",
         "q-g3-ire-u2-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-ire-u2"
     },
     {
       "id": "mission-g3-ire-u2-02",
@@ -27792,7 +27972,8 @@
         "q-g3-ire-u2-022",
         "q-g3-ire-u2-023",
         "q-g3-ire-u2-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-ire-u2"
     },
     {
       "id": "mission-g3-ire-u3-01",
@@ -27817,7 +27998,8 @@
         "q-g3-ire-u3-010",
         "q-g3-ire-u3-011",
         "q-g3-ire-u3-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-ire-u3"
     },
     {
       "id": "mission-g3-ire-u3-02",
@@ -27842,7 +28024,8 @@
         "q-g3-ire-u3-022",
         "q-g3-ire-u3-023",
         "q-g3-ire-u3-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-ire-u3"
     },
     {
       "id": "mission-g3-ire-u4-01",
@@ -27867,7 +28050,8 @@
         "q-g3-ire-u4-010",
         "q-g3-ire-u4-011",
         "q-g3-ire-u4-012"
-      ]
+      ],
+      "subStrandId": "substrand-g3-ire-u4"
     },
     {
       "id": "mission-g3-ire-u4-02",
@@ -27892,7 +28076,8 @@
         "q-g3-ire-u4-022",
         "q-g3-ire-u4-023",
         "q-g3-ire-u4-024"
-      ]
+      ],
+      "subStrandId": "substrand-g3-ire-u4"
     },
     {
       "id": "mission-g3-hre-u1-m1",
@@ -31580,7 +31765,9 @@
         "q-g4-soc-u2-010",
         "q-g4-soc-u2-011",
         "q-g4-soc-u2-012"
-      ]
+      ],
+      "subStrandId": "substrand-g4-soc-u2",
+      "lessonId": "lesson-g4-soc-u2-l1"
     },
     {
       "id": "mission-g4-soc-u2-m2",
@@ -31608,7 +31795,9 @@
         "q-g4-soc-u2-022",
         "q-g4-soc-u2-023",
         "q-g4-soc-u2-024"
-      ]
+      ],
+      "subStrandId": "substrand-g4-soc-u2",
+      "lessonId": "lesson-g4-soc-u2-l2"
     },
     {
       "id": "mission-g4-soc-u3-m1",
@@ -31636,7 +31825,9 @@
         "q-g4-soc-u3-010",
         "q-g4-soc-u3-011",
         "q-g4-soc-u3-012"
-      ]
+      ],
+      "subStrandId": "substrand-g4-soc-u3",
+      "lessonId": "lesson-g4-soc-u3-l1"
     },
     {
       "id": "mission-g4-soc-u3-m2",
@@ -31664,7 +31855,9 @@
         "q-g4-soc-u3-022",
         "q-g4-soc-u3-023",
         "q-g4-soc-u3-024"
-      ]
+      ],
+      "subStrandId": "substrand-g4-soc-u3",
+      "lessonId": "lesson-g4-soc-u3-l2"
     },
     {
       "id": "mission-g4-soc-u4-m1",
@@ -31692,7 +31885,9 @@
         "q-g4-soc-u4-010",
         "q-g4-soc-u4-011",
         "q-g4-soc-u4-012"
-      ]
+      ],
+      "subStrandId": "substrand-g4-soc-u4",
+      "lessonId": "lesson-g4-soc-u4-l1"
     },
     {
       "id": "mission-g4-soc-u4-m2",
@@ -31720,7 +31915,9 @@
         "q-g4-soc-u4-022",
         "q-g4-soc-u4-023",
         "q-g4-soc-u4-024"
-      ]
+      ],
+      "subStrandId": "substrand-g4-soc-u4",
+      "lessonId": "lesson-g4-soc-u4-l2"
     },
     {
       "id": "mission-g4-soc-u5-m1",
@@ -31748,7 +31945,9 @@
         "q-g4-soc-u5-010",
         "q-g4-soc-u5-011",
         "q-g4-soc-u5-012"
-      ]
+      ],
+      "subStrandId": "substrand-g4-soc-u5",
+      "lessonId": "lesson-g4-soc-u5-l1"
     },
     {
       "id": "mission-g4-soc-u5-m2",
@@ -31776,7 +31975,9 @@
         "q-g4-soc-u5-022",
         "q-g4-soc-u5-023",
         "q-g4-soc-u5-024"
-      ]
+      ],
+      "subStrandId": "substrand-g4-soc-u5",
+      "lessonId": "lesson-g4-soc-u5-l2"
     },
     {
       "id": "mission-g4-soc-u6-m1",
@@ -31804,7 +32005,9 @@
         "q-g4-soc-u6-010",
         "q-g4-soc-u6-011",
         "q-g4-soc-u6-012"
-      ]
+      ],
+      "subStrandId": "substrand-g4-soc-u6",
+      "lessonId": "lesson-g4-soc-u6-l1"
     },
     {
       "id": "mission-g4-soc-u6-m2",
@@ -31832,7 +32035,9 @@
         "q-g4-soc-u6-022",
         "q-g4-soc-u6-023",
         "q-g4-soc-u6-024"
-      ]
+      ],
+      "subStrandId": "substrand-g4-soc-u6",
+      "lessonId": "lesson-g4-soc-u6-l2"
     },
     {
       "id": "mission-g4-soc-u7-m1",
@@ -31860,7 +32065,9 @@
         "q-g4-soc-u7-010",
         "q-g4-soc-u7-011",
         "q-g4-soc-u7-012"
-      ]
+      ],
+      "subStrandId": "substrand-g4-soc-u7",
+      "lessonId": "lesson-g4-soc-u7-l1"
     },
     {
       "id": "mission-g4-soc-u7-m2",
@@ -31888,7 +32095,9 @@
         "q-g4-soc-u7-022",
         "q-g4-soc-u7-023",
         "q-g4-soc-u7-024"
-      ]
+      ],
+      "subStrandId": "substrand-g4-soc-u7",
+      "lessonId": "lesson-g4-soc-u7-l2"
     },
     {
       "id": "mission-g4-soc-u8-m1",
@@ -31916,7 +32125,9 @@
         "q-g4-soc-u8-010",
         "q-g4-soc-u8-011",
         "q-g4-soc-u8-012"
-      ]
+      ],
+      "subStrandId": "substrand-g4-soc-u8",
+      "lessonId": "lesson-g4-soc-u8-l1"
     },
     {
       "id": "mission-g4-soc-u8-m2",
@@ -31944,7 +32155,9 @@
         "q-g4-soc-u8-022",
         "q-g4-soc-u8-023",
         "q-g4-soc-u8-024"
-      ]
+      ],
+      "subStrandId": "substrand-g4-soc-u8",
+      "lessonId": "lesson-g4-soc-u8-l2"
     },
     {
       "id": "mission-g4-soc-u9-m1",
@@ -31972,7 +32185,9 @@
         "q-g4-soc-u9-010",
         "q-g4-soc-u9-011",
         "q-g4-soc-u9-012"
-      ]
+      ],
+      "subStrandId": "substrand-g4-soc-u9",
+      "lessonId": "lesson-g4-soc-u9-l1"
     },
     {
       "id": "mission-g4-soc-u9-m2",
@@ -32000,7 +32215,9 @@
         "q-g4-soc-u9-022",
         "q-g4-soc-u9-023",
         "q-g4-soc-u9-024"
-      ]
+      ],
+      "subStrandId": "substrand-g4-soc-u9",
+      "lessonId": "lesson-g4-soc-u9-l2"
     },
     {
       "id": "mission-g4-soc-u10-m1",
@@ -32028,7 +32245,9 @@
         "q-g4-soc-u10-010",
         "q-g4-soc-u10-011",
         "q-g4-soc-u10-012"
-      ]
+      ],
+      "subStrandId": "substrand-g4-soc-u10",
+      "lessonId": "lesson-g4-soc-u10-l1"
     },
     {
       "id": "mission-g4-soc-u10-m2",
@@ -32056,7 +32275,9 @@
         "q-g4-soc-u10-022",
         "q-g4-soc-u10-023",
         "q-g4-soc-u10-024"
-      ]
+      ],
+      "subStrandId": "substrand-g4-soc-u10",
+      "lessonId": "lesson-g4-soc-u10-l2"
     },
     {
       "id": "mission-g4-cr-u1-m1",
@@ -32084,7 +32305,9 @@
         "q-g4-cr-u1-010",
         "q-g4-cr-u1-011",
         "q-g4-cr-u1-012"
-      ]
+      ],
+      "subStrandId": "substrand-g4-cr-u1",
+      "lessonId": "lesson-g4-cr-u1-l1"
     },
     {
       "id": "mission-g4-cr-u1-m2",
@@ -32112,7 +32335,9 @@
         "q-g4-cr-u1-022",
         "q-g4-cr-u1-023",
         "q-g4-cr-u1-024"
-      ]
+      ],
+      "subStrandId": "substrand-g4-cr-u1",
+      "lessonId": "lesson-g4-cr-u1-l2"
     },
     {
       "id": "mission-g4-cr-u2-m1",
@@ -32140,7 +32365,9 @@
         "q-g4-cr-u2-010",
         "q-g4-cr-u2-011",
         "q-g4-cr-u2-012"
-      ]
+      ],
+      "subStrandId": "substrand-g4-cr-u2",
+      "lessonId": "lesson-g4-cr-u2-l1"
     },
     {
       "id": "mission-g4-cr-u2-m2",
@@ -32168,7 +32395,9 @@
         "q-g4-cr-u2-022",
         "q-g4-cr-u2-023",
         "q-g4-cr-u2-024"
-      ]
+      ],
+      "subStrandId": "substrand-g4-cr-u2",
+      "lessonId": "lesson-g4-cr-u2-l2"
     },
     {
       "id": "mission-g4-cr-u3-m1",
@@ -32196,7 +32425,9 @@
         "q-g4-cr-u3-010",
         "q-g4-cr-u3-011",
         "q-g4-cr-u3-012"
-      ]
+      ],
+      "subStrandId": "substrand-g4-cr-u3",
+      "lessonId": "lesson-g4-cr-u3-l1"
     },
     {
       "id": "mission-g4-cr-u3-m2",
@@ -32224,7 +32455,9 @@
         "q-g4-cr-u3-022",
         "q-g4-cr-u3-023",
         "q-g4-cr-u3-024"
-      ]
+      ],
+      "subStrandId": "substrand-g4-cr-u3",
+      "lessonId": "lesson-g4-cr-u3-l2"
     },
     {
       "id": "mission-g4-cr-u4-m1",
@@ -32252,7 +32485,9 @@
         "q-g4-cr-u4-010",
         "q-g4-cr-u4-011",
         "q-g4-cr-u4-012"
-      ]
+      ],
+      "subStrandId": "substrand-g4-cr-u4",
+      "lessonId": "lesson-g4-cr-u4-l1"
     },
     {
       "id": "mission-g4-cr-u4-m2",
@@ -32280,7 +32515,9 @@
         "q-g4-cr-u4-022",
         "q-g4-cr-u4-023",
         "q-g4-cr-u4-024"
-      ]
+      ],
+      "subStrandId": "substrand-g4-cr-u4",
+      "lessonId": "lesson-g4-cr-u4-l2"
     },
     {
       "id": "mission-g4-cr-u5-m1",
@@ -32308,7 +32545,9 @@
         "q-g4-cr-u5-010",
         "q-g4-cr-u5-011",
         "q-g4-cr-u5-012"
-      ]
+      ],
+      "subStrandId": "substrand-g4-cr-u5",
+      "lessonId": "lesson-g4-cr-u5-l1"
     },
     {
       "id": "mission-g4-cr-u5-m2",
@@ -32336,7 +32575,9 @@
         "q-g4-cr-u5-022",
         "q-g4-cr-u5-023",
         "q-g4-cr-u5-024"
-      ]
+      ],
+      "subStrandId": "substrand-g4-cr-u5",
+      "lessonId": "lesson-g4-cr-u5-l2"
     },
     {
       "id": "mission-g4-cr-u6-m1",
@@ -32364,7 +32605,9 @@
         "q-g4-cr-u6-010",
         "q-g4-cr-u6-011",
         "q-g4-cr-u6-012"
-      ]
+      ],
+      "subStrandId": "substrand-g4-cr-u6",
+      "lessonId": "lesson-g4-cr-u6-l1"
     },
     {
       "id": "mission-g4-cr-u6-m2",
@@ -32392,7 +32635,9 @@
         "q-g4-cr-u6-022",
         "q-g4-cr-u6-023",
         "q-g4-cr-u6-024"
-      ]
+      ],
+      "subStrandId": "substrand-g4-cr-u6",
+      "lessonId": "lesson-g4-cr-u6-l2"
     },
     {
       "id": "mission-g4-cr-u7-m1",
@@ -32420,7 +32665,9 @@
         "q-g4-cr-u7-010",
         "q-g4-cr-u7-011",
         "q-g4-cr-u7-012"
-      ]
+      ],
+      "subStrandId": "substrand-g4-cr-u7",
+      "lessonId": "lesson-g4-cr-u7-l1"
     },
     {
       "id": "mission-g4-cr-u7-m2",
@@ -32448,7 +32695,9 @@
         "q-g4-cr-u7-022",
         "q-g4-cr-u7-023",
         "q-g4-cr-u7-024"
-      ]
+      ],
+      "subStrandId": "substrand-g4-cr-u7",
+      "lessonId": "lesson-g4-cr-u7-l2"
     },
     {
       "id": "mission-g4-cr-u8-m1",
@@ -32476,7 +32725,9 @@
         "q-g4-cr-u8-010",
         "q-g4-cr-u8-011",
         "q-g4-cr-u8-012"
-      ]
+      ],
+      "subStrandId": "substrand-g4-cr-u8",
+      "lessonId": "lesson-g4-cr-u8-l1"
     },
     {
       "id": "mission-g4-cr-u8-m2",
@@ -32504,7 +32755,9 @@
         "q-g4-cr-u8-022",
         "q-g4-cr-u8-023",
         "q-g4-cr-u8-024"
-      ]
+      ],
+      "subStrandId": "substrand-g4-cr-u8",
+      "lessonId": "lesson-g4-cr-u8-l2"
     },
     {
       "id": "mission-g4-cr-u9-m1",
@@ -32532,7 +32785,9 @@
         "q-g4-cr-u9-010",
         "q-g4-cr-u9-011",
         "q-g4-cr-u9-012"
-      ]
+      ],
+      "subStrandId": "substrand-g4-cr-u9",
+      "lessonId": "lesson-g4-cr-u9-l1"
     },
     {
       "id": "mission-g4-cr-u9-m2",
@@ -32560,7 +32815,9 @@
         "q-g4-cr-u9-022",
         "q-g4-cr-u9-023",
         "q-g4-cr-u9-024"
-      ]
+      ],
+      "subStrandId": "substrand-g4-cr-u9",
+      "lessonId": "lesson-g4-cr-u9-l2"
     },
     {
       "id": "mission-g4-cre-u1-m1",
@@ -41337,7 +41594,8 @@
         "q-g6-eng-u7-011",
         "q-g6-eng-u7-012"
       ],
-      "learningAreaId": "la-english-g6"
+      "learningAreaId": "la-english-g6",
+      "subStrandId": "substrand-g6-eng-u7"
     },
     {
       "id": "mission-g6-eng-u7-m2",
@@ -41366,7 +41624,8 @@
         "q-g6-eng-u7-023",
         "q-g6-eng-u7-024"
       ],
-      "learningAreaId": "la-english-g6"
+      "learningAreaId": "la-english-g6",
+      "subStrandId": "substrand-g6-eng-u7"
     },
     {
       "id": "mission-g6-eng-u8-m1",
@@ -41395,7 +41654,8 @@
         "q-g6-eng-u8-011",
         "q-g6-eng-u8-012"
       ],
-      "learningAreaId": "la-english-g6"
+      "learningAreaId": "la-english-g6",
+      "subStrandId": "substrand-g6-eng-u8"
     },
     {
       "id": "mission-g6-eng-u8-m2",
@@ -41424,7 +41684,8 @@
         "q-g6-eng-u8-023",
         "q-g6-eng-u8-024"
       ],
-      "learningAreaId": "la-english-g6"
+      "learningAreaId": "la-english-g6",
+      "subStrandId": "substrand-g6-eng-u8"
     },
     {
       "id": "mission-g6-eng-u9-m1",
@@ -41453,7 +41714,8 @@
         "q-g6-eng-u9-011",
         "q-g6-eng-u9-012"
       ],
-      "learningAreaId": "la-english-g6"
+      "learningAreaId": "la-english-g6",
+      "subStrandId": "substrand-g6-eng-u9"
     },
     {
       "id": "mission-g6-eng-u9-m2",
@@ -41482,7 +41744,8 @@
         "q-g6-eng-u9-023",
         "q-g6-eng-u9-024"
       ],
-      "learningAreaId": "la-english-g6"
+      "learningAreaId": "la-english-g6",
+      "subStrandId": "substrand-g6-eng-u9"
     },
     {
       "id": "mission-g6-eng-u10-m1",
@@ -41511,7 +41774,8 @@
         "q-g6-eng-u10-011",
         "q-g6-eng-u10-012"
       ],
-      "learningAreaId": "la-english-g6"
+      "learningAreaId": "la-english-g6",
+      "subStrandId": "substrand-g6-eng-u10"
     },
     {
       "id": "mission-g6-eng-u10-m2",
@@ -41540,7 +41804,8 @@
         "q-g6-eng-u10-023",
         "q-g6-eng-u10-024"
       ],
-      "learningAreaId": "la-english-g6"
+      "learningAreaId": "la-english-g6",
+      "subStrandId": "substrand-g6-eng-u10"
     },
     {
       "id": "mission-g6-kisw-u1-m1",
@@ -41569,7 +41834,8 @@
         "q-g6-kisw-u1-011",
         "q-g6-kisw-u1-012"
       ],
-      "learningAreaId": "la-kiswahili-g6"
+      "learningAreaId": "la-kiswahili-g6",
+      "subStrandId": "substrand-g6-kisw-u1"
     },
     {
       "id": "mission-g6-kisw-u1-m2",
@@ -41598,7 +41864,8 @@
         "q-g6-kisw-u1-023",
         "q-g6-kisw-u1-024"
       ],
-      "learningAreaId": "la-kiswahili-g6"
+      "learningAreaId": "la-kiswahili-g6",
+      "subStrandId": "substrand-g6-kisw-u1"
     },
     {
       "id": "mission-g6-kisw-u2-m1",
@@ -41627,7 +41894,8 @@
         "q-g6-kisw-u2-011",
         "q-g6-kisw-u2-012"
       ],
-      "learningAreaId": "la-kiswahili-g6"
+      "learningAreaId": "la-kiswahili-g6",
+      "subStrandId": "substrand-g6-kisw-u2"
     },
     {
       "id": "mission-g6-kisw-u2-m2",
@@ -41656,7 +41924,8 @@
         "q-g6-kisw-u2-023",
         "q-g6-kisw-u2-024"
       ],
-      "learningAreaId": "la-kiswahili-g6"
+      "learningAreaId": "la-kiswahili-g6",
+      "subStrandId": "substrand-g6-kisw-u2"
     },
     {
       "id": "mission-g6-kisw-u3-m1",
@@ -41685,7 +41954,8 @@
         "q-g6-kisw-u3-011",
         "q-g6-kisw-u3-012"
       ],
-      "learningAreaId": "la-kiswahili-g6"
+      "learningAreaId": "la-kiswahili-g6",
+      "subStrandId": "substrand-g6-kisw-u3"
     },
     {
       "id": "mission-g6-kisw-u3-m2",
@@ -41714,7 +41984,8 @@
         "q-g6-kisw-u3-023",
         "q-g6-kisw-u3-024"
       ],
-      "learningAreaId": "la-kiswahili-g6"
+      "learningAreaId": "la-kiswahili-g6",
+      "subStrandId": "substrand-g6-kisw-u3"
     },
     {
       "id": "mission-g6-kisw-u4-m1",
@@ -41743,7 +42014,8 @@
         "q-g6-kisw-u4-011",
         "q-g6-kisw-u4-012"
       ],
-      "learningAreaId": "la-kiswahili-g6"
+      "learningAreaId": "la-kiswahili-g6",
+      "subStrandId": "substrand-g6-kisw-u4"
     },
     {
       "id": "mission-g6-kisw-u4-m2",
@@ -41772,7 +42044,8 @@
         "q-g6-kisw-u4-023",
         "q-g6-kisw-u4-024"
       ],
-      "learningAreaId": "la-kiswahili-g6"
+      "learningAreaId": "la-kiswahili-g6",
+      "subStrandId": "substrand-g6-kisw-u4"
     },
     {
       "id": "mission-g6-kisw-u5-m1",
@@ -41801,7 +42074,8 @@
         "q-g6-kisw-u5-011",
         "q-g6-kisw-u5-012"
       ],
-      "learningAreaId": "la-kiswahili-g6"
+      "learningAreaId": "la-kiswahili-g6",
+      "subStrandId": "substrand-g6-kisw-u5"
     },
     {
       "id": "mission-g6-kisw-u5-m2",
@@ -41830,7 +42104,8 @@
         "q-g6-kisw-u5-023",
         "q-g6-kisw-u5-024"
       ],
-      "learningAreaId": "la-kiswahili-g6"
+      "learningAreaId": "la-kiswahili-g6",
+      "subStrandId": "substrand-g6-kisw-u5"
     },
     {
       "id": "mission-g6-kisw-u6-m1",
@@ -41859,7 +42134,8 @@
         "q-g6-kisw-u6-011",
         "q-g6-kisw-u6-012"
       ],
-      "learningAreaId": "la-kiswahili-g6"
+      "learningAreaId": "la-kiswahili-g6",
+      "subStrandId": "substrand-g6-kisw-u6"
     },
     {
       "id": "mission-g6-kisw-u6-m2",
@@ -41888,7 +42164,8 @@
         "q-g6-kisw-u6-023",
         "q-g6-kisw-u6-024"
       ],
-      "learningAreaId": "la-kiswahili-g6"
+      "learningAreaId": "la-kiswahili-g6",
+      "subStrandId": "substrand-g6-kisw-u6"
     },
     {
       "id": "mission-g6-kisw-u7-m1",
@@ -41917,7 +42194,8 @@
         "q-g6-kisw-u7-011",
         "q-g6-kisw-u7-012"
       ],
-      "learningAreaId": "la-kiswahili-g6"
+      "learningAreaId": "la-kiswahili-g6",
+      "subStrandId": "substrand-g6-kisw-u7"
     },
     {
       "id": "mission-g6-kisw-u7-m2",
@@ -41946,7 +42224,8 @@
         "q-g6-kisw-u7-023",
         "q-g6-kisw-u7-024"
       ],
-      "learningAreaId": "la-kiswahili-g6"
+      "learningAreaId": "la-kiswahili-g6",
+      "subStrandId": "substrand-g6-kisw-u7"
     },
     {
       "id": "mission-g6-kisw-u8-m1",
@@ -41975,7 +42254,8 @@
         "q-g6-kisw-u8-011",
         "q-g6-kisw-u8-012"
       ],
-      "learningAreaId": "la-kiswahili-g6"
+      "learningAreaId": "la-kiswahili-g6",
+      "subStrandId": "substrand-g6-kisw-u8"
     },
     {
       "id": "mission-g6-kisw-u8-m2",
@@ -42004,7 +42284,8 @@
         "q-g6-kisw-u8-023",
         "q-g6-kisw-u8-024"
       ],
-      "learningAreaId": "la-kiswahili-g6"
+      "learningAreaId": "la-kiswahili-g6",
+      "subStrandId": "substrand-g6-kisw-u8"
     },
     {
       "id": "mission-g6-kisw-u9-m1",
@@ -42033,7 +42314,8 @@
         "q-g6-kisw-u9-011",
         "q-g6-kisw-u9-012"
       ],
-      "learningAreaId": "la-kiswahili-g6"
+      "learningAreaId": "la-kiswahili-g6",
+      "subStrandId": "substrand-g6-kisw-u9"
     },
     {
       "id": "mission-g6-kisw-u9-m2",
@@ -42062,7 +42344,8 @@
         "q-g6-kisw-u9-023",
         "q-g6-kisw-u9-024"
       ],
-      "learningAreaId": "la-kiswahili-g6"
+      "learningAreaId": "la-kiswahili-g6",
+      "subStrandId": "substrand-g6-kisw-u9"
     },
     {
       "id": "mission-g6-kisw-u10-m1",
@@ -42091,7 +42374,8 @@
         "q-g6-kisw-u10-011",
         "q-g6-kisw-u10-012"
       ],
-      "learningAreaId": "la-kiswahili-g6"
+      "learningAreaId": "la-kiswahili-g6",
+      "subStrandId": "substrand-g6-kisw-u10"
     },
     {
       "id": "mission-g6-kisw-u10-m2",
@@ -42120,7 +42404,8 @@
         "q-g6-kisw-u10-023",
         "q-g6-kisw-u10-024"
       ],
-      "learningAreaId": "la-kiswahili-g6"
+      "learningAreaId": "la-kiswahili-g6",
+      "subStrandId": "substrand-g6-kisw-u10"
     },
     {
       "id": "mission-g6-sci-u1-m1",
@@ -42149,7 +42434,8 @@
         "q-g6-sci-u1-011",
         "q-g6-sci-u1-012"
       ],
-      "learningAreaId": "la-science-g6"
+      "learningAreaId": "la-science-g6",
+      "subStrandId": "substrand-g6-sci-u1"
     },
     {
       "id": "mission-g6-sci-u1-m2",
@@ -42178,7 +42464,8 @@
         "q-g6-sci-u1-023",
         "q-g6-sci-u1-024"
       ],
-      "learningAreaId": "la-science-g6"
+      "learningAreaId": "la-science-g6",
+      "subStrandId": "substrand-g6-sci-u1"
     },
     {
       "id": "mission-g6-sci-u2-m1",
@@ -42207,7 +42494,8 @@
         "q-g6-sci-u2-011",
         "q-g6-sci-u2-012"
       ],
-      "learningAreaId": "la-science-g6"
+      "learningAreaId": "la-science-g6",
+      "subStrandId": "substrand-g6-sci-u2"
     },
     {
       "id": "mission-g6-sci-u2-m2",
@@ -42236,7 +42524,8 @@
         "q-g6-sci-u2-023",
         "q-g6-sci-u2-024"
       ],
-      "learningAreaId": "la-science-g6"
+      "learningAreaId": "la-science-g6",
+      "subStrandId": "substrand-g6-sci-u2"
     },
     {
       "id": "mission-g6-sci-u3-m1",
@@ -42269,7 +42558,9 @@
         "q-g6-sci-u3-010",
         "q-g6-sci-u3-011",
         "q-g6-sci-u3-012"
-      ]
+      ],
+      "subStrandId": "substrand-g6-sci-u3",
+      "lessonId": "lesson-g6-sci-u3-l1"
     },
     {
       "id": "mission-g6-sci-u3-m2",
@@ -42302,7 +42593,9 @@
         "q-g6-sci-u3-022",
         "q-g6-sci-u3-023",
         "q-g6-sci-u3-024"
-      ]
+      ],
+      "subStrandId": "substrand-g6-sci-u3",
+      "lessonId": "lesson-g6-sci-u3-l2"
     },
     {
       "id": "mission-g6-sci-u4-m1",
@@ -42335,7 +42628,9 @@
         "q-g6-sci-u4-010",
         "q-g6-sci-u4-011",
         "q-g6-sci-u4-012"
-      ]
+      ],
+      "subStrandId": "substrand-g6-sci-u4",
+      "lessonId": "lesson-g6-sci-u4-l1"
     },
     {
       "id": "mission-g6-sci-u4-m2",
@@ -42368,7 +42663,9 @@
         "q-g6-sci-u4-022",
         "q-g6-sci-u4-023",
         "q-g6-sci-u4-024"
-      ]
+      ],
+      "subStrandId": "substrand-g6-sci-u4",
+      "lessonId": "lesson-g6-sci-u4-l2"
     },
     {
       "id": "mission-g6-sci-u5-m1",
@@ -42401,7 +42698,9 @@
         "q-g6-sci-u5-010",
         "q-g6-sci-u5-011",
         "q-g6-sci-u5-012"
-      ]
+      ],
+      "subStrandId": "substrand-g6-sci-u5",
+      "lessonId": "lesson-g6-sci-u5-l1"
     },
     {
       "id": "mission-g6-sci-u5-m2",
@@ -42434,7 +42733,9 @@
         "q-g6-sci-u5-022",
         "q-g6-sci-u5-023",
         "q-g6-sci-u5-024"
-      ]
+      ],
+      "subStrandId": "substrand-g6-sci-u5",
+      "lessonId": "lesson-g6-sci-u5-l2"
     },
     {
       "id": "mission-g6-sci-u6-m1",
@@ -42467,7 +42768,9 @@
         "q-g6-sci-u6-010",
         "q-g6-sci-u6-011",
         "q-g6-sci-u6-012"
-      ]
+      ],
+      "subStrandId": "substrand-g6-sci-u6",
+      "lessonId": "lesson-g6-sci-u6-l1"
     },
     {
       "id": "mission-g6-sci-u6-m2",
@@ -42500,7 +42803,9 @@
         "q-g6-sci-u6-022",
         "q-g6-sci-u6-023",
         "q-g6-sci-u6-024"
-      ]
+      ],
+      "subStrandId": "substrand-g6-sci-u6",
+      "lessonId": "lesson-g6-sci-u6-l2"
     },
     {
       "id": "mission-g6-sci-u7-m1",
@@ -42533,7 +42838,9 @@
         "q-g6-sci-u7-010",
         "q-g6-sci-u7-011",
         "q-g6-sci-u7-012"
-      ]
+      ],
+      "subStrandId": "substrand-g6-sci-u7",
+      "lessonId": "lesson-g6-sci-u7-l1"
     },
     {
       "id": "mission-g6-sci-u7-m2",
@@ -42566,7 +42873,9 @@
         "q-g6-sci-u7-022",
         "q-g6-sci-u7-023",
         "q-g6-sci-u7-024"
-      ]
+      ],
+      "subStrandId": "substrand-g6-sci-u7",
+      "lessonId": "lesson-g6-sci-u7-l2"
     },
     {
       "id": "mission-g6-sci-u8-m1",
@@ -42599,7 +42908,9 @@
         "q-g6-sci-u8-010",
         "q-g6-sci-u8-011",
         "q-g6-sci-u8-012"
-      ]
+      ],
+      "subStrandId": "substrand-g6-sci-u8",
+      "lessonId": "lesson-g6-sci-u8-l1"
     },
     {
       "id": "mission-g6-sci-u8-m2",
@@ -42632,7 +42943,9 @@
         "q-g6-sci-u8-022",
         "q-g6-sci-u8-023",
         "q-g6-sci-u8-024"
-      ]
+      ],
+      "subStrandId": "substrand-g6-sci-u8",
+      "lessonId": "lesson-g6-sci-u8-l2"
     },
     {
       "id": "mission-g6-sci-u9-m1",
@@ -42665,7 +42978,9 @@
         "q-g6-sci-u9-010",
         "q-g6-sci-u9-011",
         "q-g6-sci-u9-012"
-      ]
+      ],
+      "subStrandId": "substrand-g6-sci-u9",
+      "lessonId": "lesson-g6-sci-u9-l1"
     },
     {
       "id": "mission-g6-sci-u9-m2",
@@ -42698,7 +43013,9 @@
         "q-g6-sci-u9-022",
         "q-g6-sci-u9-023",
         "q-g6-sci-u9-024"
-      ]
+      ],
+      "subStrandId": "substrand-g6-sci-u9",
+      "lessonId": "lesson-g6-sci-u9-l2"
     },
     {
       "id": "mission-g6-sci-u10-m1",
@@ -42731,7 +43048,9 @@
         "q-g6-sci-u10-010",
         "q-g6-sci-u10-011",
         "q-g6-sci-u10-012"
-      ]
+      ],
+      "subStrandId": "substrand-g6-sci-u10",
+      "lessonId": "lesson-g6-sci-u10-l1"
     },
     {
       "id": "mission-g6-sci-u10-m2",
@@ -42764,7 +43083,9 @@
         "q-g6-sci-u10-022",
         "q-g6-sci-u10-023",
         "q-g6-sci-u10-024"
-      ]
+      ],
+      "subStrandId": "substrand-g6-sci-u10",
+      "lessonId": "lesson-g6-sci-u10-l2"
     },
     {
       "id": "mission-g6-agri-u1-m1",
@@ -42792,7 +43113,9 @@
         "q-g6-agri-u1-010",
         "q-g6-agri-u1-011",
         "q-g6-agri-u1-012"
-      ]
+      ],
+      "subStrandId": "substrand-g6-agri-u1",
+      "lessonId": "lesson-g6-agri-u1-l1"
     },
     {
       "id": "mission-g6-agri-u1-m2",
@@ -42820,7 +43143,9 @@
         "q-g6-agri-u1-022",
         "q-g6-agri-u1-023",
         "q-g6-agri-u1-024"
-      ]
+      ],
+      "subStrandId": "substrand-g6-agri-u1",
+      "lessonId": "lesson-g6-agri-u1-l2"
     },
     {
       "id": "mission-g6-agri-u2-m1",
@@ -42848,7 +43173,9 @@
         "q-g6-agri-u2-010",
         "q-g6-agri-u2-011",
         "q-g6-agri-u2-012"
-      ]
+      ],
+      "subStrandId": "substrand-g6-agri-u2",
+      "lessonId": "lesson-g6-agri-u2-l1"
     },
     {
       "id": "mission-g6-agri-u2-m2",
@@ -42876,7 +43203,9 @@
         "q-g6-agri-u2-022",
         "q-g6-agri-u2-023",
         "q-g6-agri-u2-024"
-      ]
+      ],
+      "subStrandId": "substrand-g6-agri-u2",
+      "lessonId": "lesson-g6-agri-u2-l2"
     },
     {
       "id": "mission-g6-agri-u3-m1",
@@ -42904,7 +43233,9 @@
         "q-g6-agri-u3-010",
         "q-g6-agri-u3-011",
         "q-g6-agri-u3-012"
-      ]
+      ],
+      "subStrandId": "substrand-g6-agri-u3",
+      "lessonId": "lesson-g6-agri-u3-l1"
     },
     {
       "id": "mission-g6-agri-u3-m2",
@@ -42932,7 +43263,9 @@
         "q-g6-agri-u3-022",
         "q-g6-agri-u3-023",
         "q-g6-agri-u3-024"
-      ]
+      ],
+      "subStrandId": "substrand-g6-agri-u3",
+      "lessonId": "lesson-g6-agri-u3-l2"
     },
     {
       "id": "mission-g6-agri-u4-m1",
@@ -42960,7 +43293,9 @@
         "q-g6-agri-u4-010",
         "q-g6-agri-u4-011",
         "q-g6-agri-u4-012"
-      ]
+      ],
+      "subStrandId": "substrand-g6-agri-u4",
+      "lessonId": "lesson-g6-agri-u4-l1"
     },
     {
       "id": "mission-g6-agri-u4-m2",
@@ -42988,7 +43323,9 @@
         "q-g6-agri-u4-022",
         "q-g6-agri-u4-023",
         "q-g6-agri-u4-024"
-      ]
+      ],
+      "subStrandId": "substrand-g6-agri-u4",
+      "lessonId": "lesson-g6-agri-u4-l2"
     },
     {
       "id": "mission-g6-agri-u5-m1",
@@ -43021,7 +43358,9 @@
         "q-g6-agri-u5-012"
       ],
       "order": 49,
-      "orderIndex": 49
+      "orderIndex": 49,
+      "subStrandId": "substrand-g6-agri-u5",
+      "lessonId": "lesson-g6-agri-u5-l1"
     },
     {
       "id": "mission-g6-agri-u5-m2",
@@ -43054,7 +43393,9 @@
         "q-g6-agri-u5-024"
       ],
       "order": 50,
-      "orderIndex": 50
+      "orderIndex": 50,
+      "subStrandId": "substrand-g6-agri-u5",
+      "lessonId": "lesson-g6-agri-u5-l2"
     },
     {
       "id": "mission-g6-agri-u6-m1",
@@ -43087,7 +43428,9 @@
         "q-g6-agri-u6-012"
       ],
       "order": 51,
-      "orderIndex": 51
+      "orderIndex": 51,
+      "subStrandId": "substrand-g6-agri-u6",
+      "lessonId": "lesson-g6-agri-u6-l1"
     },
     {
       "id": "mission-g6-agri-u6-m2",
@@ -43120,7 +43463,9 @@
         "q-g6-agri-u6-024"
       ],
       "order": 52,
-      "orderIndex": 52
+      "orderIndex": 52,
+      "subStrandId": "substrand-g6-agri-u6",
+      "lessonId": "lesson-g6-agri-u6-l2"
     },
     {
       "id": "mission-g6-agri-u7-m1",
@@ -43153,7 +43498,9 @@
         "q-g6-agri-u7-012"
       ],
       "order": 53,
-      "orderIndex": 53
+      "orderIndex": 53,
+      "subStrandId": "substrand-g6-agri-u7",
+      "lessonId": "lesson-g6-agri-u7-l1"
     },
     {
       "id": "mission-g6-agri-u7-m2",
@@ -43186,7 +43533,9 @@
         "q-g6-agri-u7-024"
       ],
       "order": 54,
-      "orderIndex": 54
+      "orderIndex": 54,
+      "subStrandId": "substrand-g6-agri-u7",
+      "lessonId": "lesson-g6-agri-u7-l2"
     },
     {
       "id": "mission-g6-agri-u8-m1",
@@ -43219,7 +43568,9 @@
         "q-g6-agri-u8-012"
       ],
       "order": 55,
-      "orderIndex": 55
+      "orderIndex": 55,
+      "subStrandId": "substrand-g6-agri-u8",
+      "lessonId": "lesson-g6-agri-u8-l1"
     },
     {
       "id": "mission-g6-agri-u8-m2",
@@ -43252,7 +43603,9 @@
         "q-g6-agri-u8-024"
       ],
       "order": 56,
-      "orderIndex": 56
+      "orderIndex": 56,
+      "subStrandId": "substrand-g6-agri-u8",
+      "lessonId": "lesson-g6-agri-u8-l2"
     },
     {
       "id": "mission-g6-agri-u9-m1",
@@ -43285,7 +43638,9 @@
         "q-g6-agri-u9-012"
       ],
       "order": 57,
-      "orderIndex": 57
+      "orderIndex": 57,
+      "subStrandId": "substrand-g6-agri-u9",
+      "lessonId": "lesson-g6-agri-u9-l1"
     },
     {
       "id": "mission-g6-agri-u9-m2",
@@ -43318,7 +43673,9 @@
         "q-g6-agri-u9-024"
       ],
       "order": 58,
-      "orderIndex": 58
+      "orderIndex": 58,
+      "subStrandId": "substrand-g6-agri-u9",
+      "lessonId": "lesson-g6-agri-u9-l2"
     },
     {
       "id": "mission-g6-agri-u10-m1",
@@ -43351,7 +43708,9 @@
         "q-g6-agri-u10-012"
       ],
       "order": 59,
-      "orderIndex": 59
+      "orderIndex": 59,
+      "subStrandId": "substrand-g6-agri-u10",
+      "lessonId": "lesson-g6-agri-u10-l1"
     },
     {
       "id": "mission-g6-agri-u10-m2",
@@ -43384,7 +43743,9 @@
         "q-g6-agri-u10-024"
       ],
       "order": 60,
-      "orderIndex": 60
+      "orderIndex": 60,
+      "subStrandId": "substrand-g6-agri-u10",
+      "lessonId": "lesson-g6-agri-u10-l2"
     },
     {
       "id": "mission-g6-soc-u1-m1",
@@ -43413,7 +43774,8 @@
         "q-g6-soc-u1-011",
         "q-g6-soc-u1-012"
       ],
-      "learningAreaId": "la-social-g6"
+      "learningAreaId": "la-social-g6",
+      "subStrandId": "substrand-g6-soc-u1"
     },
     {
       "id": "mission-g6-soc-u1-m2",
@@ -43442,7 +43804,8 @@
         "q-g6-soc-u1-023",
         "q-g6-soc-u1-024"
       ],
-      "learningAreaId": "la-social-g6"
+      "learningAreaId": "la-social-g6",
+      "subStrandId": "substrand-g6-soc-u1"
     },
     {
       "id": "mission-g6-soc-u2-m1",
@@ -43471,7 +43834,8 @@
         "q-g6-soc-u2-011",
         "q-g6-soc-u2-012"
       ],
-      "learningAreaId": "la-social-g6"
+      "learningAreaId": "la-social-g6",
+      "subStrandId": "substrand-g6-soc-u2"
     },
     {
       "id": "mission-g6-soc-u2-m2",
@@ -43500,7 +43864,8 @@
         "q-g6-soc-u2-023",
         "q-g6-soc-u2-024"
       ],
-      "learningAreaId": "la-social-g6"
+      "learningAreaId": "la-social-g6",
+      "subStrandId": "substrand-g6-soc-u2"
     },
     {
       "id": "mission-g6-soc-u3-m1",
@@ -43529,7 +43894,8 @@
         "q-g6-soc-u3-011",
         "q-g6-soc-u3-012"
       ],
-      "learningAreaId": "la-social-g6"
+      "learningAreaId": "la-social-g6",
+      "subStrandId": "substrand-g6-soc-u3"
     },
     {
       "id": "mission-g6-soc-u3-m2",
@@ -43558,7 +43924,8 @@
         "q-g6-soc-u3-023",
         "q-g6-soc-u3-024"
       ],
-      "learningAreaId": "la-social-g6"
+      "learningAreaId": "la-social-g6",
+      "subStrandId": "substrand-g6-soc-u3"
     },
     {
       "id": "mission-g6-soc-u4-m1",
@@ -43587,7 +43954,8 @@
         "q-g6-soc-u4-011",
         "q-g6-soc-u4-012"
       ],
-      "learningAreaId": "la-social-g6"
+      "learningAreaId": "la-social-g6",
+      "subStrandId": "substrand-g6-soc-u4"
     },
     {
       "id": "mission-g6-soc-u4-m2",
@@ -43616,7 +43984,8 @@
         "q-g6-soc-u4-023",
         "q-g6-soc-u4-024"
       ],
-      "learningAreaId": "la-social-g6"
+      "learningAreaId": "la-social-g6",
+      "subStrandId": "substrand-g6-soc-u4"
     },
     {
       "id": "mission-g6-soc-u5-m1",
@@ -43645,7 +44014,8 @@
         "q-g6-soc-u5-011",
         "q-g6-soc-u5-012"
       ],
-      "learningAreaId": "la-social-g6"
+      "learningAreaId": "la-social-g6",
+      "subStrandId": "substrand-g6-soc-u5"
     },
     {
       "id": "mission-g6-soc-u5-m2",
@@ -43674,7 +44044,8 @@
         "q-g6-soc-u5-023",
         "q-g6-soc-u5-024"
       ],
-      "learningAreaId": "la-social-g6"
+      "learningAreaId": "la-social-g6",
+      "subStrandId": "substrand-g6-soc-u5"
     },
     {
       "id": "mission-g6-soc-u6-m1",
@@ -43703,7 +44074,8 @@
         "q-g6-soc-u6-011",
         "q-g6-soc-u6-012"
       ],
-      "learningAreaId": "la-social-g6"
+      "learningAreaId": "la-social-g6",
+      "subStrandId": "substrand-g6-soc-u6"
     },
     {
       "id": "mission-g6-soc-u6-m2",
@@ -43732,7 +44104,8 @@
         "q-g6-soc-u6-023",
         "q-g6-soc-u6-024"
       ],
-      "learningAreaId": "la-social-g6"
+      "learningAreaId": "la-social-g6",
+      "subStrandId": "substrand-g6-soc-u6"
     },
     {
       "id": "mission-g6-soc-u7-m1",
@@ -43761,7 +44134,8 @@
         "q-g6-soc-u7-011",
         "q-g6-soc-u7-012"
       ],
-      "learningAreaId": "la-social-g6"
+      "learningAreaId": "la-social-g6",
+      "subStrandId": "substrand-g6-soc-u7"
     },
     {
       "id": "mission-g6-soc-u7-m2",
@@ -43790,7 +44164,8 @@
         "q-g6-soc-u7-023",
         "q-g6-soc-u7-024"
       ],
-      "learningAreaId": "la-social-g6"
+      "learningAreaId": "la-social-g6",
+      "subStrandId": "substrand-g6-soc-u7"
     },
     {
       "id": "mission-g6-soc-u8-m1",
@@ -43819,7 +44194,8 @@
         "q-g6-soc-u8-011",
         "q-g6-soc-u8-012"
       ],
-      "learningAreaId": "la-social-g6"
+      "learningAreaId": "la-social-g6",
+      "subStrandId": "substrand-g6-soc-u8"
     },
     {
       "id": "mission-g6-soc-u8-m2",
@@ -43848,7 +44224,8 @@
         "q-g6-soc-u8-023",
         "q-g6-soc-u8-024"
       ],
-      "learningAreaId": "la-social-g6"
+      "learningAreaId": "la-social-g6",
+      "subStrandId": "substrand-g6-soc-u8"
     },
     {
       "id": "mission-g6-soc-u9-m1",
@@ -43877,7 +44254,8 @@
         "q-g6-soc-u9-011",
         "q-g6-soc-u9-012"
       ],
-      "learningAreaId": "la-social-g6"
+      "learningAreaId": "la-social-g6",
+      "subStrandId": "substrand-g6-soc-u9"
     },
     {
       "id": "mission-g6-soc-u9-m2",
@@ -43906,7 +44284,8 @@
         "q-g6-soc-u9-023",
         "q-g6-soc-u9-024"
       ],
-      "learningAreaId": "la-social-g6"
+      "learningAreaId": "la-social-g6",
+      "subStrandId": "substrand-g6-soc-u9"
     },
     {
       "id": "mission-g6-soc-u10-m1",
@@ -43935,7 +44314,8 @@
         "q-g6-soc-u10-011",
         "q-g6-soc-u10-012"
       ],
-      "learningAreaId": "la-social-g6"
+      "learningAreaId": "la-social-g6",
+      "subStrandId": "substrand-g6-soc-u10"
     },
     {
       "id": "mission-g6-soc-u10-m2",
@@ -43964,7 +44344,8 @@
         "q-g6-soc-u10-023",
         "q-g6-soc-u10-024"
       ],
-      "learningAreaId": "la-social-g6"
+      "learningAreaId": "la-social-g6",
+      "subStrandId": "substrand-g6-soc-u10"
     },
     {
       "id": "mission-g6-ca-u1-m1",
@@ -43993,7 +44374,8 @@
         "q-g6-ca-u1-011",
         "q-g6-ca-u1-012"
       ],
-      "learningAreaId": "la-creative-g6"
+      "learningAreaId": "la-creative-g6",
+      "subStrandId": "substrand-g6-ca-u1"
     },
     {
       "id": "mission-g6-ca-u1-m2",
@@ -44022,7 +44404,8 @@
         "q-g6-ca-u1-023",
         "q-g6-ca-u1-024"
       ],
-      "learningAreaId": "la-creative-g6"
+      "learningAreaId": "la-creative-g6",
+      "subStrandId": "substrand-g6-ca-u1"
     },
     {
       "id": "mission-g6-ca-u2-m1",
@@ -44051,7 +44434,8 @@
         "q-g6-ca-u2-011",
         "q-g6-ca-u2-012"
       ],
-      "learningAreaId": "la-creative-g6"
+      "learningAreaId": "la-creative-g6",
+      "subStrandId": "substrand-g6-ca-u2"
     },
     {
       "id": "mission-g6-ca-u2-m2",
@@ -44080,7 +44464,8 @@
         "q-g6-ca-u2-023",
         "q-g6-ca-u2-024"
       ],
-      "learningAreaId": "la-creative-g6"
+      "learningAreaId": "la-creative-g6",
+      "subStrandId": "substrand-g6-ca-u2"
     },
     {
       "id": "mission-g6-ca-u3-m1",
@@ -44109,7 +44494,8 @@
         "q-g6-ca-u3-011",
         "q-g6-ca-u3-012"
       ],
-      "learningAreaId": "la-creative-g6"
+      "learningAreaId": "la-creative-g6",
+      "subStrandId": "substrand-g6-ca-u3"
     },
     {
       "id": "mission-g6-ca-u3-m2",
@@ -44138,7 +44524,8 @@
         "q-g6-ca-u3-023",
         "q-g6-ca-u3-024"
       ],
-      "learningAreaId": "la-creative-g6"
+      "learningAreaId": "la-creative-g6",
+      "subStrandId": "substrand-g6-ca-u3"
     },
     {
       "id": "mission-g6-ca-u4-m1",
@@ -44167,7 +44554,8 @@
         "q-g6-ca-u4-011",
         "q-g6-ca-u4-012"
       ],
-      "learningAreaId": "la-creative-g6"
+      "learningAreaId": "la-creative-g6",
+      "subStrandId": "substrand-g6-ca-u4"
     },
     {
       "id": "mission-g6-ca-u4-m2",
@@ -44196,7 +44584,8 @@
         "q-g6-ca-u4-023",
         "q-g6-ca-u4-024"
       ],
-      "learningAreaId": "la-creative-g6"
+      "learningAreaId": "la-creative-g6",
+      "subStrandId": "substrand-g6-ca-u4"
     },
     {
       "id": "mission-g6-ca-u5-m1",
@@ -44225,7 +44614,8 @@
         "q-g6-ca-u5-011",
         "q-g6-ca-u5-012"
       ],
-      "learningAreaId": "la-creative-g6"
+      "learningAreaId": "la-creative-g6",
+      "subStrandId": "substrand-g6-ca-u5"
     },
     {
       "id": "mission-g6-ca-u5-m2",
@@ -44254,7 +44644,8 @@
         "q-g6-ca-u5-023",
         "q-g6-ca-u5-024"
       ],
-      "learningAreaId": "la-creative-g6"
+      "learningAreaId": "la-creative-g6",
+      "subStrandId": "substrand-g6-ca-u5"
     },
     {
       "id": "mission-g6-ca-u6-m1",
@@ -44283,7 +44674,8 @@
         "q-g6-ca-u6-011",
         "q-g6-ca-u6-012"
       ],
-      "learningAreaId": "la-creative-g6"
+      "learningAreaId": "la-creative-g6",
+      "subStrandId": "substrand-g6-ca-u6"
     },
     {
       "id": "mission-g6-ca-u6-m2",
@@ -44312,7 +44704,8 @@
         "q-g6-ca-u6-023",
         "q-g6-ca-u6-024"
       ],
-      "learningAreaId": "la-creative-g6"
+      "learningAreaId": "la-creative-g6",
+      "subStrandId": "substrand-g6-ca-u6"
     },
     {
       "id": "mission-g6-ca-u7-m1",
@@ -44341,7 +44734,8 @@
         "q-g6-ca-u7-011",
         "q-g6-ca-u7-012"
       ],
-      "learningAreaId": "la-creative-g6"
+      "learningAreaId": "la-creative-g6",
+      "subStrandId": "substrand-g6-ca-u7"
     },
     {
       "id": "mission-g6-ca-u7-m2",
@@ -44370,7 +44764,8 @@
         "q-g6-ca-u7-023",
         "q-g6-ca-u7-024"
       ],
-      "learningAreaId": "la-creative-g6"
+      "learningAreaId": "la-creative-g6",
+      "subStrandId": "substrand-g6-ca-u7"
     },
     {
       "id": "mission-g6-ca-u8-m1",
@@ -44399,7 +44794,8 @@
         "q-g6-ca-u8-011",
         "q-g6-ca-u8-012"
       ],
-      "learningAreaId": "la-creative-g6"
+      "learningAreaId": "la-creative-g6",
+      "subStrandId": "substrand-g6-ca-u8"
     },
     {
       "id": "mission-g6-ca-u8-m2",
@@ -44428,7 +44824,8 @@
         "q-g6-ca-u8-023",
         "q-g6-ca-u8-024"
       ],
-      "learningAreaId": "la-creative-g6"
+      "learningAreaId": "la-creative-g6",
+      "subStrandId": "substrand-g6-ca-u8"
     },
     {
       "id": "mission-g6-ca-u9-m1",
@@ -44457,7 +44854,8 @@
         "q-g6-ca-u9-011",
         "q-g6-ca-u9-012"
       ],
-      "learningAreaId": "la-creative-g6"
+      "learningAreaId": "la-creative-g6",
+      "subStrandId": "substrand-g6-ca-u9"
     },
     {
       "id": "mission-g6-ca-u9-m2",
@@ -44486,7 +44884,8 @@
         "q-g6-ca-u9-023",
         "q-g6-ca-u9-024"
       ],
-      "learningAreaId": "la-creative-g6"
+      "learningAreaId": "la-creative-g6",
+      "subStrandId": "substrand-g6-ca-u9"
     },
     {
       "id": "mission-g6-ca-u10-m1",
@@ -44515,7 +44914,8 @@
         "q-g6-ca-u10-011",
         "q-g6-ca-u10-012"
       ],
-      "learningAreaId": "la-creative-g6"
+      "learningAreaId": "la-creative-g6",
+      "subStrandId": "substrand-g6-ca-u10"
     },
     {
       "id": "mission-g6-ca-u10-m2",
@@ -44544,7 +44944,8 @@
         "q-g6-ca-u10-023",
         "q-g6-ca-u10-024"
       ],
-      "learningAreaId": "la-creative-g6"
+      "learningAreaId": "la-creative-g6",
+      "subStrandId": "substrand-g6-ca-u10"
     },
     {
       "id": "mission-g6-cre-u1-m1",
@@ -44573,7 +44974,8 @@
         "q-g6-cre-u1-011",
         "q-g6-cre-u1-012"
       ],
-      "learningAreaId": "la-cre-g6"
+      "learningAreaId": "la-cre-g6",
+      "subStrandId": "substrand-g6-cre-u1"
     },
     {
       "id": "mission-g6-cre-u1-m2",
@@ -44602,7 +45004,8 @@
         "q-g6-cre-u1-023",
         "q-g6-cre-u1-024"
       ],
-      "learningAreaId": "la-cre-g6"
+      "learningAreaId": "la-cre-g6",
+      "subStrandId": "substrand-g6-cre-u1"
     },
     {
       "id": "mission-g6-cre-u2-m1",
@@ -44631,7 +45034,8 @@
         "q-g6-cre-u2-011",
         "q-g6-cre-u2-012"
       ],
-      "learningAreaId": "la-cre-g6"
+      "learningAreaId": "la-cre-g6",
+      "subStrandId": "substrand-g6-cre-u2"
     },
     {
       "id": "mission-g6-cre-u2-m2",
@@ -44660,7 +45064,8 @@
         "q-g6-cre-u2-023",
         "q-g6-cre-u2-024"
       ],
-      "learningAreaId": "la-cre-g6"
+      "learningAreaId": "la-cre-g6",
+      "subStrandId": "substrand-g6-cre-u2"
     },
     {
       "id": "mission-g6-cre-u3-m1",
@@ -44689,7 +45094,8 @@
         "q-g6-cre-u3-011",
         "q-g6-cre-u3-012"
       ],
-      "learningAreaId": "la-cre-g6"
+      "learningAreaId": "la-cre-g6",
+      "subStrandId": "substrand-g6-cre-u3"
     },
     {
       "id": "mission-g6-cre-u3-m2",
@@ -44718,7 +45124,8 @@
         "q-g6-cre-u3-023",
         "q-g6-cre-u3-024"
       ],
-      "learningAreaId": "la-cre-g6"
+      "learningAreaId": "la-cre-g6",
+      "subStrandId": "substrand-g6-cre-u3"
     },
     {
       "id": "mission-g6-cre-u4-m1",
@@ -44747,7 +45154,8 @@
         "q-g6-cre-u4-011",
         "q-g6-cre-u4-012"
       ],
-      "learningAreaId": "la-cre-g6"
+      "learningAreaId": "la-cre-g6",
+      "subStrandId": "substrand-g6-cre-u4"
     },
     {
       "id": "mission-g6-cre-u4-m2",
@@ -44776,7 +45184,8 @@
         "q-g6-cre-u4-023",
         "q-g6-cre-u4-024"
       ],
-      "learningAreaId": "la-cre-g6"
+      "learningAreaId": "la-cre-g6",
+      "subStrandId": "substrand-g6-cre-u4"
     },
     {
       "id": "mission-g6-cre-u5-m1",
@@ -44805,7 +45214,8 @@
         "q-g6-cre-u5-011",
         "q-g6-cre-u5-012"
       ],
-      "learningAreaId": "la-cre-g6"
+      "learningAreaId": "la-cre-g6",
+      "subStrandId": "substrand-g6-cre-u5"
     },
     {
       "id": "mission-g6-cre-u5-m2",
@@ -44834,7 +45244,8 @@
         "q-g6-cre-u5-023",
         "q-g6-cre-u5-024"
       ],
-      "learningAreaId": "la-cre-g6"
+      "learningAreaId": "la-cre-g6",
+      "subStrandId": "substrand-g6-cre-u5"
     },
     {
       "id": "mission-g6-cre-u6-m1",
@@ -44863,7 +45274,8 @@
         "q-g6-cre-u6-011",
         "q-g6-cre-u6-012"
       ],
-      "learningAreaId": "la-cre-g6"
+      "learningAreaId": "la-cre-g6",
+      "subStrandId": "substrand-g6-cre-u6"
     },
     {
       "id": "mission-g6-cre-u6-m2",
@@ -44892,7 +45304,8 @@
         "q-g6-cre-u6-023",
         "q-g6-cre-u6-024"
       ],
-      "learningAreaId": "la-cre-g6"
+      "learningAreaId": "la-cre-g6",
+      "subStrandId": "substrand-g6-cre-u6"
     },
     {
       "id": "mission-g6-cre-u7-m1",
@@ -44921,7 +45334,8 @@
         "q-g6-cre-u7-011",
         "q-g6-cre-u7-012"
       ],
-      "learningAreaId": "la-cre-g6"
+      "learningAreaId": "la-cre-g6",
+      "subStrandId": "substrand-g6-cre-u7"
     },
     {
       "id": "mission-g6-cre-u7-m2",
@@ -44950,7 +45364,8 @@
         "q-g6-cre-u7-023",
         "q-g6-cre-u7-024"
       ],
-      "learningAreaId": "la-cre-g6"
+      "learningAreaId": "la-cre-g6",
+      "subStrandId": "substrand-g6-cre-u7"
     },
     {
       "id": "mission-g6-cre-u8-m1",
@@ -44979,7 +45394,8 @@
         "q-g6-cre-u8-011",
         "q-g6-cre-u8-012"
       ],
-      "learningAreaId": "la-cre-g6"
+      "learningAreaId": "la-cre-g6",
+      "subStrandId": "substrand-g6-cre-u8"
     },
     {
       "id": "mission-g6-cre-u8-m2",
@@ -45008,7 +45424,8 @@
         "q-g6-cre-u8-023",
         "q-g6-cre-u8-024"
       ],
-      "learningAreaId": "la-cre-g6"
+      "learningAreaId": "la-cre-g6",
+      "subStrandId": "substrand-g6-cre-u8"
     },
     {
       "id": "mission-g6-cre-u9-m1",
@@ -45037,7 +45454,8 @@
         "q-g6-cre-u9-011",
         "q-g6-cre-u9-012"
       ],
-      "learningAreaId": "la-cre-g6"
+      "learningAreaId": "la-cre-g6",
+      "subStrandId": "substrand-g6-cre-u9"
     },
     {
       "id": "mission-g6-cre-u9-m2",
@@ -45066,7 +45484,8 @@
         "q-g6-cre-u9-023",
         "q-g6-cre-u9-024"
       ],
-      "learningAreaId": "la-cre-g6"
+      "learningAreaId": "la-cre-g6",
+      "subStrandId": "substrand-g6-cre-u9"
     },
     {
       "id": "mission-g6-cre-u10-m1",
@@ -45095,7 +45514,8 @@
         "q-g6-cre-u10-011",
         "q-g6-cre-u10-012"
       ],
-      "learningAreaId": "la-cre-g6"
+      "learningAreaId": "la-cre-g6",
+      "subStrandId": "substrand-g6-cre-u10"
     },
     {
       "id": "mission-g6-cre-u10-m2",
@@ -45124,7 +45544,8 @@
         "q-g6-cre-u10-023",
         "q-g6-cre-u10-024"
       ],
-      "learningAreaId": "la-cre-g6"
+      "learningAreaId": "la-cre-g6",
+      "subStrandId": "substrand-g6-cre-u10"
     },
     {
       "id": "mission-g6-ire-u1-m1",
@@ -45153,7 +45574,8 @@
         "q-g6-ire-u1-011",
         "q-g6-ire-u1-012"
       ],
-      "learningAreaId": "la-ire-g6"
+      "learningAreaId": "la-ire-g6",
+      "subStrandId": "substrand-g6-ire-u1"
     },
     {
       "id": "mission-g6-ire-u1-m2",
@@ -45182,7 +45604,8 @@
         "q-g6-ire-u1-023",
         "q-g6-ire-u1-024"
       ],
-      "learningAreaId": "la-ire-g6"
+      "learningAreaId": "la-ire-g6",
+      "subStrandId": "substrand-g6-ire-u1"
     },
     {
       "id": "mission-g6-ire-u2-m1",
@@ -45211,7 +45634,8 @@
         "q-g6-ire-u2-011",
         "q-g6-ire-u2-012"
       ],
-      "learningAreaId": "la-ire-g6"
+      "learningAreaId": "la-ire-g6",
+      "subStrandId": "substrand-g6-ire-u2"
     },
     {
       "id": "mission-g6-ire-u2-m2",
@@ -45240,7 +45664,8 @@
         "q-g6-ire-u2-023",
         "q-g6-ire-u2-024"
       ],
-      "learningAreaId": "la-ire-g6"
+      "learningAreaId": "la-ire-g6",
+      "subStrandId": "substrand-g6-ire-u2"
     },
     {
       "id": "mission-g6-ire-u3-m1",
@@ -45269,7 +45694,8 @@
         "q-g6-ire-u3-011",
         "q-g6-ire-u3-012"
       ],
-      "learningAreaId": "la-ire-g6"
+      "learningAreaId": "la-ire-g6",
+      "subStrandId": "substrand-g6-ire-u3"
     },
     {
       "id": "mission-g6-ire-u3-m2",
@@ -45298,7 +45724,8 @@
         "q-g6-ire-u3-023",
         "q-g6-ire-u3-024"
       ],
-      "learningAreaId": "la-ire-g6"
+      "learningAreaId": "la-ire-g6",
+      "subStrandId": "substrand-g6-ire-u3"
     },
     {
       "id": "mission-g6-ire-u4-m1",
@@ -45327,7 +45754,8 @@
         "q-g6-ire-u4-011",
         "q-g6-ire-u4-012"
       ],
-      "learningAreaId": "la-ire-g6"
+      "learningAreaId": "la-ire-g6",
+      "subStrandId": "substrand-g6-ire-u4"
     },
     {
       "id": "mission-g6-ire-u4-m2",
@@ -45356,7 +45784,8 @@
         "q-g6-ire-u4-023",
         "q-g6-ire-u4-024"
       ],
-      "learningAreaId": "la-ire-g6"
+      "learningAreaId": "la-ire-g6",
+      "subStrandId": "substrand-g6-ire-u4"
     },
     {
       "id": "mission-g6-ire-u5-m1",
@@ -45385,7 +45814,8 @@
         "q-g6-ire-u5-011",
         "q-g6-ire-u5-012"
       ],
-      "learningAreaId": "la-ire-g6"
+      "learningAreaId": "la-ire-g6",
+      "subStrandId": "substrand-g6-ire-u5"
     },
     {
       "id": "mission-g6-ire-u5-m2",
@@ -45414,7 +45844,8 @@
         "q-g6-ire-u5-023",
         "q-g6-ire-u5-024"
       ],
-      "learningAreaId": "la-ire-g6"
+      "learningAreaId": "la-ire-g6",
+      "subStrandId": "substrand-g6-ire-u5"
     },
     {
       "id": "mission-g6-ire-u6-m1",
@@ -45443,7 +45874,8 @@
         "q-g6-ire-u6-011",
         "q-g6-ire-u6-012"
       ],
-      "learningAreaId": "la-ire-g6"
+      "learningAreaId": "la-ire-g6",
+      "subStrandId": "substrand-g6-ire-u6"
     },
     {
       "id": "mission-g6-ire-u6-m2",
@@ -45472,7 +45904,8 @@
         "q-g6-ire-u6-023",
         "q-g6-ire-u6-024"
       ],
-      "learningAreaId": "la-ire-g6"
+      "learningAreaId": "la-ire-g6",
+      "subStrandId": "substrand-g6-ire-u6"
     },
     {
       "id": "mission-g6-ire-u7-m1",
@@ -45501,7 +45934,8 @@
         "q-g6-ire-u7-011",
         "q-g6-ire-u7-012"
       ],
-      "learningAreaId": "la-ire-g6"
+      "learningAreaId": "la-ire-g6",
+      "subStrandId": "substrand-g6-ire-u7"
     },
     {
       "id": "mission-g6-ire-u7-m2",
@@ -45530,7 +45964,8 @@
         "q-g6-ire-u7-023",
         "q-g6-ire-u7-024"
       ],
-      "learningAreaId": "la-ire-g6"
+      "learningAreaId": "la-ire-g6",
+      "subStrandId": "substrand-g6-ire-u7"
     },
     {
       "id": "mission-g6-ire-u8-m1",
@@ -45559,7 +45994,8 @@
         "q-g6-ire-u8-011",
         "q-g6-ire-u8-012"
       ],
-      "learningAreaId": "la-ire-g6"
+      "learningAreaId": "la-ire-g6",
+      "subStrandId": "substrand-g6-ire-u8"
     },
     {
       "id": "mission-g6-ire-u8-m2",
@@ -45588,7 +46024,8 @@
         "q-g6-ire-u8-023",
         "q-g6-ire-u8-024"
       ],
-      "learningAreaId": "la-ire-g6"
+      "learningAreaId": "la-ire-g6",
+      "subStrandId": "substrand-g6-ire-u8"
     },
     {
       "id": "mission-g6-ire-u9-m1",
@@ -45617,7 +46054,8 @@
         "q-g6-ire-u9-011",
         "q-g6-ire-u9-012"
       ],
-      "learningAreaId": "la-ire-g6"
+      "learningAreaId": "la-ire-g6",
+      "subStrandId": "substrand-g6-ire-u9"
     },
     {
       "id": "mission-g6-ire-u9-m2",
@@ -45646,7 +46084,8 @@
         "q-g6-ire-u9-023",
         "q-g6-ire-u9-024"
       ],
-      "learningAreaId": "la-ire-g6"
+      "learningAreaId": "la-ire-g6",
+      "subStrandId": "substrand-g6-ire-u9"
     },
     {
       "id": "mission-g6-ire-u10-m1",
@@ -45675,7 +46114,8 @@
         "q-g6-ire-u10-011",
         "q-g6-ire-u10-012"
       ],
-      "learningAreaId": "la-ire-g6"
+      "learningAreaId": "la-ire-g6",
+      "subStrandId": "substrand-g6-ire-u10"
     },
     {
       "id": "mission-g6-ire-u10-m2",
@@ -45704,7 +46144,8 @@
         "q-g6-ire-u10-023",
         "q-g6-ire-u10-024"
       ],
-      "learningAreaId": "la-ire-g6"
+      "learningAreaId": "la-ire-g6",
+      "subStrandId": "substrand-g6-ire-u10"
     },
     {
       "id": "mission-g6-hre-u1-m1",
@@ -45733,7 +46174,8 @@
         "q-g6-hre-u1-011",
         "q-g6-hre-u1-012"
       ],
-      "learningAreaId": "la-hre-g6"
+      "learningAreaId": "la-hre-g6",
+      "subStrandId": "substrand-g6-hre-u1"
     },
     {
       "id": "mission-g6-hre-u1-m2",
@@ -45762,7 +46204,8 @@
         "q-g6-hre-u1-023",
         "q-g6-hre-u1-024"
       ],
-      "learningAreaId": "la-hre-g6"
+      "learningAreaId": "la-hre-g6",
+      "subStrandId": "substrand-g6-hre-u1"
     },
     {
       "id": "mission-g6-hre-u2-m1",
@@ -45791,7 +46234,8 @@
         "q-g6-hre-u2-011",
         "q-g6-hre-u2-012"
       ],
-      "learningAreaId": "la-hre-g6"
+      "learningAreaId": "la-hre-g6",
+      "subStrandId": "substrand-g6-hre-u2"
     },
     {
       "id": "mission-g6-hre-u2-m2",
@@ -45820,7 +46264,8 @@
         "q-g6-hre-u2-023",
         "q-g6-hre-u2-024"
       ],
-      "learningAreaId": "la-hre-g6"
+      "learningAreaId": "la-hre-g6",
+      "subStrandId": "substrand-g6-hre-u2"
     },
     {
       "id": "mission-g6-hre-u3-m1",
@@ -45849,7 +46294,8 @@
         "q-g6-hre-u3-011",
         "q-g6-hre-u3-012"
       ],
-      "learningAreaId": "la-hre-g6"
+      "learningAreaId": "la-hre-g6",
+      "subStrandId": "substrand-g6-hre-u3"
     },
     {
       "id": "mission-g6-hre-u3-m2",
@@ -45878,7 +46324,8 @@
         "q-g6-hre-u3-023",
         "q-g6-hre-u3-024"
       ],
-      "learningAreaId": "la-hre-g6"
+      "learningAreaId": "la-hre-g6",
+      "subStrandId": "substrand-g6-hre-u3"
     },
     {
       "id": "mission-g6-hre-u4-m1",
@@ -45907,7 +46354,8 @@
         "q-g6-hre-u4-011",
         "q-g6-hre-u4-012"
       ],
-      "learningAreaId": "la-hre-g6"
+      "learningAreaId": "la-hre-g6",
+      "subStrandId": "substrand-g6-hre-u4"
     },
     {
       "id": "mission-g6-hre-u4-m2",
@@ -45936,7 +46384,8 @@
         "q-g6-hre-u4-023",
         "q-g6-hre-u4-024"
       ],
-      "learningAreaId": "la-hre-g6"
+      "learningAreaId": "la-hre-g6",
+      "subStrandId": "substrand-g6-hre-u4"
     },
     {
       "id": "mission-g6-hre-u5-m1",
@@ -45965,7 +46414,8 @@
         "q-g6-hre-u5-011",
         "q-g6-hre-u5-012"
       ],
-      "learningAreaId": "la-hre-g6"
+      "learningAreaId": "la-hre-g6",
+      "subStrandId": "substrand-g6-hre-u5"
     },
     {
       "id": "mission-g6-hre-u5-m2",
@@ -45994,7 +46444,8 @@
         "q-g6-hre-u5-023",
         "q-g6-hre-u5-024"
       ],
-      "learningAreaId": "la-hre-g6"
+      "learningAreaId": "la-hre-g6",
+      "subStrandId": "substrand-g6-hre-u5"
     },
     {
       "id": "mission-g6-hre-u6-m1",
@@ -46023,7 +46474,8 @@
         "q-g6-hre-u6-011",
         "q-g6-hre-u6-012"
       ],
-      "learningAreaId": "la-hre-g6"
+      "learningAreaId": "la-hre-g6",
+      "subStrandId": "substrand-g6-hre-u6"
     },
     {
       "id": "mission-g6-hre-u6-m2",
@@ -46052,7 +46504,8 @@
         "q-g6-hre-u6-023",
         "q-g6-hre-u6-024"
       ],
-      "learningAreaId": "la-hre-g6"
+      "learningAreaId": "la-hre-g6",
+      "subStrandId": "substrand-g6-hre-u6"
     },
     {
       "id": "mission-g6-hre-u7-m1",
@@ -46081,7 +46534,8 @@
         "q-g6-hre-u7-011",
         "q-g6-hre-u7-012"
       ],
-      "learningAreaId": "la-hre-g6"
+      "learningAreaId": "la-hre-g6",
+      "subStrandId": "substrand-g6-hre-u7"
     },
     {
       "id": "mission-g6-hre-u7-m2",
@@ -46110,7 +46564,8 @@
         "q-g6-hre-u7-023",
         "q-g6-hre-u7-024"
       ],
-      "learningAreaId": "la-hre-g6"
+      "learningAreaId": "la-hre-g6",
+      "subStrandId": "substrand-g6-hre-u7"
     },
     {
       "id": "mission-g6-hre-u8-m1",
@@ -46139,7 +46594,8 @@
         "q-g6-hre-u8-011",
         "q-g6-hre-u8-012"
       ],
-      "learningAreaId": "la-hre-g6"
+      "learningAreaId": "la-hre-g6",
+      "subStrandId": "substrand-g6-hre-u8"
     },
     {
       "id": "mission-g6-hre-u8-m2",
@@ -46168,7 +46624,8 @@
         "q-g6-hre-u8-023",
         "q-g6-hre-u8-024"
       ],
-      "learningAreaId": "la-hre-g6"
+      "learningAreaId": "la-hre-g6",
+      "subStrandId": "substrand-g6-hre-u8"
     },
     {
       "id": "mission-g6-hre-u9-m1",
@@ -46197,7 +46654,8 @@
         "q-g6-hre-u9-011",
         "q-g6-hre-u9-012"
       ],
-      "learningAreaId": "la-hre-g6"
+      "learningAreaId": "la-hre-g6",
+      "subStrandId": "substrand-g6-hre-u9"
     },
     {
       "id": "mission-g6-hre-u9-m2",
@@ -46226,7 +46684,8 @@
         "q-g6-hre-u9-023",
         "q-g6-hre-u9-024"
       ],
-      "learningAreaId": "la-hre-g6"
+      "learningAreaId": "la-hre-g6",
+      "subStrandId": "substrand-g6-hre-u9"
     },
     {
       "id": "mission-g6-hre-u10-m1",
@@ -46255,7 +46714,8 @@
         "q-g6-hre-u10-011",
         "q-g6-hre-u10-012"
       ],
-      "learningAreaId": "la-hre-g6"
+      "learningAreaId": "la-hre-g6",
+      "subStrandId": "substrand-g6-hre-u10"
     },
     {
       "id": "mission-g6-hre-u10-m2",
@@ -46284,7 +46744,8 @@
         "q-g6-hre-u10-023",
         "q-g6-hre-u10-024"
       ],
-      "learningAreaId": "la-hre-g6"
+      "learningAreaId": "la-hre-g6",
+      "subStrandId": "substrand-g6-hre-u10"
     }
   ],
   "questions": [
@@ -241069,6 +241530,87 @@
       "kenyanCulturalContext": "Fifty shilling notes feature Kenyan wildlife.",
       "sourceType": "AI_PRACTICE",
       "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-test-admin-1791633610879",
+      "subStrandId": "substrand-currency",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "How many 50-shilling notes make 200 shillings?",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "2 notes"
+        },
+        {
+          "id": "opt-2",
+          "text": "4 notes"
+        },
+        {
+          "id": "opt-3",
+          "text": "5 notes"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "4 × 50 = 200 shillings.",
+      "socraticHint": "Count by fifties: 50, 100, 150...",
+      "kenyanCulturalContext": "Fifty shilling notes feature Kenyan wildlife.",
+      "sourceType": "AI_PRACTICE",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-test-admin-1791635065495",
+      "subStrandId": "substrand-currency",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "How many 50-shilling notes make 200 shillings?",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "2 notes"
+        },
+        {
+          "id": "opt-2",
+          "text": "4 notes"
+        },
+        {
+          "id": "opt-3",
+          "text": "5 notes"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "4 × 50 = 200 shillings.",
+      "socraticHint": "Count by fifties: 50, 100, 150...",
+      "kenyanCulturalContext": "Fifty shilling notes feature Kenyan wildlife.",
+      "sourceType": "AI_PRACTICE",
+      "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-test-admin-1791635446936",
+      "subStrandId": "substrand-currency",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "How many 50-shilling notes make 200 shillings?",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "2 notes"
+        },
+        {
+          "id": "opt-2",
+          "text": "4 notes"
+        },
+        {
+          "id": "opt-3",
+          "text": "5 notes"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "4 × 50 = 200 shillings.",
+      "socraticHint": "Count by fifties: 50, 100, 150...",
+      "kenyanCulturalContext": "Fifty shilling notes feature Kenyan wildlife.",
+      "sourceType": "AI_PRACTICE",
+      "contentStatus": "PUBLISHED"
     }
   ],
   "achievements": [
@@ -243261,6 +243803,42 @@
       }
     ],
     "test-std-1791631631923": [
+      {
+        "strandId": "strand-math-numbers",
+        "strandTitle": "Numbers & Operations",
+        "learningAreaName": "Mathematics",
+        "masteryPercentage": 100,
+        "totalAttempts": 4,
+        "correctAttempts": 4,
+        "status": "EXCEEDING",
+        "lastPracticedDate": "2026-10-10"
+      }
+    ],
+    "test-std-1791633603480": [
+      {
+        "strandId": "strand-math-numbers",
+        "strandTitle": "Numbers & Operations",
+        "learningAreaName": "Mathematics",
+        "masteryPercentage": 100,
+        "totalAttempts": 4,
+        "correctAttempts": 4,
+        "status": "EXCEEDING",
+        "lastPracticedDate": "2026-10-10"
+      }
+    ],
+    "test-std-1791635058232": [
+      {
+        "strandId": "strand-math-numbers",
+        "strandTitle": "Numbers & Operations",
+        "learningAreaName": "Mathematics",
+        "masteryPercentage": 100,
+        "totalAttempts": 4,
+        "correctAttempts": 4,
+        "status": "EXCEEDING",
+        "lastPracticedDate": "2026-10-10"
+      }
+    ],
+    "test-std-1791635440490": [
       {
         "strandId": "strand-math-numbers",
         "strandTitle": "Numbers & Operations",
@@ -247944,6 +248522,87 @@
       "leveledUp": false,
       "newLevel": 1,
       "completedAt": "2026-10-10T11:27:13.741Z"
+    },
+    {
+      "sessionId": "sess-1791633609446-m1v4z",
+      "missionId": "mission-01-seedlings",
+      "studentId": "test-std-1791633603480",
+      "scorePercentage": 100,
+      "totalQuestions": 4,
+      "correctAnswersCount": 4,
+      "xpEarned": 60,
+      "coinsEarned": 30,
+      "heartsRemaining": 5,
+      "streakMaintained": true,
+      "unlockedAchievements": [
+        {
+          "id": "badge-seedling-starter",
+          "code": "SEEDLING_STARTER",
+          "title": "Green Thumb Sower",
+          "description": "Completed your first agricultural multiplication mission with Amina!",
+          "icon": "sprout",
+          "xpReward": 50,
+          "coinReward": 25,
+          "category": "EXPLORATION"
+        }
+      ],
+      "leveledUp": false,
+      "newLevel": 1,
+      "completedAt": "2026-10-10T12:00:09.446Z"
+    },
+    {
+      "sessionId": "sess-1791635064628-qnwzr",
+      "missionId": "mission-01-seedlings",
+      "studentId": "test-std-1791635058232",
+      "scorePercentage": 100,
+      "totalQuestions": 4,
+      "correctAnswersCount": 4,
+      "xpEarned": 60,
+      "coinsEarned": 30,
+      "heartsRemaining": 5,
+      "streakMaintained": true,
+      "unlockedAchievements": [
+        {
+          "id": "badge-seedling-starter",
+          "code": "SEEDLING_STARTER",
+          "title": "Green Thumb Sower",
+          "description": "Completed your first agricultural multiplication mission with Amina!",
+          "icon": "sprout",
+          "xpReward": 50,
+          "coinReward": 25,
+          "category": "EXPLORATION"
+        }
+      ],
+      "leveledUp": false,
+      "newLevel": 1,
+      "completedAt": "2026-10-10T12:24:24.628Z"
+    },
+    {
+      "sessionId": "sess-1791635445667-yrqhi",
+      "missionId": "mission-01-seedlings",
+      "studentId": "test-std-1791635440490",
+      "scorePercentage": 100,
+      "totalQuestions": 4,
+      "correctAnswersCount": 4,
+      "xpEarned": 60,
+      "coinsEarned": 30,
+      "heartsRemaining": 5,
+      "streakMaintained": true,
+      "unlockedAchievements": [
+        {
+          "id": "badge-seedling-starter",
+          "code": "SEEDLING_STARTER",
+          "title": "Green Thumb Sower",
+          "description": "Completed your first agricultural multiplication mission with Amina!",
+          "icon": "sprout",
+          "xpReward": 50,
+          "coinReward": 25,
+          "category": "EXPLORATION"
+        }
+      ],
+      "leveledUp": false,
+      "newLevel": 1,
+      "completedAt": "2026-10-10T12:30:45.667Z"
     }
   ],
   "analyticsEvents": [
@@ -250195,6 +250854,45 @@
         "stars": 3
       },
       "timestamp": "2026-10-10T11:27:13.902Z"
+    },
+    {
+      "id": "evt-1791633610156",
+      "studentId": "test-std-1791633603480",
+      "eventType": "mission_completed",
+      "metadata": {
+        "missionId": "mission-01-seedlings",
+        "scorePercentage": 100,
+        "xpEarned": 60,
+        "coinsEarned": 30,
+        "stars": 3
+      },
+      "timestamp": "2026-10-10T12:00:10.156Z"
+    },
+    {
+      "id": "evt-1791635065088",
+      "studentId": "test-std-1791635058232",
+      "eventType": "mission_completed",
+      "metadata": {
+        "missionId": "mission-01-seedlings",
+        "scorePercentage": 100,
+        "xpEarned": 60,
+        "coinsEarned": 30,
+        "stars": 3
+      },
+      "timestamp": "2026-10-10T12:24:25.089Z"
+    },
+    {
+      "id": "evt-1791635446292",
+      "studentId": "test-std-1791635440490",
+      "eventType": "mission_completed",
+      "metadata": {
+        "missionId": "mission-01-seedlings",
+        "scorePercentage": 100,
+        "xpEarned": 60,
+        "coinsEarned": 30,
+        "stars": 3
+      },
+      "timestamp": "2026-10-10T12:30:46.292Z"
     }
   ],
   "xpTransactions": [
@@ -251415,6 +252113,27 @@
       "amount": 60,
       "reason": "Completed mission: Help Amina Plant Seedlings (100%)",
       "timestamp": "2026-10-10T11:27:13.068Z"
+    },
+    {
+      "id": "xp-tx-1791633606812-fpco",
+      "studentId": "test-std-1791633603480",
+      "amount": 60,
+      "reason": "Completed mission: Help Amina Plant Seedlings (100%)",
+      "timestamp": "2026-10-10T12:00:07.142Z"
+    },
+    {
+      "id": "xp-tx-1791635063128-n399",
+      "studentId": "test-std-1791635058232",
+      "amount": 60,
+      "reason": "Completed mission: Help Amina Plant Seedlings (100%)",
+      "timestamp": "2026-10-10T12:24:23.130Z"
+    },
+    {
+      "id": "xp-tx-1791635443381-jjd7",
+      "studentId": "test-std-1791635440490",
+      "amount": 60,
+      "reason": "Completed mission: Help Amina Plant Seedlings (100%)",
+      "timestamp": "2026-10-10T12:30:43.381Z"
     }
   ],
   "coinTransactions": [
@@ -252635,6 +253354,27 @@
       "amount": 30,
       "reason": "Earned in mission: Help Amina Plant Seedlings",
       "timestamp": "2026-10-10T11:27:13.344Z"
+    },
+    {
+      "id": "coin-tx-1791633608130-858f",
+      "studentId": "test-std-1791633603480",
+      "amount": 30,
+      "reason": "Earned in mission: Help Amina Plant Seedlings",
+      "timestamp": "2026-10-10T12:00:08.131Z"
+    },
+    {
+      "id": "coin-tx-1791635063584-24ay",
+      "studentId": "test-std-1791635058232",
+      "amount": 30,
+      "reason": "Earned in mission: Help Amina Plant Seedlings",
+      "timestamp": "2026-10-10T12:24:23.584Z"
+    },
+    {
+      "id": "coin-tx-1791635444209-h9d3",
+      "studentId": "test-std-1791635440490",
+      "amount": 30,
+      "reason": "Earned in mission: Help Amina Plant Seedlings",
+      "timestamp": "2026-10-10T12:30:44.209Z"
     }
   ]
 }
