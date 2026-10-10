@@ -9,9 +9,12 @@ import {
   markOnboardingCompleted,
   isReturningUser,
   resetOnboarding,
-  mergeGuestProgressIntoProfile
+  mergeGuestProgressIntoProfile,
+  getPersistedUserProfile,
+  savePersistedUserProfile,
+  clearPersistedUserProfile
 } from '../src/services/onboardingStorage.js';
-import { StudentProfile } from '../src/types/cbe.js';
+import { User, StudentProfile } from '../src/types/cbe.js';
 
 // Mock localStorage in Node environment if not present
 if (typeof globalThis.localStorage === 'undefined') {
@@ -131,7 +134,25 @@ function runTests() {
   assert(completedState.hasCompletedOnboarding === true, 'Onboarding state hasCompletedOnboarding is true');
   assert(completedState.step === 'COMPLETED', 'Step is marked COMPLETED');
 
-  // 10. Reset test
+  // 10. User profile persistence test
+  const testUser: User = {
+    id: 'user-persist-01',
+    name: 'Zawadi Wanjiku',
+    email: 'parent@wanjiku.ke',
+    role: 'STUDENT',
+    avatar: 'zebra',
+    createdAt: '2026-10-10T12:00:00Z'
+  };
+  savePersistedUserProfile(testUser, merged);
+  const retrieved = getPersistedUserProfile();
+  assert(retrieved.user?.id === 'user-persist-01', 'Persisted user ID correctly retrieved');
+  assert(retrieved.studentProfile?.fullName === 'Zawadi Wanjiku', 'Persisted student name correctly retrieved');
+  assert(retrieved.studentProfile?.xp === 30, 'Persisted student XP correctly retrieved');
+  clearPersistedUserProfile();
+  const cleared = getPersistedUserProfile();
+  assert(cleared.user === null && cleared.studentProfile === null, 'Persisted user profile correctly cleared');
+
+  // 11. Reset test
   resetOnboarding();
   assert(!isReturningUser(), 'Reset properly clears onboarding returning flag');
 

@@ -4,7 +4,7 @@
  * and seamless anonymous-to-account progress merging.
  */
 
-import { StudentProfile } from '../types/cbe.js';
+import { User, StudentProfile } from '../types/cbe.js';
 
 export type OnboardingStep =
   | 'WELCOME'
@@ -274,4 +274,45 @@ export function mergeGuestProgressIntoProfile(student: StudentProfile): StudentP
   markOnboardingCompleted();
 
   return mergedStudent;
+}
+
+const USER_STORAGE_KEY = 'jifuno_current_user';
+const PROFILE_STORAGE_KEY = 'jifuno_current_student';
+
+/**
+ * Retrieves the currently persisted user and student profile from localStorage.
+ */
+export function getPersistedUserProfile(): { user: User | null; studentProfile: StudentProfile | null } {
+  try {
+    const rawUser = localStorage.getItem(USER_STORAGE_KEY);
+    const rawProfile = localStorage.getItem(PROFILE_STORAGE_KEY);
+    const user = rawUser ? (JSON.parse(rawUser) as User) : null;
+    const studentProfile = rawProfile ? (JSON.parse(rawProfile) as StudentProfile) : null;
+    return { user, studentProfile };
+  } catch (err) {
+    console.warn('[OnboardingStorage] Error retrieving persisted profile:', err);
+    return { user: null, studentProfile: null };
+  }
+}
+
+/**
+ * Saves active user and student profile to localStorage for instant reload restoration.
+ */
+export function savePersistedUserProfile(user: User, studentProfile: StudentProfile): void {
+  try {
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+    localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(studentProfile));
+  } catch (err) {
+    console.warn('[OnboardingStorage] Error saving persisted profile:', err);
+  }
+}
+
+/**
+ * Clears persisted user and student profile from localStorage upon logout or reset.
+ */
+export function clearPersistedUserProfile(): void {
+  try {
+    localStorage.removeItem(USER_STORAGE_KEY);
+    localStorage.removeItem(PROFILE_STORAGE_KEY);
+  } catch (_) {}
 }

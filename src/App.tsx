@@ -10,6 +10,14 @@ import { DuolingoLessonModal } from './components/session/DuolingoLessonModal.js
 import { AuthModal } from './components/auth/AuthModal.js';
 import { AITutorModal } from './components/tutor/AITutorModal.js';
 import { LoginPage } from './components/auth/LoginPage.js';
+import { OnboardingFlow } from './components/onboarding/OnboardingFlow.js';
+import {
+  isReturningUser,
+  getPersistedUserProfile,
+  savePersistedUserProfile,
+  clearPersistedUserProfile,
+  markOnboardingCompleted
+} from './services/onboardingStorage.js';
 
 const getPersistedHearts = (fallback = 5): number => {
   try {
@@ -64,12 +72,35 @@ const DEFAULT_GRADES: Grade[] = [
 ];
 
 export function App() {
-  const [currentUser, setCurrentUser] = useState<User | null>(DEFAULT_STUDENT_USER);
-  const [studentProfile, setStudentProfile] = useState<StudentProfile | null>(DEFAULT_STUDENT_PROFILE);
+  const [currentView, setCurrentView] = useState<'DASHBOARD' | 'LOGIN' | 'ONBOARDING'>(() => {
+    return isReturningUser() ? 'DASHBOARD' : 'ONBOARDING';
+  });
+
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    if (isReturningUser()) {
+      const persisted = getPersistedUserProfile();
+      return persisted.user || DEFAULT_STUDENT_USER;
+    }
+    return null;
+  });
+
+  const [studentProfile, setStudentProfile] = useState<StudentProfile | null>(() => {
+    if (isReturningUser()) {
+      const persisted = getPersistedUserProfile();
+      return persisted.studentProfile || DEFAULT_STUDENT_PROFILE;
+    }
+    return null;
+  });
+
   const [grades, setGrades] = useState<Grade[]>(DEFAULT_GRADES);
-  const [selectedGradeId, setSelectedGradeId] = useState<string>('grade-4');
+  const [selectedGradeId, setSelectedGradeId] = useState<string>(() => {
+    if (isReturningUser()) {
+      const persisted = getPersistedUserProfile();
+      return persisted.studentProfile?.gradeId || 'grade-4';
+    }
+    return 'grade-4';
+  });
   const [loading, setLoading] = useState(false);
-  const [currentView, setCurrentView] = useState<'DASHBOARD' | 'LOGIN'>('DASHBOARD');
 
   // Sound mute state
   const [isMuted, setIsMuted] = useState(false);
@@ -112,12 +143,25 @@ export function App() {
         cbeApi.getGrades()
       ]);
 
-      setCurrentUser(authRes.user);
-      if (authRes.studentProfile) {
-        const hearts = getPersistedHearts(authRes.studentProfile.hearts ?? 5);
-        setStudentProfile({ ...authRes.studentProfile, hearts });
-        setSelectedGradeId(authRes.studentProfile.gradeId);
+      if (isReturningUser()) {
+        const persisted = getPersistedUserProfile();
+        const activeUser = persisted.user || authRes.user;
+        const activeStudent = persisted.studentProfile || authRes.studentProfile;
+
+        setCurrentUser(activeUser);
+        if (activeStudent) {
+          const hearts = getPersistedHearts(activeStudent.hearts ?? 5);
+          const fullStudent = { ...activeStudent, hearts };
+          setStudentProfile(fullStudent);
+          setSelectedGradeId(fullStudent.gradeId);
+        }
+      } else {
+        // First-time or midway visitor: Keep on OnboardingFlow
+        setCurrentUser(null);
+        setStudentProfile(null);
+        setCurrentView('ONBOARDING');
       }
+
       setGrades(gRes.grades);
     } catch (err) {
       console.error('Failed to initialize Jifuno app:', err);
@@ -139,16 +183,53 @@ export function App() {
     if (studentProfile) {
       const updated = { ...studentProfile, gradeId: newGradeId };
       setStudentProfile(updated);
+      if (currentUser) {
+        savePersistedUserProfile(currentUser, updated);
+      }
     }
   };
 
-  const handleMissionCompleted = () => {
-    // Refresh student data while strictly maintaining persisted hearts
+  const handleCompleteOnboarding = (user: User, profile: StudentProfile) => {
+    setCurrentUser(user);
+    setStudentProfile(profile);
+    setSelectedGradeId(profile.gradeId);
+    savePersistedUserProfile(user, profile);
+    markOnboardingCompleted();
+    setCurrentView('DASHBOARD');
+  };
+
+  const handleMissionCompleted = (result?: any) => {
     if (studentProfile) {
+      const missionId = result?.missionId || activeMissionId;
+      const completedIds = studentProfile.completedMissionIds || [];
+      const updatedMissions = missionId && !completedIds.includes(missionId)
+        ? [...completedIds, missionId]
+        : completedIds;
+
+      const updatedStudent: StudentProfile = {
+        ...studentProfile,
+        xp: (studentProfile.xp || 0) + (result?.xpEarned || 25),
+        coins: (studentProfile.coins || 0) + (result?.coinsEarned || 10),
+        completedMissionIds: updatedMissions
+      };
+
+      setStudentProfile(updatedStudent);
+      if (currentUser) {
+        savePersistedUserProfile(currentUser, updatedStudent);
+      }
+
+      // Sync with API if possible
       cbeApi.getStudentStats(studentProfile.id).then(res => {
-        const hearts = getPersistedHearts(res.student?.hearts ?? 5);
-        setStudentProfile({ ...res.student, hearts });
-      });
+        if (res.student) {
+          const hearts = getPersistedHearts(res.student.hearts ?? updatedStudent.hearts ?? 5);
+          const syncedMissions = Array.from(new Set([...(res.student.completedMissionIds || []), ...updatedMissions]));
+          const synced = { ...res.student, completedMissionIds: syncedMissions, hearts };
+          setStudentProfile(synced);
+          if (currentUser) {
+            savePersistedUserProfile(currentUser, synced);
+          }
+        }
+      }).catch(() => {});
     }
   };
 
@@ -164,6 +245,18 @@ export function App() {
     );
   }
 
+  // 1. Full-screen Duolingo onboarding flow for new visitors or midway resumers
+  if (currentView === 'ONBOARDING') {
+    return (
+      <OnboardingFlow
+        onCompleteOnboarding={handleCompleteOnboarding}
+        onOpenLogin={() => setCurrentView('LOGIN')}
+        language={uiLanguage}
+      />
+    );
+  }
+
+  // 2. Full-screen login page
   if (currentView === 'LOGIN') {
     return (
       <LoginPage
@@ -171,15 +264,25 @@ export function App() {
         grades={grades}
         onLoginSuccess={(user) => {
           setCurrentUser(user);
+          markOnboardingCompleted();
           if (user.studentProfileId) {
             cbeApi.getStudentStats(user.studentProfileId).then(res => {
-              setStudentProfile(res.student);
-              setSelectedGradeId(res.student.gradeId);
-            });
+              if (res.student) {
+                setStudentProfile(res.student);
+                setSelectedGradeId(res.student.gradeId);
+                savePersistedUserProfile(user, res.student);
+              }
+            }).catch(() => {});
           }
           setCurrentView('DASHBOARD');
         }}
-        onCancel={() => setCurrentView('DASHBOARD')}
+        onCancel={() => {
+          if (isReturningUser()) {
+            setCurrentView('DASHBOARD');
+          } else {
+            setCurrentView('ONBOARDING');
+          }
+        }}
       />
     );
   }
@@ -210,25 +313,27 @@ export function App() {
           </div>
         </div>
 
-        {/* Center: Grade Selector */}
-        <div className="hidden md:flex items-center gap-1.5 bg-slate-900 border border-emerald-900/60 p-1 rounded-2xl">
-          {grades.map(g => (
-            <button
-              key={g.id}
-              type="button"
-              onClick={() => handleGradeChange(g.id)}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                g.id === selectedGradeId
-                  ? 'bg-emerald-500 text-slate-950 shadow-sm'
-                  : 'text-gray-400 hover:text-white hover:bg-emerald-950/40'
-              }`}
-            >
-              {g.name}
-            </button>
-          ))}
-        </div>
+        {/* Center: Grade Selector (ONLY shown for adults managing multiple grades) */}
+        {currentUser?.role !== 'STUDENT' && (
+          <div className="hidden md:flex items-center gap-1.5 bg-slate-900 border border-emerald-900/60 p-1 rounded-2xl">
+            {grades.map(g => (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => handleGradeChange(g.id)}
+                className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  g.id === selectedGradeId
+                    ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                    : 'text-gray-400 hover:text-white hover:bg-emerald-950/40'
+                }`}
+              >
+                {g.name}
+              </button>
+            ))}
+          </div>
+        )}
 
-        {/* Right Controls: Role Switcher & Sound Toggle */}
+        {/* Right Controls */}
         <div className="flex items-center gap-2.5">
           {/* Sound Toggle */}
           <button
@@ -253,49 +358,63 @@ export function App() {
             <span>Rafiki AI</span>
           </button>
 
-          {/* Log In Page Trigger Button */}
-          <button
-            type="button"
-            onClick={() => {
-              sound.playClick();
-              setCurrentView('LOGIN');
-            }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-emerald-900/60 hover:border-emerald-500 text-gray-300 hover:text-white font-bold text-xs cursor-pointer shadow-sm transition-all"
-            title="Open Full Log In Page"
-          >
-            <span>🔑</span>
-            <span className="hidden sm:inline">Log In</span>
-          </button>
+          {/* Role Access: Learner views NEVER show admin/teacher/parent pills */}
+          {currentUser?.role === 'STUDENT' ? (
+            <button
+              type="button"
+              onClick={() => {
+                sound.playClick();
+                setIsAuthModalOpen(true);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-emerald-900/60 hover:border-emerald-600 text-gray-300 hover:text-white font-bold text-xs cursor-pointer shadow-sm transition-all"
+              title="Parent & Teacher Area"
+            >
+              <span>👨‍👩‍👧</span>
+              <span className="hidden sm:inline">Parent Area</span>
+            </button>
+          ) : (
+            <>
+              {/* Log In Page Trigger Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  setCurrentView('LOGIN');
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-emerald-900/60 hover:border-emerald-500 text-gray-300 hover:text-white font-bold text-xs cursor-pointer shadow-sm transition-all"
+                title="Open Full Log In Page"
+              >
+                <span>🔑</span>
+                <span className="hidden sm:inline">Log In</span>
+              </button>
 
-          {/* Role Pill Switcher */}
-          <button
-            type="button"
-            onClick={() => {
-              sound.playClick();
-              setIsAuthModalOpen(true);
-            }}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-gradient-to-r from-emerald-900/70 to-slate-900 border border-emerald-500/50 hover:border-emerald-400 text-white font-bold text-xs cursor-pointer shadow-sm transition-all"
-          >
-            <span>
-              {currentUser?.role === 'STUDENT'
-                ? '🎓'
-                : currentUser?.role === 'PARENT'
-                ? '👨‍👩‍👧'
-                : currentUser?.role === 'TEACHER'
-                ? '👨‍🏫'
-                : '⚙️'}
-            </span>
-            <span className="hidden xs:inline">
-              {currentUser?.role === 'STUDENT'
-                ? 'Student'
-                : currentUser?.role === 'PARENT'
-                ? 'Parent'
-                : currentUser?.role === 'TEACHER'
-                ? 'Teacher'
-                : 'Admin'}
-            </span>
-            <span className="text-[10px] text-emerald-400">▼</span>
-          </button>
+              {/* Adult Role Pill Switcher */}
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  setIsAuthModalOpen(true);
+                }}
+                className="flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-gradient-to-r from-emerald-900/70 to-slate-900 border border-emerald-500/50 hover:border-emerald-400 text-white font-bold text-xs cursor-pointer shadow-sm transition-all"
+              >
+                <span>
+                  {currentUser?.role === 'PARENT'
+                    ? '👨‍👩‍👧'
+                    : currentUser?.role === 'TEACHER'
+                    ? '👨‍🏫'
+                    : '⚙️'}
+                </span>
+                <span className="hidden xs:inline">
+                  {currentUser?.role === 'PARENT'
+                    ? 'Parent'
+                    : currentUser?.role === 'TEACHER'
+                    ? 'Teacher'
+                    : 'Admin'}
+                </span>
+                <span className="text-[10px] text-emerald-400">▼</span>
+              </button>
+            </>
+          )}
         </div>
       </header>
 
@@ -309,11 +428,21 @@ export function App() {
             onStartMission={(mId) => {
               setActiveMissionId(mId);
             }}
-            onStudentUpdated={(st) => setStudentProfile(st)}
+            onStudentUpdated={(st) => {
+              setStudentProfile(st);
+              if (currentUser) {
+                savePersistedUserProfile(currentUser, st);
+              }
+            }}
             isMuted={isMuted}
             onToggleMute={handleToggleMute}
             onGradeChange={handleGradeChange}
-            onLogout={() => setCurrentView('LOGIN')}
+            onLogout={() => {
+              clearPersistedUserProfile();
+              setCurrentUser(null);
+              setStudentProfile(null);
+              setCurrentView('LOGIN');
+            }}
             onOpenAuthModal={() => setIsAuthModalOpen(true)}
             onOpenTutor={() => setIsGlobalTutorOpen(true)}
             language={uiLanguage}
@@ -367,6 +496,7 @@ export function App() {
         grades={grades}
         onAuthSuccess={(user) => {
           setCurrentUser(user);
+          markOnboardingCompleted();
           initApp();
         }}
         onOpenLoginPage={() => setCurrentView('LOGIN')}
