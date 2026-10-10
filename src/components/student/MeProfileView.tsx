@@ -4,6 +4,7 @@ import { getAvatar, AVATARS } from '../../utils/avatars.js';
 import { sound } from '../../utils/soundEffects.js';
 import { useReducedMotionPreference, setReducedMotionPreference } from '../../utils/motion.js';
 import { CurriculumStrandsTab } from '../subject/CurriculumStrandsTab.js';
+import { cbeApi } from '../../services/cbeApi.js';
 
 interface Props {
   student: StudentProfile;
@@ -44,6 +45,24 @@ export const MeProfileView: React.FC<Props> = ({
   const [dailyGoalMinutes, setDailyGoalMinutes] = useState<number>(10);
   const [isChangingAvatar, setIsChangingAvatar] = useState(false);
   const [showFullRubric, setShowFullRubric] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
+
+  const handleDeleteData = async () => {
+    try {
+      setIsDeleting(true);
+      sound.playClick();
+      await cbeApi.deleteLearnerData(student.userId || student.id);
+      setDeleteSuccess(true);
+      setTimeout(() => {
+        onLogout();
+      }, 1500);
+    } catch (err) {
+      console.error('Failed to delete learner data:', err);
+      setIsDeleting(false);
+    }
+  };
 
   const handleSelectAvatar = (avatarId: string) => {
     sound.playClick();
@@ -427,14 +446,67 @@ export const MeProfileView: React.FC<Props> = ({
       </div>
 
       {/* 7. Child Safety & Data Protection Notice */}
-      <div className="p-4 rounded-2xl bg-slate-900/80 border border-emerald-900/60 text-xs text-gray-400 space-y-1 leading-relaxed">
-        <span className="font-bold text-emerald-400 flex items-center gap-1.5">
-          <span>🛡️</span>
-          <span>Child Privacy & Kenya Data Protection Act</span>
-        </span>
-        <p>
-          Jifuno protects children's personal data. No public chat, no tracking cookies, and all curriculum progress is stored securely under parent guardian consent.
-        </p>
+      <div className="p-4 rounded-2xl bg-slate-900/80 border border-emerald-900/60 text-xs text-gray-400 space-y-3 leading-relaxed">
+        <div>
+          <span className="font-bold text-emerald-400 flex items-center gap-1.5">
+            <span>🛡️</span>
+            <span>Child Privacy & Kenya Data Protection Act</span>
+          </span>
+          <p className="mt-1">
+            Jifuno stores only minimal learner data (grade level and optional school name). No tracking cookies, no public chat, and all records are safeguarded under parent/guardian consent.
+          </p>
+        </div>
+
+        {/* Data Deletion Path */}
+        <div className="pt-2 border-t border-emerald-950/80">
+          {!showDeleteConfirm ? (
+            <button
+              type="button"
+              onClick={() => {
+                sound.playClick();
+                setShowDeleteConfirm(true);
+              }}
+              className="text-[11px] font-bold text-rose-400 hover:text-rose-300 underline cursor-pointer flex items-center gap-1"
+            >
+              <span>🗑️</span>
+              <span>{language === 'sw' ? 'Omba Kufuta Data Yangu (Haki ya Kusahaulika)' : 'Delete My Learning Data (Right to be Forgotten)'}</span>
+            </button>
+          ) : (
+            <div className="p-3 rounded-xl bg-rose-950/60 border border-rose-500/60 space-y-2.5 animate-fade-in">
+              {deleteSuccess ? (
+                <p className="text-emerald-300 font-bold text-xs text-center">
+                  ✅ {language === 'sw' ? 'Data yako imefutwa kabisa.' : 'Your learning data has been permanently deleted.'}
+                </p>
+              ) : (
+                <>
+                  <p className="text-rose-200 font-bold text-[11px]">
+                    ⚠️ {language === 'sw'
+                      ? 'Una uhakika unataka kufuta kabisa masomo yote, alama, na historia yako? Hatua hii haiwezi kutenguliwa.'
+                      : 'Are you sure you want to permanently delete all your quiz attempts, review schedule, and learning progress? This action cannot be undone.'}
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      disabled={isDeleting}
+                      onClick={handleDeleteData}
+                      className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs cursor-pointer shadow transition-all disabled:opacity-50"
+                    >
+                      {isDeleting ? 'Deleting...' : (language === 'sw' ? 'Ndio, Futa Data' : 'Yes, Permanently Delete')}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isDeleting}
+                      onClick={() => setShowDeleteConfirm(false)}
+                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-gray-300 font-bold text-xs cursor-pointer transition-all"
+                    >
+                      {language === 'sw' ? 'Ghairi' : 'Cancel'}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 8. Account Actions */}

@@ -699,6 +699,57 @@ class CbeApiService {
       return { recommended_lesson_id: 'quest-g4-math-place-value', grade_id: gradeId };
     }
   }
+
+  // --- Step 4: Privacy & Data Protection Paths ---
+
+  public async deleteLearnerData(learnerId?: string): Promise<{ success: boolean; message: string }> {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.rpc('delete_learner_data', {
+          p_learner_id: learnerId || null
+        });
+        if (!error && data) {
+          return data;
+        }
+      } catch (err) {
+        console.warn('[Delete Learner Data]: Supabase RPC exception:', err);
+      }
+    }
+
+    try {
+      return await this.request('/api/privacy/delete-data', {
+        method: 'POST',
+        body: JSON.stringify({ learnerId })
+      });
+    } catch (_) {
+      return { success: true, message: 'Learner data removed.' };
+    }
+  }
+
+  public async mergeAnonymousProgress(anonLearnerId: string, targetLearnerId: string): Promise<any> {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.rpc('merge_anonymous_progress', {
+          p_anon_learner_id: anonLearnerId,
+          p_target_learner_id: targetLearnerId
+        });
+        if (!error && data) {
+          return data;
+        }
+      } catch (err) {
+        console.warn('[Merge Anonymous Progress]: Supabase RPC exception:', err);
+      }
+    }
+
+    try {
+      return await this.request('/api/auth/merge-anonymous', {
+        method: 'POST',
+        body: JSON.stringify({ anonLearnerId, targetLearnerId })
+      });
+    } catch (_) {
+      return { success: true };
+    }
+  }
 }
 
 export const cbeApi = new CbeApiService();

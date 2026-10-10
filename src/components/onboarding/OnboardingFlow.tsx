@@ -277,6 +277,12 @@ export const OnboardingFlow: React.FC<Props> = ({
       };
 
       const mergedProfile = mergeGuestProgressIntoProfile(baseStudent);
+
+      // Link server-side anonymous progress (attempts, review items, mastery) to new student
+      cbeApi.mergeAnonymousProgress(persistedState.anonymousUserId, baseStudent.id).catch(err => {
+        console.warn('[Onboarding] Remote anonymous merge warning:', err);
+      });
+
       onCompleteOnboarding(res.user, mergedProfile);
     } catch (err: any) {
       console.warn('[Onboarding] Registration error:', err);

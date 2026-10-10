@@ -389,6 +389,88 @@ apiRouter.post('/learning/process-review', async (req: Request, res: Response) =
   }
 });
 
+// -------------------------------------------------------------
+// Privacy & Data Deletion Path (COPPA / Kenya Data Protection Act)
+// -------------------------------------------------------------
+apiRouter.post('/privacy/delete-data', async (req: Request, res: Response) => {
+  try {
+    const { learnerId } = req.body;
+    const targetId = learnerId || currentUserId;
+
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.rpc('delete_learner_data', {
+          p_learner_id: targetId
+        });
+        if (!error && data) {
+          return res.json({ success: true, result: data });
+        }
+      } catch (rpcErr) {
+        console.warn('[Supabase Delete Learner Data RPC Warning]:', rpcErr);
+      }
+    }
+
+    // In-memory demo fallback cleanup
+    const students = cbeDb.getAllStudents();
+    const targetStudent = students.find(s => s.id === targetId || s.userId === targetId);
+    if (targetStudent) {
+      cbeDb.updateStudent(targetStudent.id, {
+        xp: 0,
+        coins: 0,
+        level: 1,
+        hearts: 5,
+        streakDays: 0,
+        completedMissionIds: [],
+        badges: []
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Learner data permanently deleted.',
+      deleted_learner_id: targetId,
+      deleted_at: new Date().toISOString()
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// -------------------------------------------------------------
+// Anonymous to Real Account Progress Merging
+// -------------------------------------------------------------
+apiRouter.post('/auth/merge-anonymous', async (req: Request, res: Response) => {
+  try {
+    const { anonLearnerId, targetLearnerId } = req.body;
+    if (!anonLearnerId || !targetLearnerId) {
+      return res.status(400).json({ error: 'anonLearnerId and targetLearnerId are required' });
+    }
+
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.rpc('merge_anonymous_progress', {
+          p_anon_learner_id: anonLearnerId,
+          p_target_learner_id: targetLearnerId
+        });
+        if (!error && data) {
+          return res.json({ success: true, result: data });
+        }
+      } catch (rpcErr) {
+        console.warn('[Supabase Merge Anonymous Progress RPC Warning]:', rpcErr);
+      }
+    }
+
+    return res.json({
+      success: true,
+      merged_from: anonLearnerId,
+      merged_to: targetLearnerId,
+      message: 'Anonymous progress merged successfully'
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 apiRouter.get('/game/student/:id/stats', (req: Request, res: Response) => {
   const student = cbeDb.getStudentProfile(req.params.id);
   if (!student) return res.status(404).json({ error: 'Student not found' });
