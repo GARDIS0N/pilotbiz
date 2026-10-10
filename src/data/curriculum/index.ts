@@ -141,7 +141,11 @@ export function getQuestsForSubStrand(subStrandId: string): CurriculumQuest[] {
 }
 
 export function getQuest(questId: string): CurriculumQuest | undefined {
-  return getComprehensiveQuest(questId) || questsMap.get(questId);
+  const fromMap = questsMap.get(questId);
+  if (fromMap && fromMap.questions && fromMap.questions.length > 0) {
+    return fromMap;
+  }
+  return getComprehensiveQuest(questId) || fromMap;
 }
 
 export const getCurriculumQuest = getQuest;
@@ -223,6 +227,10 @@ export function getRecommendedNextQuest(
       for (const ss of strand.subStrands) {
         for (const q of ss.quests) {
           if (!completedQuestIds.includes(q.id)) {
+            const enriched = questsMap.get(q.id);
+            if (enriched && enriched.questions && enriched.questions.length > 0) {
+              return enriched;
+            }
             return q;
           }
         }
@@ -231,12 +239,29 @@ export function getRecommendedNextQuest(
   }
 
   // 2. Otherwise find the first uncompleted quest in the grade
+  // Check ALL_CURRICULUM_GRADES first to prefer quests with rich question banks
+  const seedGrade = ALL_CURRICULUM_GRADES.find(g => g.id === gradeId);
+  if (seedGrade) {
+    for (const subject of seedGrade.subjects) {
+      for (const strand of subject.strands) {
+        for (const ss of strand.subStrands) {
+          for (const q of ss.quests) {
+            if (!completedQuestIds.includes(q.id) && q.questions && q.questions.length > 0) {
+              return q;
+            }
+          }
+        }
+      }
+    }
+  }
+
   for (const subject of subjects) {
     for (const strand of subject.strands) {
       for (const ss of strand.subStrands) {
         for (const q of ss.quests) {
           if (!completedQuestIds.includes(q.id)) {
-            return q;
+            const enriched = questsMap.get(q.id);
+            return enriched || q;
           }
         }
       }
