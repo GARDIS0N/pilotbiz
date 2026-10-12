@@ -1,7 +1,7 @@
 -- =============================================================================
 -- Jifuno Supabase Database Full Schema Migration (Steps 1 to 7)
 -- Target Project: gvddvgscydjzpqffwxrn (https://gvddvgscydjzpqffwxrn.supabase.co)
--- Generated: 2026-10-12T15:11:21.151Z
+-- Generated: 2026-10-12T17:08:38.326Z
 --
 -- Features:
 -- 1. Content integrity (constraints, trigger validation per question type)
@@ -1964,5 +1964,31 @@ COMMENT ON COLUMN public.profiles.religious_stream IS 'Family choice for CBC Rel
 
 -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 -- END MIGRATION: 20261011_11_religious_stream_and_home_preferences.sql
+-- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+-- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+-- START MIGRATION: 20261012_12_legal_consent_tracking.sql
+-- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+-- =============================================================================
+-- Migration: 20261012_12_legal_consent_tracking.sql
+-- Description: Adds legal consent audit tracking columns to public.profiles.
+--              Stores the exact timestamp and policy version consented to by
+--              the parent or guardian, complying with the Kenya Data Protection Act, 2019.
+-- =============================================================================
+
+ALTER TABLE public.profiles
+ADD COLUMN IF NOT EXISTS consent_agreed_at TIMESTAMPTZ,
+ADD COLUMN IF NOT EXISTS consent_version TEXT DEFAULT '2026-10-12';
+
+-- Index for consent audits & compliance reporting
+CREATE INDEX IF NOT EXISTS idx_profiles_consent_version ON public.profiles(consent_version);
+
+COMMENT ON COLUMN public.profiles.consent_agreed_at IS 'Audit timestamp when the parent, guardian, or authorized learner agreed to Terms of Service & Privacy Policy';
+COMMENT ON COLUMN public.profiles.consent_version IS 'Legal policy version code consented to at registration (e.g. 2026-10-12)';
+
+-- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+-- END MIGRATION: 20261012_12_legal_consent_tracking.sql
 -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
