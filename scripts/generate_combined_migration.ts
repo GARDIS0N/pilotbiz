@@ -11,7 +11,9 @@ const migrationFiles = [
   '20261011_06_scheduled_jobs.sql',
   '20261011_07_reliability_and_indexes.sql',
   '20261011_08_stable_option_ids_and_keys.sql',
-  '20261011_09_matching_pairs_and_content_integrity.sql'
+  '20261011_09_matching_pairs_and_content_integrity.sql',
+  '20261011_10_language_cleanup.sql',
+  '20261011_11_religious_stream_and_home_preferences.sql'
 ];
 
 let combinedSQL = `-- =============================================================================
