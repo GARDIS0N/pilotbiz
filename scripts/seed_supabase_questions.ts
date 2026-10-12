@@ -35,12 +35,13 @@ async function main() {
   const adminPass = 'JifunoSeedAdminKey2026!Sec';
 
   console.log('1. Authenticating admin session for RLS bypass...');
-  let { data: authData, error: authErr } = await supabase.auth.signInWithPassword({
+  let adminUserId: string | undefined = undefined;
+  const { data: signInData, error: authErr } = await supabase.auth.signInWithPassword({
     email: adminEmail,
     password: adminPass
   });
 
-  if (authErr) {
+  if (authErr || !signInData.user) {
     console.log('   Creating dedicated seeding admin account...');
     const signupRes = await supabase.auth.signUp({
       email: adminEmail,
@@ -50,14 +51,16 @@ async function main() {
       }
     });
 
-    if (signupRes.error) {
-      console.error('Failed to authenticate as admin:', signupRes.error.message);
+    if (signupRes.error || !signupRes.data.user) {
+      console.error('Failed to authenticate as admin:', signupRes.error?.message || 'No user created');
       process.exit(1);
     }
-    authData = signupRes.data;
+    adminUserId = signupRes.data.user.id;
+  } else {
+    adminUserId = signInData.user.id;
   }
 
-  console.log(`   ✅ Admin authenticated (UID: ${authData.user?.id})\n`);
+  console.log(`   ✅ Admin authenticated (UID: ${adminUserId})\n`);
 
   // Load and transform questions
   console.log('2. Loading local questions from data/cbe_database.json...');
