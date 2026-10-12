@@ -320,14 +320,6 @@ export function App() {
     }
   };
 
-  const [dismissUnconfigured, setDismissUnconfigured] = useState(() => {
-    try {
-      return localStorage.getItem('jifuno_dismiss_unconfigured') === 'true';
-    } catch {
-      return false;
-    }
-  });
-
   // 0. Public Legal Pages (/privacy, /terms) - readable without logging in
   if (legalDoc) {
     return (
@@ -335,48 +327,6 @@ export function App() {
         documentType={legalDoc}
         onNavigate={navigateToLegal}
       />
-    );
-  }
-
-  if (!isSupabaseConfigured() && !dismissUnconfigured) {
-    return (
-      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 text-center selection:bg-emerald-500 selection:text-black">
-        <div className="max-w-md w-full bg-slate-900 border-2 border-emerald-500/40 rounded-3xl p-8 shadow-2xl space-y-6">
-          <div className="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/40 mx-auto flex items-center justify-center text-3xl shadow-inner">
-            ⚙️
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-2xl font-black text-white">App Not Configured</h1>
-            <p className="text-sm text-gray-300 leading-relaxed">
-              Jifuno is ready to deploy, but Supabase environment variables are missing on this instance.
-            </p>
-          </div>
-          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-xs font-mono text-left space-y-2">
-            <p className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Required Environment Variables:</p>
-            <div className="space-y-1 text-amber-300">
-              <p>• VITE_SUPABASE_URL</p>
-              <p>• VITE_SUPABASE_ANON_KEY</p>
-            </div>
-          </div>
-          <p className="text-xs text-gray-400 leading-relaxed">
-            Please add them in your <strong>Vercel Dashboard &rarr; Project Settings &rarr; Environment Variables</strong> (Production &amp; Preview) and trigger a redeploy.
-          </p>
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={() => {
-                setDismissUnconfigured(true);
-                try {
-                  localStorage.setItem('jifuno_dismiss_unconfigured', 'true');
-                } catch {}
-              }}
-              className="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold transition-colors cursor-pointer"
-            >
-              Continue in local offline demo mode &rarr;
-            </button>
-          </div>
-        </div>
-      </div>
     );
   }
 
