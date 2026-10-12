@@ -44,6 +44,8 @@ CREATE INDEX IF NOT EXISTS idx_skill_mastery_learner_pct
   ON public.skill_mastery(learner_id, mastery_percentage);
 
 -- 6. Questions Bank Indexes (Fast quest generation by strand and approval status)
+ALTER TABLE public.questions ADD COLUMN IF NOT EXISTS grade_id TEXT DEFAULT 'grade-4';
+
 CREATE INDEX IF NOT EXISTS idx_questions_substrand_status 
   ON public.questions(sub_strand_id, content_status);
 

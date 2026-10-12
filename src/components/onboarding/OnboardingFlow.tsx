@@ -7,6 +7,7 @@ import {
   setOnboardingStep,
   setOnboardingGrade,
   setOnboardingGoal,
+  setOnboardingReligiousStream,
   recordPlacementResult,
   recordFirstLessonCompletion,
   mergeGuestProgressIntoProfile,
@@ -15,6 +16,7 @@ import {
 } from '../../services/onboardingStorage.js';
 import { getPlacementQuestionsForGrade } from '../../services/placementQuestions.js';
 import { evaluateAnswer, resolveCorrectAnswerText } from '../../utils/answerValidation.js';
+import { getShuffledOptions } from '../../utils/optionShuffler.js';
 import { Question, User, StudentProfile, LearningSessionResult } from '../../types/cbe.js';
 import { getRecommendedNextQuest } from '../../data/curriculum/index.js';
 import { DuolingoLessonModal } from '../session/DuolingoLessonModal.js';
@@ -107,6 +109,7 @@ export const OnboardingFlow: React.FC<Props> = ({
 
   const [selectedGradeId, setSelectedGradeId] = useState<string>(persistedState.gradeId || 'grade-4');
   const [selectedGoal, setSelectedGoal] = useState<number>(persistedState.dailyGoalMinutes || 10);
+  const [selectedReligiousStream, setSelectedReligiousStream] = useState<'CRE' | 'IRE' | 'HRE'>(persistedState.religiousStream || 'CRE');
 
   // Placement test state
   const [placementQuestions, setPlacementQuestions] = useState<Question[]>([]);
@@ -182,7 +185,7 @@ export const OnboardingFlow: React.FC<Props> = ({
       sound.playCorrect();
       setPlacementScore(prev => prev + 1);
     } else {
-      sound.playWrong();
+      sound.playIncorrect();
     }
   };
 
@@ -273,7 +276,8 @@ export const OnboardingFlow: React.FC<Props> = ({
         completedMissionIds: [],
         badges: ['badge-first-lesson'],
         equippedTitle: 'Savanna Explorer',
-        parentUserId: res.user.id
+        parentUserId: res.user.id,
+        religiousStream: selectedReligiousStream
       };
 
       const mergedProfile = mergeGuestProgressIntoProfile(baseStudent);
@@ -324,7 +328,8 @@ export const OnboardingFlow: React.FC<Props> = ({
       unlockedWorldIds: ['world-math-kingdom'],
       completedMissionIds: [],
       badges: ['badge-first-lesson'],
-      equippedTitle: 'Savanna Explorer'
+      equippedTitle: 'Savanna Explorer',
+      religiousStream: selectedReligiousStream
     };
 
     const mergedProfile = mergeGuestProgressIntoProfile(guestStudent);
@@ -440,7 +445,7 @@ export const OnboardingFlow: React.FC<Props> = ({
           {currentStep === 'WELCOME' && (
             <motion.div
               key="welcome-screen"
-              initial={reducedMotion ? {} : { opacity: 0, y: 15 }}
+              initial={{ opacity: 1, y: 0 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
               transition={springTransition}
@@ -543,6 +548,44 @@ export const OnboardingFlow: React.FC<Props> = ({
                     </button>
                   );
                 })}
+              </div>
+
+              {/* Family Choice: Religious Education Track */}
+              <div className="pt-3 border-t border-slate-800/80 space-y-2">
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-xs font-bold text-gray-300">
+                    {language === 'sw' ? 'Elimu ya Dini (Chaguo la Familia):' : 'Religious Education Track:'}
+                  </span>
+                  <span className="text-[10px] text-emerald-400 font-bold bg-emerald-950 px-2 py-0.5 rounded border border-emerald-850">
+                    {selectedReligiousStream}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: 'CRE', label: 'Christian (CRE)', icon: '⛪' },
+                    { id: 'IRE', label: 'Islamic (IRE)', icon: '🌙' },
+                    { id: 'HRE', label: 'Hindu (HRE)', icon: '🕉️' }
+                  ].map(re => (
+                    <button
+                      key={re.id}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        sound.playClick();
+                        setSelectedReligiousStream(re.id as 'CRE' | 'IRE' | 'HRE');
+                        setOnboardingReligiousStream(re.id as 'CRE' | 'IRE' | 'HRE');
+                      }}
+                      className={`p-2 rounded-xl border text-center transition-all cursor-pointer min-h-[50px] flex flex-col items-center justify-center ${
+                        selectedReligiousStream === re.id
+                          ? 'border-emerald-400 bg-emerald-950/80 text-emerald-300 ring-2 ring-emerald-400/60'
+                          : 'border-slate-800 bg-slate-900 text-gray-400 hover:border-slate-700'
+                      }`}
+                    >
+                      <span className="text-lg">{re.icon}</span>
+                      <span className="text-[10px] font-black text-white mt-0.5">{re.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </motion.div>
           )}
@@ -660,7 +703,11 @@ export const OnboardingFlow: React.FC<Props> = ({
                     })}
                   </div>
                 ) : (
-                  currentQ.options?.map(opt => {
+                  getShuffledOptions(
+                    currentQ.options || [],
+                    `onboarding_${currentQIndex}_${currentQ.id}`,
+                    currentQ
+                  ).map(opt => {
                     const isSelected = selectedOption === opt.id || selectedOption === opt.text;
 
                     return (

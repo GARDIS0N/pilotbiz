@@ -49,14 +49,10 @@ serve(async (req: Request) => {
     let isCorrect = false;
     const type = question.type;
 
-    if (type === 'MULTIPLE_CHOICE' || type === 'IMAGE_LABEL' || type === 'LISTEN_CHOOSE') {
+    if (type === 'MULTIPLE_CHOICE' || type === 'SCENARIO' || type === 'IMAGE_LABEL' || type === 'LISTEN_CHOOSE') {
       const correctId = (question.correct_option_id || question.correctOptionId || '').toLowerCase().trim();
       const ansStr = String(selectedAnswer).toLowerCase().trim();
-      isCorrect = (
-        ansStr === correctId ||
-        `opt-${ansStr}` === correctId ||
-        ansStr.replace(/^opt-/, '') === correctId.replace(/^opt-/, '')
-      );
+      isCorrect = Boolean(correctId && ansStr === correctId);
     } else if (type === 'TRUE_FALSE') {
       const expected = question.correct_boolean ?? question.correctBoolean;
       if (typeof selectedAnswer === 'boolean') {

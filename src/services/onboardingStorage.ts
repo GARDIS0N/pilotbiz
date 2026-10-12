@@ -25,12 +25,14 @@ export interface AnonymousStudentProgress {
   placementScore?: number;
   placementCompleted?: boolean;
   firstLessonCompleted?: boolean;
+  religiousStream?: 'CRE' | 'IRE' | 'HRE';
 }
 
 export interface OnboardingState {
   step: OnboardingStep;
   gradeId: string;
   dailyGoalMinutes: number;
+  religiousStream?: 'CRE' | 'IRE' | 'HRE';
   guestProgress: AnonymousStudentProgress;
   hasCompletedOnboarding: boolean;
   anonymousUserId: string;
@@ -45,6 +47,7 @@ export const DEFAULT_ONBOARDING_STATE: OnboardingState = {
   step: 'WELCOME',
   gradeId: 'grade-4',
   dailyGoalMinutes: 10,
+  religiousStream: 'CRE',
   guestProgress: {
     gradeId: 'grade-4',
     dailyGoalMinutes: 10,
@@ -54,7 +57,8 @@ export const DEFAULT_ONBOARDING_STATE: OnboardingState = {
     completedMissionIds: [],
     placementScore: 0,
     placementCompleted: false,
-    firstLessonCompleted: false
+    firstLessonCompleted: false,
+    religiousStream: 'CRE'
   },
   hasCompletedOnboarding: false,
   anonymousUserId: `guest-${Date.now()}`,
@@ -170,6 +174,20 @@ export function setOnboardingGoal(minutes: number): OnboardingState {
 }
 
 /**
+ * Sets the chosen Religious Education stream (CRE, IRE, or HRE).
+ */
+export function setOnboardingReligiousStream(stream: 'CRE' | 'IRE' | 'HRE'): OnboardingState {
+  const current = getOnboardingState();
+  return saveOnboardingState({
+    religiousStream: stream,
+    guestProgress: {
+      ...current.guestProgress,
+      religiousStream: stream
+    }
+  });
+}
+
+/**
  * Records placement quiz results.
  */
 export function recordPlacementResult(score: number): OnboardingState {
@@ -267,7 +285,8 @@ export function mergeGuestProgressIntoProfile(student: StudentProfile): StudentP
     xp: (student.xp || 0) + (guest.xp || 0),
     coins: (student.coins || 0) + (guest.coins || 0),
     completedMissionIds: mergedMissions,
-    hearts: Math.min(5, guest.hearts ?? student.hearts ?? 5)
+    hearts: Math.min(5, guest.hearts ?? student.hearts ?? 5),
+    religiousStream: guest.religiousStream || state.religiousStream || student.religiousStream || 'CRE'
   };
 
   // Mark onboarding complete so returning visits bypass the onboarding flow

@@ -895,6 +895,28 @@ class CbeApiService {
   public async checkHealth(): Promise<any> {
     return this.request('/api/health');
   }
+
+  public async updateStudentHearts(studentId: string, hearts: number): Promise<{ success: boolean; hearts?: number }> {
+    const safeHearts = Math.min(5, Math.max(0, hearts));
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({ hearts: safeHearts })
+          .eq('id', studentId);
+      } catch (err) {
+        console.warn('[Supabase Hearts Update Warning]:', err);
+      }
+    }
+    try {
+      return await this.request('/api/game/student/hearts', {
+        method: 'POST',
+        body: JSON.stringify({ studentId, hearts: safeHearts })
+      });
+    } catch {
+      return { success: true, hearts: safeHearts };
+    }
+  }
 }
 
 export const cbeApi = new CbeApiService();

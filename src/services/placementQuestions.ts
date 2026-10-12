@@ -33,12 +33,14 @@ export function getPlacementQuestionsForGrade(gradeId: string): Question[] {
                   explanation: typeof opt.explanation === 'string' ? opt.explanation : opt.explanation?.en
                 })),
                 correctOptionId: q.correctOptionId,
-                explanation: typeof q.explanation === 'string' ? q.explanation : q.explanation?.en || '',
-                swahiliExplanation: typeof q.explanation === 'object' ? q.explanation?.sw : undefined,
-                hint: typeof q.hint === 'string' ? q.hint : q.hint?.en,
-                swahiliHint: typeof q.hint === 'object' ? q.hint?.sw : undefined,
-                answerKey: q.answerKey,
-                kenyanCulturalContext: q.kenyanCulturalContext
+                explanation: typeof q.explanation === 'string' ? q.explanation : (q.explanation as any)?.en || '',
+                swahiliExplanation: typeof q.explanation === 'object' ? (q.explanation as any)?.sw : undefined,
+                socraticHint: typeof (q as any).hint === 'string' ? (q as any).hint : (q as any).hint?.en || 'Think carefully about the question.',
+                hint: typeof (q as any).hint === 'string' ? (q as any).hint : (q as any).hint?.en,
+                answerKey: (q as any).answerKey,
+                kenyanCulturalContext: (q as any).kenyanCulturalContext || 'CBC inquiry learning.',
+                sourceType: 'CURRICULUM_ALIGNED',
+                contentStatus: 'APPROVED'
               });
             }
           });

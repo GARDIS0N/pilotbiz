@@ -1,33 +1,50 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = 
-  import.meta.env.VITE_SUPABASE_URL || 
-  'https://gvddvgscydjzpqffwxrn.supabase.co';
+const rawSupabaseUrl = 
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || 
+  (typeof process !== 'undefined' ? (process.env?.VITE_SUPABASE_URL || process.env?.SUPABASE_URL) : '') ||
+  '';
 
-const SUPABASE_ANON_KEY = 
-  import.meta.env.VITE_SUPABASE_ANON_KEY || 
-  'sb_publishable_qlboOT30DqWqpsTZLPo9hw_yNj3OG2l';
+const rawSupabaseAnonKey = 
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) || 
+  (typeof process !== 'undefined' ? (process.env?.VITE_SUPABASE_ANON_KEY || process.env?.SUPABASE_ANON_KEY) : '') ||
+  '';
+
+const missingClientVars: string[] = [];
+if (!rawSupabaseUrl) missingClientVars.push('VITE_SUPABASE_URL');
+if (!rawSupabaseAnonKey) missingClientVars.push('VITE_SUPABASE_ANON_KEY');
+
+if (missingClientVars.length > 0) {
+  console.error(
+    `[Jifuno Configuration Error]: Missing required environment variable(s): ${missingClientVars.join(', ')}. ` +
+    `Please configure them in your Vercel Dashboard (Project Settings > Environment Variables) or local .env file.`
+  );
+}
 
 export const isSupabaseConfigured = (): boolean => {
   return Boolean(
-    SUPABASE_URL && 
-    SUPABASE_URL.includes('supabase.co') && 
-    SUPABASE_ANON_KEY && 
-    !SUPABASE_ANON_KEY.includes('your-key')
+    rawSupabaseUrl && 
+    rawSupabaseUrl.startsWith('https://') && 
+    rawSupabaseAnonKey && 
+    !rawSupabaseAnonKey.includes('your-key')
   );
 };
 
-export const supabase: SupabaseClient = createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY,
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true
-    }
-  }
-);
+export const supabase: SupabaseClient = isSupabaseConfigured()
+  ? createClient(rawSupabaseUrl, rawSupabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    })
+  : createClient('https://unconfigured.supabase.co', 'unconfigured-anon-key', {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false
+      }
+    });
 
 // --- Supabase Authentication Utilities ---
 

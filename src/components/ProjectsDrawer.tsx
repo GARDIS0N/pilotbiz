@@ -184,7 +184,7 @@ export const ProjectsDrawer: React.FC<ProjectsDrawerProps> = ({
                 <input
                   type="text"
                   required
-                  placeholder="e.g. NestList, JARVIS Core"
+                  placeholder="e.g. Portfolio Website, AI Agent"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   className="w-full px-3 py-1.5 rounded-lg bg-[#06140F] border border-[#134E39] text-xs text-white focus:outline-none focus:border-[#10B981]"

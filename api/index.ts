@@ -5,16 +5,21 @@ import { fileURLToPath } from 'url';
 import { GoogleGenAI, Modality, Type, FunctionDeclaration } from '@google/genai';
 import dotenv from 'dotenv';
 import { apiRouter } from '../server/apiRouter.js';
+import { getCorsMiddleware } from '../server/corsMiddleware.js';
+import { checkRequiredServerEnv } from '../server/envCheck.js';
 
 dotenv.config();
 dotenv.config({ path: '.env.local' });
 
+// Log presence of required server environment variables on startup
+checkRequiredServerEnv();
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const isProduction = process.env.NODE_ENV === 'production';
-const PORT = 3000;
 
 const app = express();
+app.use(getCorsMiddleware());
 app.use(express.json({ limit: '25mb' }));
 app.use('/api', apiRouter);
 app.use(apiRouter);

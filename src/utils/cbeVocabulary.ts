@@ -264,6 +264,122 @@ export const CBE_VOCABULARY: Record<string, VocabularyTerm> = {
     definition: 'A describing word that tells us more about a noun (person, animal, or thing).',
     example: 'A "tall" acacia tree. "Tall" is an adjective.',
     category: 'ENGLISH'
+  },
+
+  // --- Extended CBC Science, Agriculture & General Terms ---
+  radicle: {
+    word: 'Radicle',
+    definition: 'The very first embryonic root that grows downwards from a germinating seed into the soil to absorb water.',
+    example: 'When the bean seed swells, the radicle emerges first to anchor the seedling in the soil.',
+    category: 'SCIENCE'
+  },
+  plumule: {
+    word: 'Plumule',
+    definition: 'The baby plant shoot that grows upwards towards sunlight to produce the stem and green leaves.',
+    example: 'The plumule grows upwards into the air and unfolds into the plant’s first true green leaves.',
+    category: 'SCIENCE'
+  },
+  cotyledon: {
+    word: 'Cotyledon',
+    definition: 'A seed leaf that stores food and nourishes the developing baby plant before it can make its own food.',
+    example: 'A bean seed has two cotyledons packed with starch and protein for the embryo.',
+    category: 'SCIENCE'
+  },
+  testa: {
+    word: 'Testa (Seed Coat)',
+    definition: 'The tough, waterproof protective outer layer of a seed that protects the delicate embryo.',
+    example: 'The testa softens and splits open when the seed absorbs water during germination.',
+    category: 'SCIENCE'
+  },
+  germinate: {
+    word: 'Germinate',
+    definition: 'To begin sprouting and growing from a resting seed into a young seedling.',
+    example: 'Seeds need water, oxygen, and warmth to germinate successfully in the garden.',
+    category: 'SCIENCE'
+  },
+  germinating: {
+    word: 'Germinating Seed',
+    definition: 'A seed that is actively absorbing water and sprouting its first root and shoot.',
+    example: 'The germinating maize seed pushes its radicle into the damp soil.',
+    category: 'SCIENCE'
+  },
+  petri: {
+    word: 'Petri Dish',
+    definition: 'A transparent shallow glass or plastic dish used in science investigations to observe seeds or microbes.',
+    example: 'Pupils place soaked bean seeds on damp cotton in a petri dish to observe germination.',
+    category: 'SCIENCE'
+  },
+  indigenous: {
+    word: 'Indigenous',
+    definition: 'Naturally native or originating in a specific local region or country.',
+    example: 'Baobab trees, acacia, and Boran cattle are indigenous to Kenya.',
+    category: 'GENERAL'
+  },
+  commute: {
+    word: 'Commute',
+    definition: 'To travel regularly over a distance between one’s home and workplace or school.',
+    example: 'Many Kenyans commute from Kikuyu to Nairobi CBD by matatu or commuter train.',
+    category: 'GENERAL'
+  },
+  regroup: {
+    word: 'Regrouping',
+    definition: 'Rearranging numbers into tens or hundreds when adding or subtracting (also called carrying or borrowing).',
+    example: 'When subtracting 43 - 18, we regroup 1 ten into 10 ones to subtract 8 from 13.',
+    category: 'MATH'
+  },
+  granary: {
+    word: 'Granary',
+    definition: 'A raised, aerated storehouse built on wooden posts with rat guards to protect harvested grain from pests and dampness.',
+    example: 'The farmer stores dried maize cobs in a raised granary fitted with metal rodent collars.',
+    category: 'AGRICULTURE'
+  },
+  chaff: {
+    word: 'Chaff',
+    definition: 'The dry, papery outer casing of cereal grains separated during threshing and winnowing.',
+    example: 'The wind blows light chaff away while heavy grain falls straight down into the basket.',
+    category: 'AGRICULTURE'
+  },
+  winnowing: {
+    word: 'Winnowing',
+    definition: 'The traditional technique of tossing grain in a shallow tray so the wind blows away the chaff.',
+    example: 'Winnowing in the afternoon breeze separates clean sorghum grain from dry husks.',
+    category: 'AGRICULTURE'
+  },
+  hermetic: {
+    word: 'Hermetic Storage',
+    definition: 'Airtight, sealed storage bags or silos where insects cannot breathe and grains remain fresh without pesticides.',
+    example: 'Hermetic PICS bags preserve dried cowpeas and beans pest-free for many months.',
+    category: 'AGRICULTURE'
+  },
+  chordophone: {
+    word: 'Chordophone',
+    definition: 'A musical instrument that produces sound by vibrating strings.',
+    example: 'The 8-stringed Luo nyatiti and the Kikuyu wandindi are Kenyan chordophones.',
+    category: 'GENERAL'
+  },
+  membranophone: {
+    word: 'Membranophone',
+    definition: 'A musical instrument that produces sound from a stretched animal skin or membrane.',
+    example: 'The Luhya isukuti drum is an energetic Kenyan membranophone.',
+    category: 'GENERAL'
+  },
+  aerophone: {
+    word: 'Aerophone',
+    definition: 'A musical instrument that creates sound by vibrating a column of air inside a hollow body.',
+    example: 'The side-blown animal horn (coro) and bamboo flute (chivoti) are aerophones.',
+    category: 'GENERAL'
+  },
+  idiophone: {
+    word: 'Idiophone',
+    definition: 'An instrument that makes sound by vibrating its entire body when shaken, tapped, or struck.',
+    example: 'The reed shaker kayamba and metallic leg bells (gara) are traditional idiophones.',
+    category: 'GENERAL'
+  },
+  draught: {
+    word: 'Draught Animal',
+    definition: 'A strong domestic working animal trained to pull heavy farm implements like ploughs, carts, or wagons.',
+    example: 'Trained oxen provide draught power for ploughing stony agricultural land.',
+    category: 'AGRICULTURE'
   }
 };
 

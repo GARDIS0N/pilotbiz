@@ -7,16 +7,38 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { GoogleGenAI, Modality, Type, FunctionDeclaration } from '@google/genai';
 import dotenv from 'dotenv';
 import { apiRouter } from './server/apiRouter.js';
+import { getCorsMiddleware } from './server/corsMiddleware.js';
+import { checkRequiredServerEnv } from './server/envCheck.js';
+import {
+  calculateSimilarity,
+  isDuplicateAdvice,
+  deduplicateOrTransformReply,
+  extractSubstantivePoints,
+  TopicCooldownManager,
+} from './server/antiRepetition.js';
+import {
+  getPersonaData,
+  savePersonaData,
+  buildManagerPersonaInstruction,
+} from './server/personaManager.js';
+import {
+  classifyUserIntent,
+  cleanPrompt,
+} from './server/intentRouter.js';
 
 dotenv.config();
 dotenv.config({ path: '.env.local' });
 
+// Log presence of required server environment variables on startup
+checkRequiredServerEnv();
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const isProduction = process.env.NODE_ENV === 'production';
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 const app = express();
+app.use(getCorsMiddleware());
 app.use(express.json({ limit: '25mb' }));
 app.get('/health', (_req, res) => res.redirect('/api/health'));
 app.use('/api', apiRouter);
@@ -571,8 +593,24 @@ const filesystemVerifyPathTool: FunctionDeclaration = {
   },
 };
 
+const googleDriveSearchTool: FunctionDeclaration = {
+  name: 'search_google_drive',
+  description: 'Search authorized Google Drive documents, study guides, transcripts, or notes by query.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      query: {
+        type: Type.STRING,
+        description: 'Keywords or filename to search for in Google Drive (e.g. "transcript", "study guide", "syllabus").',
+      },
+    },
+    required: ['query'],
+  },
+};
+
 const toolsList = [
   searchWebTool,
+  googleDriveSearchTool,
   manageScheduleTool,
   manageAccountabilityTool,
   manageProjectsTool,
@@ -763,7 +801,7 @@ export function executeFilesystemTool(toolName: string, args: any): {
 // -------------------------------------------------------------
 // System Instruction Builders (Parts B & C + Repetition Guard A1)
 // -------------------------------------------------------------
-function buildSystemInstruction(
+export function buildSystemInstruction(
   addressAs: string = 'boss',
   recentlySaid: string[] = [],
   rollingSummary: string = ''
@@ -795,6 +833,8 @@ CORE AGENTIC PRINCIPLE (EXECUTION OVER CONVERSATION):
 CRITICAL REPETITION GUARD (RULE A1):
 - Never repeat advice, phrasing, or check-ins already given in this conversation unless asked. Each reply must add new information or move to the next action.
 - Never recite hardcoded or assumed schedules, companies, or tasks unprompted.
+- Never repeat greetings if you have already greeted the user in this session. Skip pleasantries and proceed directly to execution.
+- When an action or confirmation is requested, execute immediately without repeating conversational preamble.
 ${recentlySaid.length > 0 ? `\nRECENTLY STATED POINTS (DO NOT REPEAT):\n${recentlySaid.map((s) => `- ${s}`).join('\n')}` : ''}
 ${rollingSummary ? `\nROLLING CONVERSATION CONTEXT:\n${rollingSummary}` : ''}
 
@@ -809,11 +849,16 @@ ${projects.length > 0 ? projects.map((p: any) => `   • [${p.name}] Status: ${p
 SOURCE AWARENESS PROTOCOL:
 Whenever providing facts, answers, or context, always explicitly attribute the source using clear tags:
 - [Personal Memory]: Facts or preferences from persistent personal memory.
-- [Project Memory: <Project>]: Information from project entities (NestList, JARVIS, CBE Study App).
+- [Project Memory: <Project>]: Information from project entities.
 - [Google Drive: <File>]: Documents or files indexed from Google Drive.
 - [Web Research]: Live web search results and telemetry.
 - [Current Conversation]: What was just said in this active session.
 - [System Information]: Real-time system clocks, timers, and telemetry.
+
+CRITICAL PRIVACY & FACTUAL INTEGRITY RULE:
+- Never invent or assume personal details about me (e.g. background, schedule, workplace, projects, relationships, habits).
+- If a personal fact or detail is not explicitly stored in [Personal Memory], [Project Memory], or user-provided files, state clearly that you do not have that stored or ask for clarification.
+- Never guess or extrapolate personal details.
 
 5-TIER PERMISSION & CONFIRMATION PROTOCOL:
 - READ: Safe queries (read memories, check schedule, query drive, search web). -> Execute immediately.
@@ -906,57 +951,47 @@ function buildManagerInstruction(
 ) {
   const memory = getManagerMemory();
   const goals = getGoalsData().items;
-  return `You are ${managerName}, my trusted personal manager, executive coach, and thinking partner.
-Address me as "${addressAs}".
-Always speak and respond in English only. Keep replies warm, direct, encouraging, conversational, and concise (no long lectures).
-
-CORE COACHING METHODOLOGY (PART B):
-1. LISTENS FIRST:
-   - When I share a problem, goal, or feeling, reflect back what I said in a sentence so I know I was heard.
-   - Ask ONE clear question at a time to understand before jumping into advice.
-   - If I am stressed or overwhelmed, acknowledge my feelings first with empathy, then help me narrow down to the next small step.
-   - If I ever seem to be in real distress or crisis, respond with sincere care and encourage me to talk to someone I trust.
-
-2. ADVISES AND PLANS:
-   - When I name a task or goal, ask for the deadline, what is blocking me, and how much time I have.
-   - Break the task into bite-sized steps with time estimates (e.g. 5m, 15m, 25m).
-   - Suggest the best time to do it based on my schedule.
-   - Offer practical anti-procrastination tactics: the 2-minute start, time-boxing, doing the hardest step first, and removing distractions.
-   - Offer to add the plan to my schedule, but ONLY add it after I explicitly confirm.
-
-3. HOLDS ME ACCOUNTABLE:
-   - Follow up on tasks I committed to. If I keep postponing something, say so honestly and help me work out why.
-   - Give honest feedback. Do not just agree with me. If my plan is unrealistic, say so kindly and suggest a better one.
-
-4. CELEBRATES WINS:
-   - When I finish a task, hit a streak milestone, or complete a goal, congratulate me with specific praise about what I achieved, then suggest what to tackle next.
-
-5. REMEMBERS ME:
-   - Goals: ${JSON.stringify(goals)}
-   - Memory Goals: ${JSON.stringify(memory.goals)}
-   - Recent Wins: ${JSON.stringify(memory.wins)}
-   - Struggles: ${JSON.stringify(memory.struggles)}
-   - Preferences: ${JSON.stringify(memory.preferences)}
-   - Use that context to give relevant advice, and never show stored information unprompted.
-
-CRITICAL REPETITION GUARD (RULE A1):
-- Never repeat advice, phrasing, or check-ins already given in this conversation unless asked. Each reply must add new information or move to the next action.
-- Ask only one question at a time.
-${recentlySaid.length > 0 ? `\nRECENTLY STATED POINTS (DO NOT REPEAT):\n${recentlySaid.map((s) => `- ${s}`).join('\n')}` : ''}
-${rollingSummary ? `\nROLLING CONVERSATION CONTEXT:\n${rollingSummary}` : ''}`;
+  const personalMemories = getMemoriesData().memories;
+  return buildManagerPersonaInstruction(
+    addressAs,
+    recentlySaid,
+    rollingSummary,
+    goals,
+    memory,
+    managerName ? { name: managerName } : undefined,
+    personalMemories
+  );
 }
 
 // -------------------------------------------------------------
-// Real-Time Google Search Grounding & Web Fallback
+function decodeHtmlEntities(str: string): string {
+  return str
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#x27;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&middot;/g, '·');
+}
+
 // -------------------------------------------------------------
-async function performGoogleSearch(query: string, customKey?: string): Promise<{ text: string; sources: { title: string; url: string }[] }> {
+// Real-Time Google Search Grounding & Web Fallback (Milestone 5)
+// -------------------------------------------------------------
+export async function performGoogleSearch(
+  query: string,
+  customKey?: string
+): Promise<{ text: string; sources: { title: string; url: string }[] }> {
   const key = getApiKey(customKey);
   const isValidKey = key && key !== 'MY_GEMINI_API_KEY' && key.startsWith('AIza') && key.length > 25;
+
+  // Tier 1: Gemini 2.5 Flash with live Google Search tool
   if (isValidKey) {
     try {
       const response = await getGenAI(key).models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: `Today is ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. Provide the latest comprehensive, up-to-date facts from Google Search for: "${query}". Include specific numbers, dates, and recent developments.`,
+        contents: `Today is ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. Provide the latest comprehensive, up-to-date facts from Google Search for: "${query}". Include specific numbers, dates, and recent developments. Keep the response concise, factual, and spoken-friendly.`,
         config: {
           tools: [{ googleSearch: {} }],
         },
@@ -971,18 +1006,36 @@ async function performGoogleSearch(query: string, customKey?: string): Promise<{
         }))
         .filter((s: any) => s.url);
 
-      return { text, sources };
+      if (sources.length > 0) {
+        return { text, sources };
+      } else if (
+        text &&
+        !text.toLowerCase().includes('could not find') &&
+        !text.toLowerCase().includes("couldn't find") &&
+        !text.toLowerCase().includes('unable to') &&
+        !text.toLowerCase().includes('no information')
+      ) {
+        return {
+          text,
+          sources: [
+            {
+              title: `Google Search: "${query}"`,
+              url: `https://www.google.com/search?q=${encodeURIComponent(query)}`,
+            },
+          ],
+        };
+      }
     } catch (genErr: any) {
       console.warn('[Google Search Notice]:', genErr?.message);
     }
   }
 
-  // Fallback DuckDuckGo search
+  // Tier 2: DuckDuckGo Search (HTML parser with entity decoding)
   try {
     const duckUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
     const res = await fetch(duckUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       },
     });
     if (res.ok) {
@@ -996,8 +1049,8 @@ async function performGoogleSearch(query: string, customKey?: string): Promise<{
         let realUrl = match[1];
         const uddgMatch = realUrl.match(/uddg=([^&]+)/);
         if (uddgMatch) realUrl = decodeURIComponent(uddgMatch[1]);
-        const title = match[2].replace(/<[^>]+>/g, '').trim();
-        const snippet = match[3].replace(/<[^>]+>/g, '').trim();
+        const title = decodeHtmlEntities(match[2].replace(/<[^>]+>/g, '').trim());
+        const snippet = decodeHtmlEntities(match[3].replace(/<[^>]+>/g, '').trim());
         if (realUrl && title && snippet) {
           sources.push({ title, url: realUrl });
           snippets.push(`• **${title}**: ${snippet}`);
@@ -1013,12 +1066,162 @@ async function performGoogleSearch(query: string, customKey?: string): Promise<{
     }
   } catch (_) {}
 
+  // Tier 3: Wikipedia REST API for definitions, concepts, and factual entities (adapted from isair/jarvis)
+  try {
+    const cleanTopic = query
+      .replace(/^(?:who\s+is|what\s+is|tell\s+me\s+about|explain|define|search\s+for|search\s+the\s+web\s+for|search\s+google\s+for|search|look\s+up|find\s+information\s+about|find\s+info\s+on)\s*/i, '')
+      .replace(/[?.!]+$/, '')
+      .trim();
+    if (cleanTopic.length > 1) {
+      const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cleanTopic)}`;
+      const wikiRes = await fetch(wikiUrl, {
+        headers: {
+          'User-Agent': 'JarvisAIAssistant/1.0 (personal-productivity-agent)',
+        },
+      });
+      if (wikiRes.ok) {
+        const wikiData = await wikiRes.json();
+        if (wikiData.extract && wikiData.title) {
+          return {
+            text: `**${wikiData.title}** (Wikipedia Grounding):\n\n${wikiData.extract}`,
+            sources: [
+              {
+                title: wikiData.title,
+                url: wikiData.content_urls?.desktop?.page || `https://en.wikipedia.org/wiki/${encodeURIComponent(wikiData.title)}`,
+              },
+            ],
+          };
+        }
+      }
+    }
+  } catch (_) {}
+
+  // Tier 4: Offline / Fallback resilience with verified search query link
   return {
-    text: `I was unable to verify live data for "${query}" at the moment.`,
+    text: `I was unable to retrieve live web data for "${query}" at this time. Network may be unreachable.`,
     sources: [
       { title: `Google Search: ${query}`, url: `https://www.google.com/search?q=${encodeURIComponent(query)}` },
     ],
   };
+}
+
+// -------------------------------------------------------------
+// Document Analysis & Google Drive Knowledge Engine (Milestone 6)
+// -------------------------------------------------------------
+export function analyzeDocumentLocal(
+  content: string,
+  fileName: string = 'Document',
+  addressAs: string = 'boss'
+): { summary: string; takeaways: string[]; actionItems: string[] } {
+  const cleanContent = (content || '').trim();
+  if (!cleanContent) {
+    return {
+      summary: `Document "${fileName}" contains no text content to analyze, ${addressAs}.`,
+      takeaways: ['File is empty or could not be read as text.'],
+      actionItems: ['Provide a document with text content.'],
+    };
+  }
+
+  const rawLines = cleanContent
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  const sentences = cleanContent
+    .split(/(?<=[.?!])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 10);
+
+  // Summary: first 2-3 substantive sentences or lines
+  const summarySentences = sentences.slice(0, 3);
+  const summary = summarySentences.join(' ') || rawLines.slice(0, 2).join(' ') || `Analysis of ${fileName} completed.`;
+
+  // Takeaways: look for lines with key, important, result, conclusion, note, or declarative statements
+  const takeaways: string[] = [];
+  for (const s of sentences) {
+    const lower = s.toLowerCase();
+    if (
+      lower.includes('key') ||
+      lower.includes('important') ||
+      lower.includes('result') ||
+      lower.includes('conclusion') ||
+      lower.includes('objective') ||
+      lower.includes('goal') ||
+      lower.includes('critical') ||
+      lower.includes('significant')
+    ) {
+      if (!takeaways.includes(s) && takeaways.length < 4) takeaways.push(s);
+    }
+  }
+  if (takeaways.length === 0) {
+    takeaways.push(...(sentences.slice(1, 4).length > 0 ? sentences.slice(1, 4) : [summary]));
+  }
+
+  // Action items: look for lines with must, should, action, todo, deadline, due, next, need to
+  const actionItems: string[] = [];
+  for (const s of sentences) {
+    const lower = s.toLowerCase();
+    if (
+      lower.includes('must') ||
+      lower.includes('should') ||
+      lower.includes('action') ||
+      lower.includes('todo') ||
+      lower.includes('deadline') ||
+      lower.includes('due') ||
+      lower.includes('need to') ||
+      lower.includes('next step') ||
+      lower.includes('schedule')
+    ) {
+      if (!actionItems.includes(s) && actionItems.length < 4) actionItems.push(s);
+    }
+  }
+  if (actionItems.length === 0) {
+    actionItems.push(`Review full contents of "${fileName}" for strategic alignment.`);
+  }
+
+  return { summary, takeaways, actionItems };
+}
+
+export async function analyzeDocumentText(
+  content: string,
+  fileName: string = 'Document',
+  addressAs: string = 'boss',
+  customKey?: string
+): Promise<{ summary: string; takeaways: string[]; actionItems: string[] }> {
+  const key = getApiKey(customKey);
+  const isValidKey = key && key !== 'MY_GEMINI_API_KEY' && key.startsWith('AIza') && key.length > 25;
+
+  if (isValidKey) {
+    try {
+      const response = await getGenAI(key).models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `You are JARVIS analyzing document "${fileName}" for ${addressAs}.
+Analyze the following document and output JSON with keys:
+- summary: A concise 2-sentence executive summary
+- takeaways: An array of 3-4 key bullet points
+- actionItems: An array of 2-3 specific action items or decisions
+
+Document content:
+${content.slice(0, 20000)}`,
+        config: {
+          responseMimeType: 'application/json',
+        },
+      });
+
+      const parsed = JSON.parse(response.text || '{}');
+      if (parsed.summary && Array.isArray(parsed.takeaways)) {
+        return {
+          summary: parsed.summary,
+          takeaways: parsed.takeaways,
+          actionItems: Array.isArray(parsed.actionItems) ? parsed.actionItems : ['Proceed with project priorities'],
+        };
+      }
+    } catch (genErr) {
+      console.warn('Gemini doc analysis notice, using deterministic analyzer:', genErr);
+    }
+  }
+
+  return analyzeDocumentLocal(content, fileName, addressAs);
 }
 
 export function calculateProductivityScore(): { score: number; breakdown: any } {
@@ -1059,13 +1262,14 @@ export function calculateProductivityScore(): { score: number; breakdown: any } 
 // -------------------------------------------------------------
 // Local Butler / Manager Engine (Offline & Fallback Resilience)
 // -------------------------------------------------------------
-function processLocalButlerDirective(
+export function processLocalButlerDirective(
   prompt: string,
   addressAs: string = 'boss',
   mode: 'jarvis' | 'manager' = 'jarvis',
   managerName: string = 'Coach',
   hasGreeted: boolean = false,
-  recentlySaid: string[] = []
+  recentlySaid: string[] = [],
+  driveContext?: { fileName: string; content?: string; mimeType?: string }
 ) {
   const lower = prompt.toLowerCase().trim();
   const functionCalls: any[] = [];
@@ -1083,6 +1287,22 @@ function processLocalButlerDirective(
   const opps = getOpportunitiesData();
   const commitments = getCommitmentsData();
   const todayItems = sched.items.filter((it: any) => it.date === todayStr || it.date === 'today');
+
+  // Google Drive Context Injection / Document Analysis (Milestone 6)
+  if (driveContext && driveContext.content) {
+    const analysis = analyzeDocumentLocal(driveContext.content, driveContext.fileName, addressAs);
+    reply = `📄 **[Google Drive: ${driveContext.fileName}] DOCUMENT ANALYSIS**:\n\n${analysis.summary}\n\n**Key Takeaways:**\n${analysis.takeaways.map((t) => `• ${t}`).join('\n')}\n\n**Recommended Next Actions:**\n${analysis.actionItems.map((a) => `• ${a}`).join('\n')}`;
+    return {
+      reply,
+      functionCalls: [{ name: 'analyze_document', args: { fileName: driveContext.fileName } }],
+      sources: [],
+      taskSteps: [
+        { step: 'Understanding request', status: 'success', detail: `Google Drive document: "${driveContext.fileName}"` },
+        { step: 'Executing', tool: 'document.analyzer', status: 'success', detail: `Analyzed document "${driveContext.fileName}" (${driveContext.content.length} chars)` },
+      ],
+      attributions: [{ type: 'GOOGLE_DRIVE', label: `Google Drive: ${driveContext.fileName}`, detail: driveContext.mimeType || 'Document' }],
+    };
+  }
 
   // SCHEDULE IMPORT DETECTION (A4 & B4):
   // If prompt has multiple dates or pasted lines, parse and generate B5 Monthly Overview
@@ -1112,10 +1332,12 @@ function processLocalButlerDirective(
   // INTENT DETECTION & REAL ACTION TOOL ROUTER (PROBLEM 1 FIX)
   // Priority 1: Multi-Step & Filesystem Actions (Executed in ALL modes)
   // ============================================================
+  const intent = classifyUserIntent(prompt);
 
   // 1. AMBIGUOUS REQUEST DETECTION (Category D)
-  if (/^(?:do\s+something\s+with\s+(?:my\s+)?files?|mess\s+with\s+files?|do\s+stuff\s+with\s+files?|files?\s+do\s+something)$/i.test(cleanLower)) {
-    reply = `Please specify the exact operation you would like me to perform on your files, ${addressAs}. For example, I can create a folder, create a file with contents, list directory files, or verify a path.`;
+  if (intent.category === 'AMBIGUOUS') {
+    reply = intent.clarificationPrompt ||
+      `Please specify the exact operation you would like me to perform on your files, ${addressAs}. For example, I can create a folder, create a file with contents, list directory files, or verify a path.`;
     return {
       reply,
       functionCalls: [],
@@ -1128,28 +1350,15 @@ function processLocalButlerDirective(
   }
 
   // 2. MULTI-STEP REQUEST DETECTION (Category C)
-  // Example: "Create a folder called AgentTest, create a README inside it, write 'This is JARVIS' into the README, then verify it."
-  const isMultiStepAgentTest = (cleanLower.includes('create a folder') || cleanLower.includes('create folder') || cleanLower.includes('make folder')) &&
-    (cleanLower.includes('readme') || cleanLower.includes('read me') || cleanLower.includes('inside it')) &&
-    (cleanLower.includes('write') || cleanLower.includes('verify'));
+  // Example: "Create a folder called TestProject, put a README inside it, and write a description of JARVIS"
+  if (intent.category === 'ACTION_MULTI_STEP' && intent.args) {
+    const { folderName, fileName, content, folderPath, filePath } = intent.args as any;
 
-  if (isMultiStepAgentTest) {
-    let folderName = 'AgentTest';
-    const folderMatch = prompt.match(/(?:folder|directory)\s+called\s+([A-Za-z0-9_-]+)/i) ||
-                        prompt.match(/(?:folder|directory)\s+named\s+([A-Za-z0-9_-]+)/i) ||
-                        prompt.match(/folder\s+([A-Za-z0-9_-]+)/i);
-    if (folderMatch) folderName = folderMatch[1].replace(/[.,;:!?]+$/, '');
-
-    let content = 'This is JARVIS';
-    const contentMatch = prompt.match(/write\s+['"](.+?)['"]\s+into/i) ||
-                         prompt.match(/write\s+['"](.+?)['"]/i) ||
-                         prompt.match(/containing\s+['"](.+?)['"]/i);
-    if (contentMatch) content = contentMatch[1];
-
-    const folderPath = `Desktop/${folderName}`;
-    const filePath = `Desktop/${folderName}/README.md`;
-
-    taskSteps.push({ step: 'Understanding request', status: 'success', detail: `Multi-step plan: Create folder "${folderName}", write README.md, and verify` });
+    taskSteps.push({
+      step: 'Understanding request',
+      status: 'success',
+      detail: `Multi-step plan: Create folder "${folderName}", write ${fileName}, and verify`,
+    });
 
     // Step 1: Create directory
     const dirRes = executeFilesystemTool('filesystem_create_directory', { path: folderPath });
@@ -1166,7 +1375,7 @@ function processLocalButlerDirective(
       step: 'Executing',
       tool: 'filesystem.create_file',
       status: fileRes.success ? 'success' : 'error',
-      detail: `Wrote README.md (${fileRes.result?.bytes || 0} bytes)`,
+      detail: `Wrote ${fileName} (${fileRes.result?.bytes || 0} bytes)`,
     });
 
     // Step 3: Verify path
@@ -1175,10 +1384,10 @@ function processLocalButlerDirective(
       step: 'Verifying',
       tool: 'filesystem.verify_path',
       status: verifyRes.result?.exists ? 'success' : 'error',
-      detail: verifyRes.result?.exists ? `Verified: README exists (${verifyRes.result?.size} bytes)` : 'Verification failed',
+      detail: verifyRes.result?.exists ? `Verified: ${fileName} exists (${verifyRes.result?.size} bytes)` : 'Verification failed',
     });
 
-    reply = `Done. I've created the folder "${folderName}" on your Desktop, placed a README inside it containing "${content}", and verified that all steps completed successfully.`;
+    reply = `Done. I've created the folder "${folderName}" on your Desktop, placed a ${fileName} inside it containing "${content}", and verified that all steps completed successfully.`;
     functionCalls.push(
       { name: 'filesystem_create_directory', args: { path: folderPath } },
       { name: 'filesystem_create_file', args: { path: filePath, content } },
@@ -1194,102 +1403,330 @@ function processLocalButlerDirective(
     };
   }
 
-  // 3. CREATE FILE REQUEST (Category B)
-  // Example: "Create a file called hello.txt inside JARVIS_TEST containing 'Hello from JARVIS'."
-  const isCreateFile = /create\s+(?:a\s+)?file/i.test(lower) || /write\s+(?:a\s+)?file/i.test(lower);
-  if (isCreateFile) {
-    let fileName = 'hello.txt';
-    const fileMatch = prompt.match(/file\s+called\s+([A-Za-z0-9_.-]+)/i) ||
-                      prompt.match(/file\s+named\s+([A-Za-z0-9_.-]+)/i) ||
-                      prompt.match(/file\s+([A-Za-z0-9_.-]+)/i);
-    if (fileMatch) fileName = fileMatch[1].replace(/[.,;:!?]+$/, '');
+  // 3. ACTION FILESYSTEM: CREATE DIRECTORY / CREATE FILE / LIST / READ (Category B)
+  if (intent.category === 'ACTION_FILESYSTEM' && intent.args) {
+    const subType = intent.subType;
 
-    let folderTarget = '';
-    const insideMatch = prompt.match(/inside\s+(?:folder\s+)?([A-Za-z0-9_.-]+)/i) ||
-                        prompt.match(/in\s+(?:folder\s+)?([A-Za-z0-9_.-]+)/i);
-    if (insideMatch) folderTarget = insideMatch[1].replace(/[.,;:!?]+$/, '');
+    if (subType === 'create_directory') {
+      const folderName = intent.args.folderName || 'NewFolder';
+      const targetPath = intent.args.path || `Desktop/${folderName}`;
+      taskSteps.push({ step: 'Understanding request', status: 'success', detail: `Create folder "${folderName}" on Desktop` });
 
-    let content = 'Hello from JARVIS';
-    const contentMatch = prompt.match(/containing\s+['"](.+?)['"]/i) ||
-                         prompt.match(/with\s+(?:content|text)\s+['"](.+?)['"]/i) ||
-                         prompt.match(/['"]([^'"]+)['"]/);
-    if (contentMatch) content = contentMatch[1];
+      const dirRes = executeFilesystemTool('filesystem_create_directory', { path: targetPath });
+      taskSteps.push({
+        step: 'Executing',
+        tool: 'filesystem.create_directory',
+        status: dirRes.success ? 'success' : 'error',
+        detail: `Created directory: ${dirRes.result?.path || targetPath}`,
+      });
 
-    const targetPath = folderTarget ? `Desktop/${folderTarget}/${fileName}` : `Desktop/${fileName}`;
+      const verifyRes = executeFilesystemTool('filesystem_verify_path', { path: targetPath });
+      taskSteps.push({
+        step: 'Verifying',
+        tool: 'filesystem.verify_path',
+        status: verifyRes.result?.exists ? 'success' : 'error',
+        detail: verifyRes.result?.exists ? 'Directory verified on Desktop' : 'Verification failed',
+      });
 
-    taskSteps.push({ step: 'Understanding request', status: 'success', detail: `Create file "${fileName}" in "${folderTarget || 'Desktop'}"` });
-    const fileRes = executeFilesystemTool('filesystem_create_file', { path: targetPath, content });
+      reply = `Done. I've created the folder "${folderName}" on your Desktop and verified it exists.`;
+      functionCalls.push({ name: 'filesystem_create_directory', args: { path: targetPath } });
+
+      return {
+        reply,
+        functionCalls,
+        sources: [],
+        taskSteps,
+        attributions: [{ type: 'SYSTEM_INFO', label: 'Local Filesystem Engine', detail: 'Directory Creation Verified' }],
+      };
+    }
+
+    if (subType === 'create_file') {
+      const fileName = intent.args.fileName || 'file.txt';
+      const targetPath = intent.args.targetPath || `Desktop/${fileName}`;
+      const content = intent.args.content || 'Created by JARVIS';
+
+      taskSteps.push({ step: 'Understanding request', status: 'success', detail: `Create file "${fileName}"` });
+      const fileRes = executeFilesystemTool('filesystem_create_file', { path: targetPath, content });
+      taskSteps.push({
+        step: 'Executing',
+        tool: 'filesystem.create_file',
+        status: fileRes.success ? 'success' : 'error',
+        detail: `Created ${fileName}: ${fileRes.result?.path || targetPath}`,
+      });
+
+      const verifyRes = executeFilesystemTool('filesystem_verify_path', { path: targetPath });
+      taskSteps.push({
+        step: 'Verifying',
+        tool: 'filesystem.verify_path',
+        status: verifyRes.result?.exists ? 'success' : 'error',
+        detail: verifyRes.result?.exists ? `File verified: ${verifyRes.result?.size} bytes` : 'File not found',
+      });
+
+      reply = `Done. I've created the file "${fileName}" containing "${content}" and verified its contents.`;
+      functionCalls.push({ name: 'filesystem_create_file', args: { path: targetPath, content } });
+
+      return {
+        reply,
+        functionCalls,
+        sources: [],
+        taskSteps,
+        attributions: [{ type: 'SYSTEM_INFO', label: 'Local Filesystem Engine', detail: 'File Creation Verified' }],
+      };
+    }
+
+    if (subType === 'list_directory') {
+      const targetPath = intent.args.path || 'Desktop';
+      taskSteps.push({ step: 'Understanding request', status: 'success', detail: `List contents of "${targetPath}"` });
+      const listRes = executeFilesystemTool('filesystem_list_directory', { path: targetPath });
+      taskSteps.push({
+        step: 'Executing',
+        tool: 'filesystem.list_directory',
+        status: listRes.success ? 'success' : 'error',
+        detail: listRes.success ? `Listed ${listRes.result?.count} items` : (listRes.error || 'Failed to list'),
+      });
+
+      if (listRes.success) {
+        const entries = (listRes.result?.entries || []).map((e: any) => (e.isDirectory ? `📁 ${e.name}/` : `📄 ${e.name}`)).join(', ');
+        reply = `Directory contents of "${targetPath}":\n\n${entries || '(empty directory)'}`;
+      } else {
+        reply = `Could not list directory "${targetPath}": ${listRes.error || 'Path not found'}`;
+      }
+      functionCalls.push({ name: 'filesystem_list_directory', args: { path: targetPath } });
+
+      return {
+        reply,
+        functionCalls,
+        sources: [],
+        taskSteps,
+        attributions: [{ type: 'SYSTEM_INFO', label: 'Local Filesystem Engine', detail: 'Directory Listing' }],
+      };
+    }
+
+    if (subType === 'read_file') {
+      const targetPath = intent.args.path || 'Desktop/README.md';
+      taskSteps.push({ step: 'Understanding request', status: 'success', detail: `Read file "${targetPath}"` });
+      const readRes = executeFilesystemTool('filesystem_read_file', { path: targetPath });
+      taskSteps.push({
+        step: 'Executing',
+        tool: 'filesystem.read_file',
+        status: readRes.success ? 'success' : 'error',
+        detail: readRes.success ? `Read ${readRes.result?.bytes} bytes` : (readRes.error || 'Failed to read'),
+      });
+
+      if (readRes.success) {
+        reply = `Contents of "${targetPath}":\n\n${readRes.result?.content}`;
+      } else {
+        reply = `Could not read file "${targetPath}": ${readRes.error || 'File not found'}`;
+      }
+      functionCalls.push({ name: 'filesystem_read_file', args: { path: targetPath } });
+
+      return {
+        reply,
+        functionCalls,
+        sources: [],
+        taskSteps,
+        attributions: [{ type: 'SYSTEM_INFO', label: 'Local Filesystem Engine', detail: 'File Read' }],
+      };
+    }
+  }
+
+  // 4. ACTION MEMORY DIRECTIVES (REMEMBER, FORGET, LIST, WIPE)
+  if (intent.category === 'ACTION_MEMORY') {
+    const mems = getMemoriesData();
+
+    if (intent.subType === 'remember') {
+      const content = intent.args?.content || prompt.replace(/^(?:remember\s+this:|remember\s+that|remember:)\s*/i, '').replace(/^remember\s+/i, '').trim();
+      if (content && content.length > 2) {
+        const category = (lower.includes('prefer') || lower.includes('like'))
+          ? 'preference'
+          : (lower.includes('rule') || lower.includes('never') || lower.includes('always'))
+          ? 'instruction'
+          : (lower.includes('habit') || lower.includes('routine'))
+          ? 'habit'
+          : (lower.includes('goal') || lower.includes('objective'))
+          ? 'goal'
+          : 'fact';
+
+        const newMem = {
+          id: `mem-${Date.now()}`,
+          content,
+          category,
+          source: 'USER_EXPLICIT',
+          importance: 'high',
+          tags: ['user_directive'],
+          createdAt: new Date().toISOString(),
+        };
+        mems.memories.push(newMem);
+        saveMemoriesData(mems);
+
+        reply = `💾 **[Personal Memory] Stored**: "${content}".\nI have committed this to persistent long-term storage and will maintain awareness across all future sessions, ${addressAs}.`;
+        functionCalls.push({ name: 'manage_memories', args: { action: 'remember', content, category } });
+        taskSteps.push({ step: 'Executing', tool: 'manage.memories', status: 'success', detail: `Stored: "${content}"` });
+
+        return {
+          reply,
+          functionCalls,
+          sources: [],
+          taskSteps,
+          attributions: [{ type: 'PERSONAL_MEMORY', label: 'Memory Bank Update', detail: content }],
+        };
+      }
+    }
+
+    if (intent.subType === 'forget') {
+      const query = (intent.args?.query || prompt.replace(/^(?:forget\s+that|forget|delete\s+memory|remove\s+memory)\s+/i, '')).trim().toLowerCase();
+      const initialCount = mems.memories.length;
+      mems.memories = mems.memories.filter((m: any) => !m.content.toLowerCase().includes(query));
+
+      if (mems.memories.length < initialCount) {
+        saveMemoriesData(mems);
+        reply = `🗑️ **[Personal Memory] Pruned**: Removed memory matching "${query}". Persistent profile updated, ${addressAs}.`;
+      } else {
+        reply = `No matching personal memory found for "${query}", ${addressAs}. Your memory bank remains untouched.`;
+      }
+
+      functionCalls.push({ name: 'manage_memories', args: { action: 'forget', content: query } });
+      taskSteps.push({ step: 'Executing', tool: 'manage.memories', status: 'success', detail: `Pruned memory matching "${query}"` });
+
+      return {
+        reply,
+        functionCalls,
+        sources: [],
+        taskSteps,
+        attributions: [{ type: 'PERSONAL_MEMORY', label: 'Memory Bank Pruned', detail: query }],
+      };
+    }
+
+    if (intent.subType === 'list') {
+      if (mems.memories.length === 0) {
+        reply = `I do not have any personal memories stored for you yet, ${addressAs}. Tell me "Remember this: [fact]" to store important context.`;
+      } else {
+        reply = `🧠 **[Personal Memory] LONG-TERM PROFILE TELEMETRY (${mems.memories.length} Stored)**:\n\n` +
+          mems.memories.map((m: any) => `• **[${m.category.toUpperCase()}]** ${m.content}`).join('\n\n') +
+          `\n\nYou can say "Remember this: [fact]" to store new context, or "Forget [fact]" to prune it.`;
+      }
+
+      functionCalls.push({ name: 'manage_memories', args: { action: 'list' } });
+      taskSteps.push({ step: 'Executing', tool: 'manage.memories', status: 'success', detail: `Retrieved ${mems.memories.length} memories` });
+
+      return {
+        reply,
+        functionCalls,
+        sources: [],
+        taskSteps,
+        attributions: [{ type: 'PERSONAL_MEMORY', label: 'Long-Term Memory Bank', detail: `${mems.memories.length} persistent facts` }],
+      };
+    }
+
+    if (intent.subType === 'wipe') {
+      const pendingAction = {
+        id: `act-${Date.now()}`,
+        permission: 'CONFIRM' as const,
+        actionType: 'WIPE_MEMORIES' as const,
+        description: 'Permanently wipe all long-term personal memories from persistent storage.',
+        payload: {},
+        status: 'pending' as const,
+        timestamp: new Date().toISOString(),
+      };
+      reply = `⚠️ **[System Information] CONFIRMATION REQUIRED (RULE B32)**:\n` +
+        `You have requested to **wipe all long-term memories**.\n` +
+        `Under the 5-Tier Permission Protocol, this is a **CONFIRM** tier destructive operation. Are you certain you wish to proceed?`;
+      return {
+        reply,
+        functionCalls: [],
+        sources: [],
+        pendingConfirmation: pendingAction,
+        attributions: [{ type: 'SYSTEM_INFO', label: 'Security & Permission Protocol', detail: 'Permission Level: CONFIRM' }],
+      };
+    }
+  }
+
+  // 5. ACTION WEB SEARCH (Category B & Milestone 5)
+  if (intent.category === 'ACTION_SEARCH_WEB' && intent.args) {
+    const query = intent.args.query || prompt;
+    reply = `Executing real-time search for "${query}", ${addressAs}...`;
+    functionCalls.push({ name: 'search_web', args: { query } });
     taskSteps.push({
       step: 'Executing',
-      tool: 'filesystem.create_file',
-      status: fileRes.success ? 'success' : 'error',
-      detail: `Created ${fileName}: ${fileRes.result?.path || targetPath}`,
+      tool: 'search.web',
+      status: 'success',
+      detail: `Web search query: "${query}"`,
     });
-
-    const verifyRes = executeFilesystemTool('filesystem_verify_path', { path: targetPath });
-    taskSteps.push({
-      step: 'Verifying',
-      tool: 'filesystem.verify_path',
-      status: verifyRes.result?.exists ? 'success' : 'error',
-      detail: verifyRes.result?.exists ? `File verified: ${verifyRes.result?.size} bytes` : 'File not found',
-    });
-
-    reply = `Done. I've created the file "${fileName}" inside "${folderTarget || 'Desktop'}" containing "${content}" and verified its contents.`;
-    functionCalls.push({ name: 'filesystem_create_file', args: { path: targetPath, content } });
-
     return {
       reply,
       functionCalls,
       sources: [],
       taskSteps,
-      attributions: [{ type: 'SYSTEM_INFO', label: 'Local Filesystem Engine', detail: 'File Creation Verified' }],
+      attributions: [{ type: 'WEB_RESEARCH', label: 'Live Web Telemetry', detail: query }],
     };
   }
 
-  // 4. CREATE DIRECTORY / FOLDER REQUEST (Category B)
-  // Example: "Create a folder called JARVIS_TEST on my Desktop.", "JARVIS, create a folder called VoiceTest."
-  const isCreateFolder = /create\s+(?:a\s+)?(?:folder|directory)/i.test(lower) || /make\s+(?:a\s+)?(?:folder|directory)/i.test(lower);
-  if (isCreateFolder) {
-    let folderName = 'NewFolder';
-    const folderMatch = prompt.match(/(?:folder|directory)\s+called\s+([A-Za-z0-9_.-]+)/i) ||
-                        prompt.match(/(?:folder|directory)\s+named\s+([A-Za-z0-9_.-]+)/i) ||
-                        prompt.match(/(?:folder|directory)\s+([A-Za-z0-9_.-]+)/i);
-    if (folderMatch) folderName = folderMatch[1].replace(/[.,;:!?]+$/, '');
-
-    const targetPath = `Desktop/${folderName}`;
-    taskSteps.push({ step: 'Understanding request', status: 'success', detail: `Create folder "${folderName}" on Desktop` });
-
-    const dirRes = executeFilesystemTool('filesystem_create_directory', { path: targetPath });
+  // 5b. ACTION GOOGLE DRIVE KNOWLEDGE RETRIEVAL (Category B & Milestone 6)
+  if (intent.category === 'ACTION_DRIVE') {
+    const query = intent.args?.query || 'transcript';
+    reply = `To search your Google Drive for "${query}", please ensure your Google Drive is connected via the DRIVE button in the HUD header. Once authorized, I will index and search your documents directly, ${addressAs}.`;
+    functionCalls.push({ name: 'search_google_drive', args: { query } });
     taskSteps.push({
-      step: 'Executing',
-      tool: 'filesystem.create_directory',
-      status: dirRes.success ? 'success' : 'error',
-      detail: `Created directory: ${dirRes.result?.path || targetPath}`,
+      step: 'Understanding request',
+      status: 'success',
+      detail: `Google Drive query: "${query}"`,
     });
-
-    const verifyRes = executeFilesystemTool('filesystem_verify_path', { path: targetPath });
     taskSteps.push({
-      step: 'Verifying',
-      tool: 'filesystem.verify_path',
-      status: verifyRes.result?.exists ? 'success' : 'error',
-      detail: verifyRes.result?.exists ? 'Directory verified on Desktop' : 'Verification failed',
+      step: 'Authentication Check',
+      status: 'error',
+      detail: 'Drive authorization required to search files',
     });
-
-    reply = `Done. I've created the folder "${folderName}" on your Desktop and verified it exists.`;
-    functionCalls.push({ name: 'filesystem_create_directory', args: { path: targetPath } });
-
     return {
       reply,
       functionCalls,
       sources: [],
       taskSteps,
-      attributions: [{ type: 'SYSTEM_INFO', label: 'Local Filesystem Engine', detail: 'Directory Creation Verified' }],
+      attributions: [{ type: 'GOOGLE_DRIVE', label: 'Google Drive Knowledge Layer', detail: `Search Query: "${query}"` }],
     };
   }
 
-  // 5. CONVERSATIONAL CONCEPTUAL REQUESTS (Category A)
+  // 5c. ACTION DOCUMENT ANALYSIS (Category B & Milestone 6)
+  if (intent.category === 'ACTION_DOCUMENT_ANALYSIS') {
+    const targetDoc = intent.args?.targetDoc || '';
+    if (targetDoc && targetDoc !== 'active_document' && targetDoc.length > 25) {
+      const analysis = analyzeDocumentLocal(targetDoc, 'Submitted Document', addressAs);
+      reply = `📄 **[Document Analysis Engine]**:\n\n${analysis.summary}\n\n**Key Takeaways:**\n${analysis.takeaways.map((t) => `• ${t}`).join('\n')}\n\n**Recommended Next Actions:**\n${analysis.actionItems.map((a) => `• ${a}`).join('\n')}`;
+      functionCalls.push({ name: 'analyze_document', args: { target: 'inline_text' } });
+      taskSteps.push({
+        step: 'Executing',
+        tool: 'document.analyzer',
+        status: 'success',
+        detail: `Analyzed document (${targetDoc.length} chars)`,
+      });
+      return {
+        reply,
+        functionCalls,
+        sources: [],
+        taskSteps,
+        attributions: [{ type: 'SYSTEM_INFO', label: 'Document Analysis Engine', detail: 'Text Analysis' }],
+      };
+    }
+
+    reply = `Ready to analyze your document, ${addressAs}. Please paste the document text, attach the file, or connect your Google Drive to load it directly into my analysis engine.`;
+    functionCalls.push({ name: 'analyze_document', args: { target: targetDoc || 'document' } });
+    taskSteps.push({
+      step: 'Executing',
+      tool: 'document.analyzer',
+      status: 'success',
+      detail: 'Document analysis engine primed — awaiting content',
+    });
+    return {
+      reply,
+      functionCalls,
+      sources: [],
+      taskSteps,
+      attributions: [{ type: 'SYSTEM_INFO', label: 'Document Analysis Engine', detail: 'Awaiting Document' }],
+    };
+  }
+
+  // 6. CONVERSATIONAL CONCEPTUAL REQUESTS (Category A)
   // Example: "Tell me about artificial intelligence." / "What is artificial intelligence?" / "Explain PCR"
-  if (/^(?:what\s+is\s+artificial\s+intelligence|tell\s+me\s+about\s+artificial\s+intelligence|explain\s+artificial\s+intelligence)/i.test(lower)) {
+  if (/^(?:what\s+is\s+artificial\s+intelligence|tell\s+me\s+about\s+artificial\s+intelligence|explain\s+artificial\s+intelligence)/i.test(cleanLower)) {
     reply = `Artificial intelligence refers to computational systems engineered to perform cognitive tasks traditionally associated with human intelligence — including reasoning, pattern recognition, learning from data, natural language comprehension, and autonomous problem-solving. In modern software engineering, it spans machine learning, deep neural networks, and multimodal reasoning architectures.`;
     return {
       reply,
@@ -1300,7 +1737,7 @@ function processLocalButlerDirective(
     };
   }
 
-  if (/^(?:explain\s+pcr|what\s+is\s+pcr)/i.test(lower)) {
+  if (/^(?:explain\s+pcr|what\s+is\s+pcr)/i.test(cleanLower)) {
     reply = `Polymerase Chain Reaction (PCR) is an essential molecular biology technique used to exponentially amplify specific segments of DNA. It utilizes thermal cycling through denaturation (unwinding DNA strands at ~95°C), annealing (primers binding at ~55°C), and extension (Taq polymerase synthesizing complementary strands at ~72°C), producing millions of copies from a single target sequence in hours.`;
     return {
       reply,
@@ -1311,7 +1748,7 @@ function processLocalButlerDirective(
     };
   }
 
-  // PERSONAL MANAGER MODE LOGIC
+  // PERSONAL MANAGER EMOTIONAL & ACCOUNTABILITY TRIGGERS (In Manager Mode)
   if (mode === 'manager') {
     if (
       lower.includes('want to die') ||
@@ -1384,18 +1821,24 @@ function processLocalButlerDirective(
       reply = `Understood — you want to work through "${cleanTask}". To build a realistic plan: what is your deadline for this, and what do you foresee as the biggest potential blocker?`;
       return { reply, functionCalls: [], sources: [] };
     }
-
-    reply = `It sounds like you're thinking through "${prompt.slice(0, 80)}", ${addressAs}. What is the single most important outcome you want to achieve here?`;
-    return { reply, functionCalls, sources: [] };
   }
 
   // JARVIS DEFAULT MODE & B30 COMMANDS:
 
   // B30: /today or Daily Briefing (A5: One main thing, three important things, everything else collapsed)
   if (lower === '/today' || lower.includes('brief me') || lower.includes('plan my day') || lower.includes('daily briefing') || lower.includes('briefing')) {
+    const isExplicitRepeat = lower.includes('again') || lower.includes('repeat') || lower.includes('force');
     const overdueItems = sched.items.filter((it: any) => it.date < todayStr && !it.completed);
     const todayAgenda = sched.items.filter((it: any) => it.date === todayStr || it.date === 'today');
     const upcomingDeadlines = sched.items.filter((it: any) => it.date > todayStr && !it.completed);
+
+    if (!isExplicitRepeat && !TopicCooldownManager.canTrigger('daily_briefing', 4)) {
+      const remainingMin = TopicCooldownManager.getRemainingCooldownMinutes('daily_briefing', 4);
+      const topTask = todayAgenda[0]?.title || overdueItems[0]?.title || 'Advance your key milestone';
+      reply = `You have already received your daily briefing, ${addressAs}. Focus on execution:\n\n🎯 **IMMEDIATE ACTION**: ${topTask}\n\n*(Briefing cooldown active: ${remainingMin}m remaining. Say "brief me again" to re-generate the full briefing).*`;
+      return { reply, functionCalls: [], sources: [] };
+    }
+    TopicCooldownManager.recordTrigger('daily_briefing');
 
     const mainThing = todayAgenda[0]?.title || overdueItems[0]?.title || 'Lock in your highest-priority objective';
     const topThree = todayAgenda.slice(1, 4).map((it: any) => it.title);
@@ -2024,20 +2467,42 @@ Breathe. We execute one unit at a time. What is your single Main Thing right now
     functionCalls.push({ name: 'search_web', args: { query: cleanQuery } });
     reply = `Executing real-time search for "${cleanQuery}", ${addressAs}...`;
   } else {
-    reply = `Understood, ${addressAs}. Focusing on "${prompt.slice(0, 50)}". What is the immediate next action to move this forward?`;
+    if (mode === 'manager') {
+      reply = `It sounds like you're thinking through "${prompt.slice(0, 80)}", ${addressAs}. What is the single most important outcome you want to achieve here?`;
+    } else {
+      reply = `Understood, ${addressAs}. Focusing on "${prompt.slice(0, 50)}". What is the immediate next action to move this forward?`;
+    }
   }
 
   // REPETITION GUARD (RULE A1):
-  if (Array.isArray(recentlySaid) && recentlySaid.some((prev) => prev.toLowerCase().includes(reply.slice(0, 40).toLowerCase()))) {
-    reply = `${reply}\n\n*(Continuity note: Next immediate step: What is your next non-negotiable action, ${addressAs}?)*`;
-  }
+  const dedupResult = deduplicateOrTransformReply(reply, recentlySaid, addressAs, hasGreeted);
+  reply = dedupResult.reply;
 
-  return { reply, functionCalls, sources: [] };
+  return {
+    reply,
+    functionCalls,
+    sources: [],
+    ...(taskSteps.length > 0 ? { taskSteps } : {}),
+  };
 }
 
 // -------------------------------------------------------------
 // REST Endpoints
 // -------------------------------------------------------------
+
+// Persona Management endpoints (Milestone 2)
+app.get('/api/jarvis/persona', (_req, res) => {
+  res.json(getPersonaData());
+});
+
+app.post('/api/jarvis/persona', (req, res) => {
+  try {
+    const updated = savePersonaData(req.body);
+    res.json({ success: true, persona: updated });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to update persona' });
+  }
+});
 
 // Schedule endpoint with strict title validation
 app.get('/api/jarvis/schedule', (_req, res) => {
@@ -2538,7 +3003,7 @@ app.post('/api/jarvis/confirm-action', (req, res) => {
       });
     }
 
-    if (actionType === 'CLEAR_MEMORIES') {
+    if (actionType === 'CLEAR_MEMORIES' || actionType === 'WIPE_MEMORIES') {
       saveMemoriesData({ memories: [] });
       return res.json({
         success: true,
@@ -2618,6 +3083,7 @@ app.post('/api/jarvis/chat', async (req, res) => {
       hasGreeted = false,
       apiKey: customKey,
       conversationHistory = [],
+      recentlySaid: clientRecentlySaid = [],
     } = req.body;
 
     const key = getApiKey(customKey);
@@ -2626,10 +3092,17 @@ app.post('/api/jarvis/chat', async (req, res) => {
     const assistantMsgs = Array.isArray(conversationHistory)
       ? conversationHistory.filter((m: any) => m.role === 'assistant')
       : [];
-    const recentlySaid = assistantMsgs.slice(-10).map((m: any) => {
+    const extractedPastSaid = assistantMsgs.slice(-10).map((m: any) => {
       const text = (m.text || '').replace(/\s+/g, ' ').trim();
       return text.length > 120 ? text.slice(0, 117) + '...' : text;
     });
+
+    const combinedRecentlySaid = Array.from(
+      new Set([
+        ...(Array.isArray(clientRecentlySaid) ? clientRecentlySaid : []),
+        ...extractedPastSaid,
+      ])
+    ).slice(-15);
 
     let rollingSummary = '';
     if (Array.isArray(conversationHistory) && conversationHistory.length > 6) {
@@ -2640,7 +3113,7 @@ app.post('/api/jarvis/chat', async (req, res) => {
     }
 
     if (!isValidKey) {
-      const localResult = processLocalButlerDirective(prompt || '', addressAs, mode, managerName, hasGreeted, recentlySaid);
+      const localResult = processLocalButlerDirective(prompt || '', addressAs, mode, managerName, hasGreeted, combinedRecentlySaid, req.body.driveContext);
       const searchCall = localResult.functionCalls.find((fc: any) => fc.name === 'search_web');
       if (searchCall) {
         const liveSearch = await performGoogleSearch(searchCall.args.query, key);
@@ -2656,16 +3129,27 @@ app.post('/api/jarvis/chat', async (req, res) => {
             `  Source: ${liveSearch.sources[1]?.url || 'https://grantwatch.com/health'}\n\n` +
             `*Verification Notice: Unverified — please confirm on the official source. Run /apply to audit eligibility.*`;
         }
+        const dedupedSearch = deduplicateOrTransformReply(replyFormatted, combinedRecentlySaid, addressAs, hasGreeted);
+        const newPoints = extractSubstantivePoints(dedupedSearch.reply);
+        const updatedRecentlySaid = [...new Set([...combinedRecentlySaid, ...newPoints])].slice(-15);
         return res.json({
-          reply: replyFormatted,
+          reply: dedupedSearch.reply,
           functionCalls: localResult.functionCalls,
           sources: liveSearch.sources.length > 0 ? liveSearch.sources : [
             { title: 'Global Opportunities Portal', url: 'https://opportunitydesk.org' },
             { title: 'Health & AI Innovation Grants', url: 'https://grants.gov' }
           ],
+          recentlySaid: updatedRecentlySaid,
         });
       }
-      return res.json(localResult);
+      const dedupedLocal = deduplicateOrTransformReply(localResult.reply, combinedRecentlySaid, addressAs, hasGreeted);
+      localResult.reply = dedupedLocal.reply;
+      const newPoints = extractSubstantivePoints(localResult.reply);
+      const updatedRecentlySaid = [...new Set([...combinedRecentlySaid, ...newPoints])].slice(-15);
+      return res.json({
+        ...localResult,
+        recentlySaid: updatedRecentlySaid,
+      });
     }
 
     // DESTRUCTIVE ACTION INTERCEPTION (RULE B32 & 5-Tier Permission Protocol)
@@ -2721,9 +3205,27 @@ app.post('/api/jarvis/chat', async (req, res) => {
       });
     }
 
+    const intent = classifyUserIntent(prompt || '');
+
+    // Category D: Ambiguous request safety check
+    if (intent.category === 'AMBIGUOUS') {
+      const clarifyReply = intent.clarificationPrompt ||
+        `Please specify the exact operation you would like me to perform on your files, ${addressAs}. For example, I can create a folder, create a file with contents, list directory files, or verify a path.`;
+      return res.json({
+        reply: clarifyReply,
+        functionCalls: [],
+        sources: [],
+        taskSteps: [
+          { step: 'Understanding request', status: 'error', detail: 'Ambiguous instruction detected — awaiting user clarification' },
+        ],
+        attributions: [{ type: 'SYSTEM_INFO', label: 'Intent Classification Engine', detail: 'Ambiguous Request' }],
+        recentlySaid: combinedRecentlySaid,
+      });
+    }
+
     const systemInstruction = mode === 'manager'
-      ? buildManagerInstruction(managerName, addressAs, recentlySaid, rollingSummary)
-      : buildSystemInstruction(addressAs, recentlySaid, rollingSummary);
+      ? buildManagerInstruction(managerName, addressAs, combinedRecentlySaid, rollingSummary)
+      : buildSystemInstruction(addressAs, combinedRecentlySaid, rollingSummary);
 
     const parts: any[] = [];
     if (imageBase64) {
@@ -2837,6 +3339,22 @@ app.post('/api/jarvis/chat', async (req, res) => {
             type: 'WEB_RESEARCH',
             label: 'Live Web Telemetry',
             detail: searchQuery,
+          });
+        }
+        // 2b. Google Drive Search Tool
+        else if (callName === 'search_google_drive' || callName === 'search_drive') {
+          const driveQuery = String((call.args as any)?.query || prompt || 'transcript');
+          toolResponseMsg = `Google Drive search initiated for "${driveQuery}". Verified access requires client authorization token. Prompting client to synchronize authorized files.`;
+          taskSteps.push({
+            step: 'Executing',
+            tool: 'drive.search',
+            status: 'success',
+            detail: `Google Drive query: "${driveQuery}"`,
+          });
+          attributions.push({
+            type: 'GOOGLE_DRIVE',
+            label: 'Google Drive Knowledge Layer',
+            detail: driveQuery,
           });
         }
         // 3. Schedule Tool
@@ -3088,6 +3606,181 @@ app.post('/api/jarvis/chat', async (req, res) => {
       }
     }
 
+    if (allExecutedCalls.length === 0 && (intent.category === 'ACTION_FILESYSTEM' || intent.category === 'ACTION_MULTI_STEP' || intent.category === 'ACTION_MEMORY' || intent.category === 'ACTION_SEARCH_WEB' || intent.category === 'ACTION_DRIVE' || intent.category === 'ACTION_DOCUMENT_ANALYSIS')) {
+      if (intent.category === 'ACTION_FILESYSTEM' && intent.args) {
+        const subType = intent.subType;
+        const args = intent.args;
+        if (subType === 'create_directory') {
+          const folderName = args.folderName || 'NewFolder';
+          const targetPath = args.path || `Desktop/${folderName}`;
+          const fsRes = executeFilesystemTool('filesystem_create_directory', { path: targetPath });
+          const verifyRes = executeFilesystemTool('filesystem_verify_path', { path: targetPath });
+          taskSteps.push(
+            { step: 'Executing', tool: 'filesystem.create_directory', status: fsRes.success ? 'success' : 'error', detail: `Created: ${folderName}` },
+            { step: 'Verifying result', tool: 'filesystem.verify_path', status: verifyRes.result?.exists ? 'success' : 'error', detail: 'Directory verified on Desktop' }
+          );
+          allExecutedCalls.push({ name: 'filesystem_create_directory', args: { path: targetPath } });
+          replyText = `Done. I've created the folder "${folderName}" on your Desktop and verified it exists.`;
+        } else if (subType === 'create_file') {
+          const fileName = args.fileName || 'file.txt';
+          const targetPath = args.targetPath || `Desktop/${fileName}`;
+          const content = args.content || 'Created by JARVIS';
+          const fsRes = executeFilesystemTool('filesystem_create_file', { path: targetPath, content });
+          const verifyRes = executeFilesystemTool('filesystem_verify_path', { path: targetPath });
+          taskSteps.push(
+            { step: 'Executing', tool: 'filesystem.create_file', status: fsRes.success ? 'success' : 'error', detail: `Created: ${fileName}` },
+            { step: 'Verifying result', tool: 'filesystem.verify_path', status: verifyRes.result?.exists ? 'success' : 'error', detail: 'File verified' }
+          );
+          allExecutedCalls.push({ name: 'filesystem_create_file', args: { path: targetPath, content } });
+          replyText = `Done. I've created the file "${fileName}" containing "${content}" and verified its contents.`;
+        } else if (subType === 'list_directory') {
+          const targetPath = args.path || 'Desktop';
+          const fsRes = executeFilesystemTool('filesystem_list_directory', { path: targetPath });
+          taskSteps.push({ step: 'Executing', tool: 'filesystem.list_directory', status: fsRes.success ? 'success' : 'error', detail: `Listed: ${targetPath}` });
+          allExecutedCalls.push({ name: 'filesystem_list_directory', args: { path: targetPath } });
+          if (fsRes.success) {
+            const listItems = (fsRes.result?.entries || []).map((e: any) => (e.isDirectory ? `📁 ${e.name}/` : `📄 ${e.name}`)).join(', ');
+            replyText = `Directory contents of "${targetPath}": ${listItems || '(empty directory)'}`;
+          } else {
+            replyText = `Could not list directory "${targetPath}": ${fsRes.error}`;
+          }
+        } else if (subType === 'read_file') {
+          const targetPath = args.path || 'Desktop/README.md';
+          const fsRes = executeFilesystemTool('filesystem_read_file', { path: targetPath });
+          taskSteps.push({ step: 'Executing', tool: 'filesystem.read_file', status: fsRes.success ? 'success' : 'error', detail: `Read: ${targetPath}` });
+          allExecutedCalls.push({ name: 'filesystem_read_file', args: { path: targetPath } });
+          if (fsRes.success) {
+            replyText = `Contents of "${targetPath}":\n\n${fsRes.result?.content}`;
+          } else {
+            replyText = `Could not read file "${targetPath}": ${fsRes.error}`;
+          }
+        }
+      } else if (intent.category === 'ACTION_MULTI_STEP' && intent.args) {
+        const { folderName, fileName, content, folderPath, filePath } = intent.args as any;
+        const dirRes = executeFilesystemTool('filesystem_create_directory', { path: folderPath });
+        const fileRes = executeFilesystemTool('filesystem_create_file', { path: filePath, content });
+        const verifyRes = executeFilesystemTool('filesystem_verify_path', { path: filePath });
+        taskSteps.push(
+          { step: 'Executing', tool: 'filesystem.create_directory', status: dirRes.success ? 'success' : 'error', detail: `Created directory: ${dirRes.result?.path || folderPath}` },
+          { step: 'Executing', tool: 'filesystem.create_file', status: fileRes.success ? 'success' : 'error', detail: `Wrote ${fileName} (${fileRes.result?.bytes || 0} bytes)` },
+          { step: 'Verifying result', tool: 'filesystem.verify_path', status: verifyRes.result?.exists ? 'success' : 'error', detail: verifyRes.result?.exists ? `Verified: ${fileName} exists` : 'Verification failed' }
+        );
+        allExecutedCalls.push(
+          { name: 'filesystem_create_directory', args: { path: folderPath } },
+          { name: 'filesystem_create_file', args: { path: filePath, content } },
+          { name: 'filesystem_verify_path', args: { path: filePath } }
+        );
+        replyText = `Done. I've created the folder "${folderName}" on your Desktop, placed a ${fileName} inside it containing "${content}", and verified that all steps completed successfully.`;
+      } else if (intent.category === 'ACTION_MEMORY') {
+        const mems = getMemoriesData();
+        if (intent.subType === 'remember') {
+          const content = intent.args?.content || '';
+          if (content) {
+            const newMem = {
+              id: `mem-${Date.now()}`,
+              content,
+              category: 'preference',
+              source: 'USER_EXPLICIT',
+              importance: 'high',
+              tags: ['user_directive'],
+              createdAt: new Date().toISOString(),
+            };
+            mems.memories.push(newMem);
+            saveMemoriesData(mems);
+            allExecutedCalls.push({ name: 'manage_memories', args: { action: 'remember', content } });
+            taskSteps.push({ step: 'Executing', tool: 'manage.memories', status: 'success', detail: `Stored memory: "${content}"` });
+            replyText = `💾 **[Personal Memory] Stored**: "${content}".\nI have committed this to persistent long-term storage and will maintain awareness across all future sessions, ${addressAs}.`;
+          }
+        } else if (intent.subType === 'forget') {
+          const query = (intent.args?.query || '').toLowerCase();
+          const initialLen = mems.memories.length;
+          mems.memories = mems.memories.filter((m: any) => !m.content.toLowerCase().includes(query));
+          if (mems.memories.length < initialLen) {
+            saveMemoriesData(mems);
+            replyText = `🗑️ **[Personal Memory] Pruned**: Removed memory matching "${query}". Persistent profile updated, ${addressAs}.`;
+          } else {
+            replyText = `No matching personal memory found for "${query}", ${addressAs}. Your memory bank remains untouched.`;
+          }
+          allExecutedCalls.push({ name: 'manage_memories', args: { action: 'forget', content: query } });
+          taskSteps.push({ step: 'Executing', tool: 'manage.memories', status: 'success', detail: `Pruned memory matching "${query}"` });
+        } else if (intent.subType === 'list') {
+          if (mems.memories.length === 0) {
+            replyText = `I do not have any personal memories stored for you yet, ${addressAs}. Tell me "Remember this: [fact]" to store important context.`;
+          } else {
+            replyText = `🧠 **[Personal Memory] LONG-TERM PROFILE TELEMETRY (${mems.memories.length} Stored)**:\n\n` +
+              mems.memories.map((m: any) => `• **[${m.category.toUpperCase()}]** ${m.content}`).join('\n\n') +
+              `\n\nYou can say "Remember this: [fact]" to store new context, or "Forget [fact]" to prune it.`;
+          }
+          allExecutedCalls.push({ name: 'manage_memories', args: { action: 'list' } });
+          taskSteps.push({ step: 'Executing', tool: 'manage.memories', status: 'success', detail: `Retrieved ${mems.memories.length} memories` });
+        }
+      } else if (intent.category === 'ACTION_SEARCH_WEB') {
+        const query = intent.args?.query || prompt || '';
+        const liveSearch = await performGoogleSearch(query, key);
+        sources = liveSearch.sources || [];
+        allExecutedCalls.push({ name: 'search_web', args: { query } });
+        taskSteps.push({
+          step: 'Executing',
+          tool: 'search.web',
+          status: 'success',
+          detail: `Web search: "${query}"`,
+        });
+        attributions.push({
+          type: 'WEB_RESEARCH',
+          label: 'Live Web Telemetry',
+          detail: query,
+        });
+        replyText = `Here are the latest findings for "${query}", ${addressAs}:\n\n${liveSearch.text}`;
+      } else if (intent.category === 'ACTION_DRIVE') {
+        const query = intent.args?.query || 'transcript';
+        allExecutedCalls.push({ name: 'search_google_drive', args: { query } });
+        taskSteps.push({
+          step: 'Executing',
+          tool: 'drive.search',
+          status: 'success',
+          detail: `Google Drive query: "${query}"`,
+        });
+        attributions.push({
+          type: 'GOOGLE_DRIVE',
+          label: 'Google Drive Knowledge Layer',
+          detail: query,
+        });
+        replyText = `To search your Google Drive for "${query}", please ensure your Google Drive is connected via the DRIVE button in the HUD header. Once authorized, I will index and search your documents directly, ${addressAs}.`;
+      } else if (intent.category === 'ACTION_DOCUMENT_ANALYSIS') {
+        const targetDoc = intent.args?.targetDoc || '';
+        if (targetDoc && targetDoc !== 'active_document' && targetDoc.length > 25) {
+          const analysis = await analyzeDocumentText(targetDoc, 'Submitted Document', addressAs, key);
+          allExecutedCalls.push({ name: 'analyze_document', args: { target: 'inline_text' } });
+          taskSteps.push({
+            step: 'Executing',
+            tool: 'document.analyzer',
+            status: 'success',
+            detail: `Analyzed document (${targetDoc.length} chars)`,
+          });
+          attributions.push({
+            type: 'SYSTEM_INFO',
+            label: 'Document Analysis Engine',
+            detail: 'Text Analysis',
+          });
+          replyText = `📄 **[Document Analysis Engine]**:\n\n${analysis.summary}\n\n**Key Takeaways:**\n${analysis.takeaways.map((t) => `• ${t}`).join('\n')}\n\n**Recommended Next Actions:**\n${analysis.actionItems.map((a) => `• ${a}`).join('\n')}`;
+        } else {
+          allExecutedCalls.push({ name: 'analyze_document', args: { target: targetDoc || 'document' } });
+          taskSteps.push({
+            step: 'Executing',
+            tool: 'document.analyzer',
+            status: 'success',
+            detail: 'Document analysis engine primed — awaiting content',
+          });
+          attributions.push({
+            type: 'SYSTEM_INFO',
+            label: 'Document Analysis Engine',
+            detail: 'Awaiting Document',
+          });
+          replyText = `Ready to analyze your document, ${addressAs}. Please paste the document text, attach the file, or connect your Google Drive to load it directly into my analysis engine.`;
+        }
+      }
+    }
+
     if (allExecutedCalls.length > 0) {
       taskSteps.push({
         step: 'Verifying result',
@@ -3159,6 +3852,12 @@ app.post('/api/jarvis/chat', async (req, res) => {
       /finished|completed|done with|shipped|nailed it|conquered/i.test(req.body.prompt || '') ||
       /congratulat|milestone|great job|well done|crushed it|celebrate/i.test(replyText);
 
+    // Apply strict deduplication & anti-repetition to model response
+    const dedupResult = deduplicateOrTransformReply(replyText, combinedRecentlySaid, addressAs, hasGreeted);
+    replyText = dedupResult.reply;
+    const newPoints = extractSubstantivePoints(replyText);
+    const updatedRecentlySaid = [...new Set([...combinedRecentlySaid, ...newPoints])].slice(-15);
+
     res.json({
       reply: replyText,
       functionCalls: allExecutedCalls,
@@ -3167,13 +3866,22 @@ app.post('/api/jarvis/chat', async (req, res) => {
       taskSteps,
       pendingConfirmation: null,
       celebrate: isWin,
+      recentlySaid: updatedRecentlySaid,
     });
   } catch (error: any) {
     const addressAs = req.body.addressAs || 'boss';
     const mode = req.body.mode || 'jarvis';
     const managerName = req.body.managerName || 'Coach';
     const hasGreeted = req.body.hasGreeted || false;
-    const fallbackResult = processLocalButlerDirective(req.body.prompt || '', addressAs, mode, managerName, hasGreeted);
+    const clientRecentlySaid = req.body.recentlySaid || [];
+    const combinedRecentlySaid = Array.isArray(clientRecentlySaid) ? clientRecentlySaid : [];
+
+    const fallbackResult = processLocalButlerDirective(req.body.prompt || '', addressAs, mode, managerName, hasGreeted, combinedRecentlySaid);
+    const dedupedFallback = deduplicateOrTransformReply(fallbackResult.reply, combinedRecentlySaid, addressAs, hasGreeted);
+    fallbackResult.reply = dedupedFallback.reply;
+    const newPoints = extractSubstantivePoints(fallbackResult.reply);
+    const updatedRecentlySaid = [...new Set([...combinedRecentlySaid, ...newPoints])].slice(-15);
+
     const searchCall = fallbackResult.functionCalls.find((fc: any) => fc.name === 'search_web');
     if (searchCall) {
       const liveSearch = await performGoogleSearch(searchCall.args.query);
@@ -3182,9 +3890,13 @@ app.post('/api/jarvis/chat', async (req, res) => {
         functionCalls: fallbackResult.functionCalls,
         sources: liveSearch.sources,
         celebrate: false,
+        recentlySaid: updatedRecentlySaid,
       });
     }
-    res.json(fallbackResult);
+    res.json({
+      ...fallbackResult,
+      recentlySaid: updatedRecentlySaid,
+    });
   }
 });
 
@@ -3260,6 +3972,26 @@ app.post('/api/jarvis/summarize', async (req, res) => {
     });
   } catch (error: any) {
     res.json({ summary: `Analysis complete, ${req.body.addressAs || 'boss'}.` });
+  }
+});
+
+// Structured Document Analysis endpoint (Milestone 6)
+app.post('/api/jarvis/analyze', async (req, res) => {
+  try {
+    const { content, fileName = 'Document', addressAs = 'boss', apiKey: customKey } = req.body;
+    if (!content) return res.status(400).json({ error: 'Content is required for document analysis.' });
+
+    const result = await analyzeDocumentText(content, fileName, addressAs, customKey);
+    res.json({
+      success: true,
+      document: fileName,
+      summary: result.summary,
+      takeaways: result.takeaways,
+      actionItems: result.actionItems,
+      attributions: [{ type: 'GOOGLE_DRIVE', label: `Document: ${fileName}`, detail: 'Analysis Complete' }],
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error?.message || 'Document analysis failed' });
   }
 });
 
@@ -3509,6 +4241,11 @@ async function setupServer() {
   });
 }
 
-setupServer().catch((err) => {
-  console.error('Fatal startup error:', err);
-});
+const isTest =
+  process.env.NODE_ENV === 'test' ||
+  process.argv.some((arg) => typeof arg === 'string' && (arg.includes('test') || arg.includes('.test.')));
+if (!isTest) {
+  setupServer().catch((err) => {
+    console.error('Fatal startup error:', err);
+  });
+}

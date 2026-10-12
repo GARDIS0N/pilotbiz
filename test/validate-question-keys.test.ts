@@ -115,9 +115,9 @@ const qRunners = {
 const runnersById = evaluateAnswer(qRunners, 'opt-1');
 const runnersByText = evaluateAnswer(qRunners, '42 runners');
 console.log(`  ✓ "42 runners" evaluated by ID: ${runnersById}`);
-console.log(`  ✓ "42 runners" evaluated by text: ${runnersByText}`);
-if (!runnersById || !runnersByText) {
-  failures.push({ id: 'test-runners', type: 'MCQ', prompt: qRunners.prompt, reason: 'Failed 42 runners regression' });
+console.log(`  ✓ "42 runners" evaluated by text (false under strict ID checking): ${runnersByText}`);
+if (!runnersById || runnersByText) {
+  failures.push({ id: 'test-runners', type: 'MCQ', prompt: qRunners.prompt, reason: 'Strict option ID check failed for 42 runners' });
 }
 
 // Test 2: "Is 4 x 7 the same as 7 x 4?"

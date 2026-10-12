@@ -13,6 +13,7 @@ import { ReadingComprehensionQuestion } from './ReadingComprehensionQuestion.js'
 import { WordBuilderQuestion } from './WordBuilderQuestion.js';
 import { KenyanMoneyQuestion } from './KenyanMoneyQuestion.js';
 import { sound } from '../../utils/soundEffects.js';
+import { Language, getSavedLanguage } from '../../utils/i18n.js';
 
 interface Props {
   question: Question;
@@ -22,6 +23,8 @@ interface Props {
   disabled?: boolean;
   showExplanation?: boolean;
   isCorrect?: boolean;
+  attemptId?: string;
+  language?: Language;
 }
 
 export const QuestionRenderer: React.FC<Props> = ({
@@ -31,7 +34,9 @@ export const QuestionRenderer: React.FC<Props> = ({
   onSubmitAnswer,
   disabled = false,
   showExplanation = false,
-  isCorrect
+  isCorrect,
+  attemptId,
+  language = getSavedLanguage()
 }) => {
   const renderQuestionType = () => {
     switch (question.type) {
@@ -42,6 +47,7 @@ export const QuestionRenderer: React.FC<Props> = ({
             selectedAnswer={selectedAnswer}
             onSelectAnswer={onSelectAnswer}
             disabled={disabled}
+            attemptId={attemptId}
           />
         );
       case 'TRUE_FALSE':
@@ -60,6 +66,8 @@ export const QuestionRenderer: React.FC<Props> = ({
             selectedAnswer={selectedAnswer}
             onSelectAnswer={onSelectAnswer}
             disabled={disabled}
+            attemptId={attemptId}
+            language={language}
           />
         );
       case 'ORDERING':
@@ -69,6 +77,7 @@ export const QuestionRenderer: React.FC<Props> = ({
             selectedAnswer={selectedAnswer}
             onSelectAnswer={onSelectAnswer}
             disabled={disabled}
+            language={language}
           />
         );
       case 'FILL_BLANK':
@@ -87,6 +96,7 @@ export const QuestionRenderer: React.FC<Props> = ({
             selectedAnswer={selectedAnswer}
             onSelectAnswer={onSelectAnswer}
             disabled={disabled}
+            attemptId={attemptId}
           />
         );
       case 'NUMBER_ENTRY':
@@ -98,7 +108,23 @@ export const QuestionRenderer: React.FC<Props> = ({
             disabled={disabled}
           />
         );
-      case 'IMAGE_LABEL':
+      case 'IMAGE_LABEL': {
+        const hasRealAsset = Boolean(
+          question.imageLabelData?.imageUrl &&
+          !question.imageLabelData.imageUrl.includes('placeholder') &&
+          !question.imageLabelData.imageUrl.startsWith('/images/curriculum/')
+        );
+        if (!hasRealAsset) {
+          return (
+            <MultipleChoiceQuestion
+              question={question}
+              selectedAnswer={selectedAnswer}
+              onSelectAnswer={onSelectAnswer}
+              disabled={disabled}
+              attemptId={attemptId}
+            />
+          );
+        }
         return (
           <ImageLabelQuestion
             question={question}
@@ -107,6 +133,7 @@ export const QuestionRenderer: React.FC<Props> = ({
             disabled={disabled}
           />
         );
+      }
       case 'LISTEN_CHOOSE':
         return (
           <ListenChooseQuestion
@@ -132,6 +159,7 @@ export const QuestionRenderer: React.FC<Props> = ({
             selectedAnswer={selectedAnswer}
             onSelectAnswer={onSelectAnswer}
             disabled={disabled}
+            language={language}
           />
         );
       case 'KENYAN_MONEY':
@@ -150,6 +178,7 @@ export const QuestionRenderer: React.FC<Props> = ({
             selectedAnswer={selectedAnswer}
             onSelectAnswer={onSelectAnswer}
             disabled={disabled}
+            attemptId={attemptId}
           />
         );
     }
@@ -183,7 +212,7 @@ export const QuestionRenderer: React.FC<Props> = ({
             <span>{isCorrect ? 'Hongera! Nicely done!' : 'Almost! Try again:'}</span>
           </div>
           <p className="text-xs md:text-sm text-gray-200 leading-relaxed">
-            {isKiswahili && question.swahiliExplanation ? question.swahiliExplanation : question.explanation}
+            {isKiswahili ? (question.swahiliExplanation || question.explanation) : question.explanation}
           </p>
 
           {question.kenyanCulturalContext && (
@@ -207,7 +236,7 @@ export const QuestionRenderer: React.FC<Props> = ({
             }}
             className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm tracking-wide transition-all shadow-lg shadow-emerald-500/25 active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-h-[56px]"
           >
-            <span>{isKiswahili ? 'WASILISHA JIBU' : 'CHECK ANSWER'}</span>
+            <span>{language === 'sw' ? 'WASILISHA JIBU' : 'CHECK ANSWER'}</span>
             <span>➔</span>
           </button>
         </div>

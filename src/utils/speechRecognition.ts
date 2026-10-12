@@ -9,18 +9,107 @@
 
 import { MicState } from '../types/jarvis';
 
-export type VoiceMode = 'push_to_talk' | 'conversation' | 'single_command';
+export type VoiceMode = 'push_to_talk' | 'conversation' | 'single_command' | 'wake_word';
+
+export interface WakePhraseMatch {
+  detected: boolean;
+  phrase?: string;
+  commandText: string;
+  isWakeOnly: boolean;
+}
+
+/**
+ * Detects whether a speech transcript triggers the configured wake phrase(s)
+ * e.g. "Hey Jarvis, create a folder called TestProject" -> { detected: true, phrase: "hey jarvis", commandText: "create a folder called TestProject", isWakeOnly: false }
+ * e.g. "Jarvis" -> { detected: true, phrase: "jarvis", commandText: "", isWakeOnly: true }
+ * e.g. "Pass the water please" -> { detected: false, commandText: "Pass the water please", isWakeOnly: false }
+ */
+export function detectWakePhrase(
+  rawTranscript: string,
+  wakePhrases: string[] = ['hey jarvis', 'jarvis']
+): WakePhraseMatch {
+  const trimmed = (rawTranscript || '').trim();
+  if (!trimmed) {
+    return { detected: false, commandText: '', isWakeOnly: false };
+  }
+
+  // Sort phrases descending by length so "hey jarvis" matches before "jarvis"
+  const sortedPhrases = [...wakePhrases]
+    .map((p) => p.trim().toLowerCase())
+    .filter(Boolean)
+    .sort((a, b) => b.length - a.length);
+
+  for (const phrase of sortedPhrases) {
+    // 1. Exact match (wake word only)
+    if (trimmed.toLowerCase() === phrase) {
+      return { detected: true, phrase, commandText: '', isWakeOnly: true };
+    }
+
+    // 2. Starts with phrase followed by punctuation or whitespace
+    // e.g. "Hey Jarvis, do X", "Hey Jarvis! do X", "Jarvis: do X", "Jarvis do X"
+    const prefixRegex = new RegExp(`^${phrase}[,!?:;\\s]+(.*)$`, 'i');
+    const prefixMatch = trimmed.match(prefixRegex);
+    if (prefixMatch) {
+      const remainder = prefixMatch[1].trim();
+      return {
+        detected: true,
+        phrase,
+        commandText: remainder,
+        isWakeOnly: remainder.length === 0,
+      };
+    }
+
+    // 3. Embedded occurrence e.g. "Ok Jarvis, check my schedule"
+    const embeddedRegex = new RegExp(`^(?:ok|okay|hi|hello)\\s+${phrase}[,!?:;\\s]*(.*)$`, 'i');
+    const embeddedMatch = trimmed.match(embeddedRegex);
+    if (embeddedMatch) {
+      const remainder = embeddedMatch[1].trim();
+      return {
+        detected: true,
+        phrase,
+        commandText: remainder,
+        isWakeOnly: remainder.length === 0,
+      };
+    }
+  }
+
+  return { detected: false, commandText: trimmed, isWakeOnly: false };
+}
+
+/**
+ * Check for spoken interruption / barge-in commands:
+ * e.g. "stop", "jarvis stop", "quiet", "cancel", "shut up", "hold on", "hey jarvis stop"
+ */
+export function isInterruptionPhrase(text: string): boolean {
+  const trimmed = (text || '').toLowerCase().trim();
+  if (!trimmed) return false;
+
+  const stopPatterns = [
+    /^stop$/i,
+    /^(?:hey\s+)?jarvis[,\s]+stop$/i,
+    /^stop[,\s]+(?:hey\s+)?jarvis$/i,
+    /^(?:stop|quiet|cancel|shut up|pause|hold on|silence)$/i,
+    /^(?:hey\s+)?jarvis[,\s]+(?:quiet|cancel|shut up|pause|hold on|silence)$/i,
+    /^(?:please\s+)?stop\s+(?:talking|speaking|reading)$/i,
+  ];
+
+  return stopPatterns.some((pattern) => pattern.test(trimmed));
+}
 
 export interface VoiceInputOptions {
   lang?: string; // e.g. "en-US"
   autoSend?: boolean; // send automatically on finish
   mode?: VoiceMode;
+  wakeWordEnabled?: boolean;
+  wakePhrases?: string[];
+  silenceTimeoutMs?: number;
   onStateChange: (state: MicState, message?: string) => void;
   onInterimTranscript: (text: string) => void;
   onFinalTranscript: (text: string) => void;
   onError: (errorMessage: string) => void;
   onStopAudioPlayback?: () => void; // Stops TTS so Jarvis doesn't hear itself
   onInterruption?: () => void;
+  onWakeWordDetected?: (match: WakePhraseMatch) => void;
 }
 
 export interface BrowserVoiceCapabilities {
@@ -153,18 +242,10 @@ export class JarvisVoiceController {
   }
 
   /**
-   * Check for spoken interruption commands ("JARVIS, stop", "stop")
+   * Check for spoken interruption commands ("JARVIS, stop", "stop", "cancel", etc.)
    */
   private checkInterruption(text: string): boolean {
-    const trimmed = text.toLowerCase().trim();
-    if (
-      trimmed === 'stop' ||
-      trimmed === 'jarvis stop' ||
-      trimmed === 'jarvis, stop' ||
-      trimmed.startsWith('stop jarvis') ||
-      trimmed.startsWith('jarvis stop') ||
-      trimmed.startsWith('jarvis, stop')
-    ) {
+    if (isInterruptionPhrase(text)) {
       console.log('[JARVIS Voice]: Spoken interruption detected:', text);
       if (this.options.onStopAudioPlayback) {
         this.options.onStopAudioPlayback();
@@ -200,7 +281,9 @@ export class JarvisVoiceController {
     this.intentionalStop = true;
     this.clearSilenceTimeout();
 
-    const textToSend = (this.finalAccumulatedTranscript + ' ' + this.activeTranscript).trim();
+    const rawText = (this.finalAccumulatedTranscript + ' ' + this.activeTranscript).trim();
+    const wakeCheck = detectWakePhrase(rawText, this.options.wakePhrases);
+    const textToSend = wakeCheck.detected && wakeCheck.commandText ? wakeCheck.commandText : rawText;
 
     if (this.recognition) {
       try {
@@ -380,20 +463,39 @@ export class JarvisVoiceController {
           return;
         }
 
-        if (combinedText) {
-          this.options.onInterimTranscript(combinedText);
+        // If Wake Word is active in continuous listening mode
+        const isWakeWordActive = Boolean(
+          this.options.wakeWordEnabled &&
+            (this.options.mode === 'wake_word' || (!this.isConversationMode && !this.isPushToTalk))
+        );
+
+        if (isWakeWordActive) {
+          const wakeMatch = detectWakePhrase(combinedText, this.options.wakePhrases);
+          if (wakeMatch.detected) {
+            if (wakeMatch.isWakeOnly) {
+              this.options.onInterimTranscript('Listening...');
+              this.options.onWakeWordDetected?.(wakeMatch);
+            } else {
+              this.options.onInterimTranscript(wakeMatch.commandText);
+            }
+          }
+        } else {
+          if (combinedText) {
+            this.options.onInterimTranscript(combinedText);
+          }
         }
 
         // Silence timeout management:
         // In Push-to-Talk mode: NEVER cut off! User controls start/stop by holding button.
-        // In Conversation Mode / Single Command: wait 2500ms after final speech chunk before completing.
+        // In Conversation Mode / Single Command: wait for natural pause before completing.
         if (!this.isPushToTalk) {
+          const pauseTimeout = this.options.silenceTimeoutMs || 2200;
           if (newlyFinalStr) {
             // User paused after a completed sentence
-            this.startSilenceTimeout(2200, true);
+            this.startSilenceTimeout(pauseTimeout, true);
           } else {
             // User is actively in the middle of words
-            this.startSilenceTimeout(3500, true);
+            this.startSilenceTimeout(Math.max(3500, pauseTimeout + 1300), true);
           }
         }
       };
@@ -403,8 +505,12 @@ export class JarvisVoiceController {
         this.clearSilenceTimeout();
 
         if (event.error === 'no-speech') {
-          // In conversation mode, no-speech is normal during pauses; keep listening if not stopped
-          if (this.isConversationMode && !this.intentionalStop && !this.isAssistantSpeaking) {
+          // In continuous or conversation mode, no-speech is normal during pauses; keep listening if not stopped
+          const isContinuous =
+            this.isConversationMode ||
+            this.options.mode === 'wake_word' ||
+            Boolean(this.options.wakeWordEnabled && !this.isPushToTalk);
+          if (isContinuous && !this.intentionalStop && !this.isAssistantSpeaking) {
             return;
           }
         }
@@ -431,14 +537,19 @@ export class JarvisVoiceController {
         this.clearSilenceTimeout();
         this.isListening = false;
 
-        // Auto-reconnect in Conversation Mode if browser closed session without intentional stop
-        if (this.isConversationMode && !this.intentionalStop && !this.isAssistantSpeaking) {
-          console.log('[JARVIS Voice]: Auto-restarting recognition session for Conversation Mode...');
+        // Auto-reconnect in Continuous / Conversation / Wake-Word Mode if browser closed session without intentional stop
+        const isContinuous =
+          this.isConversationMode ||
+          this.options.mode === 'wake_word' ||
+          Boolean(this.options.wakeWordEnabled && !this.isPushToTalk);
+
+        if (isContinuous && !this.intentionalStop && !this.isAssistantSpeaking) {
+          console.log('[JARVIS Voice]: Auto-restarting continuous recognition session...');
           this.restartTimeout = setTimeout(() => {
-            if (this.isConversationMode && !this.intentionalStop && !this.isAssistantSpeaking) {
+            if (isContinuous && !this.intentionalStop && !this.isAssistantSpeaking) {
               this.startInternal();
             }
-          }, 350);
+          }, 300);
           return;
         }
 
@@ -593,7 +704,7 @@ export class JarvisVoiceController {
   /**
    * Silence Timeout logic
    */
-  private startSilenceTimeout(durationMs: number = 3000, isEndOfSpeech: boolean = false) {
+  private startSilenceTimeout(durationMs: number = 2200, isEndOfSpeech: boolean = false) {
     this.clearSilenceTimeout();
     this.silenceTimer = setTimeout(() => {
       if (!this.isListening) return;
@@ -602,14 +713,53 @@ export class JarvisVoiceController {
 
       if (!this.hasDetectedSpeech && !isEndOfSpeech) {
         // No speech detected for entire duration
-        if (!this.isConversationMode) {
+        const isContinuousMode =
+          this.isConversationMode ||
+          this.options.mode === 'wake_word' ||
+          Boolean(this.options.wakeWordEnabled && !this.isPushToTalk);
+
+        if (!isContinuousMode) {
           this.stop();
           this.options.onStateChange('idle');
           this.options.onError('No speech detected - try speaking a little louder.');
         }
       } else if (fullText) {
-        // Speech finished! Trigger execution
-        console.log('[JARVIS Voice]: Silence detected after speech. Delivering transcript:', fullText);
+        // Handle Wake Word continuous listening filtering
+        const isWakeWordActive = Boolean(
+          this.options.wakeWordEnabled &&
+            (this.options.mode === 'wake_word' || (!this.isConversationMode && !this.isPushToTalk))
+        );
+
+        if (isWakeWordActive) {
+          const wakeMatch = detectWakePhrase(fullText, this.options.wakePhrases);
+          if (!wakeMatch.detected) {
+            // Ambient speech without wake phrase; ignore and stay in listening mode
+            this.finalAccumulatedTranscript = '';
+            this.activeTranscript = '';
+            return;
+          }
+          if (wakeMatch.isWakeOnly) {
+            // Wake phrase only (e.g. "Hey Jarvis" or "Jarvis")
+            this.finalAccumulatedTranscript = '';
+            this.activeTranscript = '';
+            this.options.onWakeWordDetected?.(wakeMatch);
+            return;
+          }
+          // Wake phrase with command: deliver clean stripped directive
+          console.log('[JARVIS Voice]: Wake phrase detected with directive:', wakeMatch.commandText);
+          this.finalAccumulatedTranscript = '';
+          this.activeTranscript = '';
+          this.pauseForAssistantSpeaking();
+          this.options.onFinalTranscript(wakeMatch.commandText);
+          return;
+        }
+
+        // Regular or Conversation Mode delivery:
+        // Clean wake phrase prefix if present (e.g. "Jarvis, do X" -> "do X")
+        const wakeCheck = detectWakePhrase(fullText, this.options.wakePhrases);
+        const textToDeliver = wakeCheck.detected && wakeCheck.commandText ? wakeCheck.commandText : fullText;
+
+        console.log('[JARVIS Voice]: Silence detected after speech. Delivering transcript:', textToDeliver);
         this.finalAccumulatedTranscript = '';
         this.activeTranscript = '';
 
@@ -620,7 +770,7 @@ export class JarvisVoiceController {
           this.pauseForAssistantSpeaking();
         }
 
-        this.options.onFinalTranscript(fullText);
+        this.options.onFinalTranscript(textToDeliver);
       }
     }, durationMs);
   }

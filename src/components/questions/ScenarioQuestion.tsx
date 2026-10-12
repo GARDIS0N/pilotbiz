@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Question } from '../../types/cbe.js';
 import { sound } from '../../utils/soundEffects.js';
+import { getShuffledOptions } from '../../utils/optionShuffler.js';
 import { VocabularyExplainer } from '../common/VocabularyExplainer.js';
 
 interface Props {
@@ -8,15 +9,26 @@ interface Props {
   selectedAnswer: string | null;
   onSelectAnswer: (answer: string) => void;
   disabled?: boolean;
+  attemptId?: string;
 }
 
 export const ScenarioQuestion: React.FC<Props> = ({
   question,
   selectedAnswer,
   onSelectAnswer,
-  disabled
+  disabled,
+  attemptId
 }) => {
-  const options = question.options || [];
+  const [localAttemptId] = useState(() => `att_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`);
+  const effectiveAttemptId = attemptId || localAttemptId;
+
+  const displayOptions = useMemo(() => {
+    return getShuffledOptions(
+      question.options || [],
+      `${effectiveAttemptId}_${question.id}`,
+      question
+    );
+  }, [question.options, effectiveAttemptId, question.id, question.type]);
 
   return (
     <div className="w-full space-y-4">
@@ -41,7 +53,7 @@ export const ScenarioQuestion: React.FC<Props> = ({
       </h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-        {options.map((opt, idx) => {
+        {displayOptions.map((opt, idx) => {
           const isSelected = selectedAnswer === opt.id;
           const letter = String.fromCharCode(65 + idx);
 

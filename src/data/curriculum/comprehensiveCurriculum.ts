@@ -5,9 +5,9 @@ import {
   CurriculumSubStrand,
   CurriculumQuest
 } from './types.js';
-import data from './comprehensiveCurriculumData.json';
+import { comprehensiveCurriculumData } from './comprehensiveCurriculumData.js';
 
-const comprehensiveGrades = data as CurriculumGrade[];
+const comprehensiveGrades = comprehensiveCurriculumData;
 
 const comprehensiveGradesMap = new Map<string, CurriculumGrade>();
 const comprehensiveSubjectsMap = new Map<string, CurriculumSubject>();
@@ -15,18 +15,18 @@ const comprehensiveStrandsMap = new Map<string, CurriculumStrand>();
 const comprehensiveSubStrandsMap = new Map<string, CurriculumSubStrand>();
 const comprehensiveQuestsMap = new Map<string, CurriculumQuest>();
 
-comprehensiveGrades.forEach(g => {
+comprehensiveGrades.forEach((g: any) => {
   comprehensiveGradesMap.set(g.id, g);
   comprehensiveGradesMap.set(g.id.replace('grade-', 'grade'), g);
   comprehensiveGradesMap.set(g.id.replace('grade-', 'g'), g);
 
-  g.subjects.forEach(subject => {
+  g.subjects.forEach((subject: any) => {
     comprehensiveSubjectsMap.set(subject.id, subject);
-    subject.strands.forEach(strand => {
+    subject.strands.forEach((strand: any) => {
       comprehensiveStrandsMap.set(strand.id, strand);
-      strand.subStrands.forEach(subStrand => {
+      strand.subStrands.forEach((subStrand: any) => {
         comprehensiveSubStrandsMap.set(subStrand.id, subStrand);
-        subStrand.quests.forEach(quest => {
+        subStrand.quests.forEach((quest: any) => {
           comprehensiveQuestsMap.set(quest.id, quest);
         });
       });

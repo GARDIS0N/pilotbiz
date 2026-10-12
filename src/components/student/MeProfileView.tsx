@@ -260,6 +260,50 @@ export const MeProfileView: React.FC<Props> = ({
         </div>
       </div>
 
+      {/* Religious Education Stream Selection (Family Choice) */}
+      <div className="p-5 rounded-3xl bg-slate-950 border border-emerald-900/80 space-y-3">
+        <h3 className="text-sm font-black text-white flex items-center gap-2">
+          <span>⛪</span>
+          <span>{language === 'sw' ? 'Elimu ya Dini (Chaguo la Familia)' : 'Religious Education (Family Choice)'}</span>
+        </h3>
+        <p className="text-xs text-gray-300">
+          {language === 'sw'
+            ? 'Chagua somo la dini la familia yako (Kikristo, Kiislamu au Kihindu) litakaloonekana kwenye masomo yako.'
+            : 'Select your family\'s religious education track to display in your curriculum.'}
+        </p>
+        <div className="grid grid-cols-3 gap-2.5">
+          {[
+            { id: 'CRE', label: 'Christian (CRE)', icon: '⛪' },
+            { id: 'IRE', label: 'Islamic (IRE)', icon: '🌙' },
+            { id: 'HRE', label: 'Hindu (HRE)', icon: '🕉️' }
+          ].map(re => {
+            const isSelected = (student.religiousStream || 'CRE') === re.id;
+            return (
+              <button
+                key={re.id}
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  const updated = { ...student, religiousStream: re.id as 'CRE' | 'IRE' | 'HRE' };
+                  onStudentUpdated(updated);
+                  try {
+                    localStorage.setItem('jifuno_religious_stream', re.id);
+                  } catch (_) {}
+                }}
+                className={`p-3 rounded-2xl border-2 text-center transition-all cursor-pointer min-h-[56px] flex flex-col items-center justify-center ${
+                  isSelected
+                    ? 'border-emerald-400 bg-emerald-950/60 text-emerald-300 ring-2 ring-emerald-400'
+                    : 'border-slate-800 bg-slate-900 text-gray-400 hover:border-emerald-700'
+                }`}
+              >
+                <span className="text-xl">{re.icon}</span>
+                <span className="text-xs font-black text-white mt-1">{re.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* 4. Daily Learning Goal */}
       <div className="p-5 rounded-3xl bg-slate-950 border border-emerald-900/80 space-y-3">
         <h3 className="text-sm font-black text-white flex items-center gap-2">

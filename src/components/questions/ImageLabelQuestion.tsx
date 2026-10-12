@@ -22,13 +22,23 @@ export const ImageLabelQuestion: React.FC<Props> = ({
 
   // If no diagram asset exists, fall back to a clean text-based multiple-choice list
   const optionsToRender = hotspots.length > 0
-    ? hotspots.map((spot, idx) => ({
-        id: spot.id,
-        text: spot.label || `Option ${String.fromCharCode(65 + idx)}`
-      }))
+    ? hotspots.map((spot: any, idx) => {
+        let labelText = '';
+        if (typeof spot.label === 'object' && spot.label !== null) {
+          labelText = spot.label.en || spot.label.sw || String(spot.label);
+        } else {
+          labelText = String(spot.label || `Option ${String.fromCharCode(65 + idx)}`);
+        }
+        // Strip raw IDs like [spot-leaf]
+        labelText = labelText.replace(/\[spot-[^\]]+\]/g, '').trim();
+        return {
+          id: spot.id || `opt-${idx + 1}`,
+          text: labelText
+        };
+      })
     : (question.options || []).map((opt: any, idx) => ({
         id: opt.id || `opt-${idx + 1}`,
-        text: opt.text || String(opt)
+        text: String(opt.text || opt).replace(/\[spot-[^\]]+\]/g, '').trim()
       }));
 
   return (

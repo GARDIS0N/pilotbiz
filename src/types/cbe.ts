@@ -55,6 +55,7 @@ export interface StudentProfile {
   equippedTitle: string;
   parentUserId?: string;
   classId?: string;
+  religiousStream?: 'CRE' | 'IRE' | 'HRE';
 }
 
 export interface ParentProfile {
@@ -97,6 +98,7 @@ export interface Grade {
   name: string; // 'Grade 1', 'Grade 4', etc.
   levelGroup: 'LOWER_PRIMARY' | 'UPPER_PRIMARY' | 'JUNIOR_SECONDARY';
   description: string;
+  ageRange?: string;
 }
 
 export interface LearningArea {
@@ -250,9 +252,15 @@ export interface Question {
   swahiliSocraticHint?: string;
   kenyanCulturalContext: string;
   sourceType: 'CURRICULUM_ALIGNED' | 'AI_PRACTICE' | 'OFFICIAL_CBE_REF';
-  contentStatus: ContentStatus;
+  contentStatus?: ContentStatus;
   reviewedBy?: string;
+  hint?: string;
+  answerKey?: string;
+  points?: number;
 }
+
+export type Option = QuestionOption;
+export type MatchingPair = QuestionMatchingPair;
 
 // -------------------------------------------------------------
 // Progression, Session & Analytics

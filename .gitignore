@@ -18,4 +18,8 @@ coverage/
 *.backup.*
 .backup_*
 scratch/
+isair-jarvis*
+*.zip
+Desktop/
+supabase/.temp/
 

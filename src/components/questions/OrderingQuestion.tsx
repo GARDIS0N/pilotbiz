@@ -2,19 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { Question } from '../../types/cbe.js';
 import { sound } from '../../utils/soundEffects.js';
 import { VocabularyExplainer } from '../common/VocabularyExplainer.js';
+import { Language, getSavedLanguage } from '../../utils/i18n.js';
 
 interface Props {
   question: Question;
   selectedAnswer: string[] | null;
   onSelectAnswer: (orderIds: string[]) => void;
   disabled?: boolean;
+  language?: Language;
 }
 
 export const OrderingQuestion: React.FC<Props> = ({
   question,
   selectedAnswer,
   onSelectAnswer,
-  disabled
+  disabled,
+  language = getSavedLanguage()
 }) => {
   const options = question.options || [];
   const [items, setItems] = useState<{ id: string; text: string }[]>([]);
@@ -65,7 +68,7 @@ export const OrderingQuestion: React.FC<Props> = ({
         <VocabularyExplainer text={question.prompt} />
       </h3>
       <p className="text-xs text-emerald-300 font-bold">
-        {isKiswahili
+        {language === 'sw'
           ? '👆 Tumia mishale ya juu na chini kupanga hivi kwa mtiririko sahihi!'
           : '👆 Use the up and down arrows to arrange these in the correct sequence!'}
       </p>
@@ -80,7 +83,9 @@ export const OrderingQuestion: React.FC<Props> = ({
               <span className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-600 text-emerald-300 font-black text-sm flex items-center justify-center shrink-0">
                 {idx + 1}
               </span>
-              <span className="text-lg font-bold text-white leading-snug">{item.text}</span>
+              <span className="text-lg font-bold text-white leading-snug">
+                <VocabularyExplainer text={item.text} />
+              </span>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">

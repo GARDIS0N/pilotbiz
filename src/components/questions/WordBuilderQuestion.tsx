@@ -2,19 +2,22 @@ import React, { useState } from 'react';
 import { Question } from '../../types/cbe.js';
 import { sound } from '../../utils/soundEffects.js';
 import { VocabularyExplainer } from '../common/VocabularyExplainer.js';
+import { Language, getSavedLanguage } from '../../utils/i18n.js';
 
 interface Props {
   question: Question;
   selectedAnswer: any; // constructed string
   onSelectAnswer: (ans: any) => void;
   disabled?: boolean;
+  language?: Language;
 }
 
 export const WordBuilderQuestion: React.FC<Props> = ({
   question,
   selectedAnswer,
   onSelectAnswer,
-  disabled = false
+  disabled = false,
+  language = getSavedLanguage()
 }) => {
   const tokens = question.wordBuilderTokens?.scrambledTokens || [];
   const [selectedTokens, setSelectedTokens] = useState<string[]>(
@@ -68,7 +71,7 @@ export const WordBuilderQuestion: React.FC<Props> = ({
       <div className="p-4 md:p-5 rounded-3xl bg-slate-900 border-2 border-dashed border-emerald-500/50 min-h-[96px] flex flex-wrap items-center gap-2.5">
         {selectedTokens.length === 0 ? (
           <span className="text-sm text-gray-400 italic select-none">
-            {isKiswahili ? 'Bonyeza maneno hapa chini kuunda sentensi' : 'Tap words below to build your sentence'}
+            {language === 'sw' ? 'Bonyeza maneno hapa chini kuunda sentensi' : 'Tap words below to build your sentence'}
           </span>
         ) : (
           selectedTokens.map((tok, idx) => (
@@ -94,7 +97,7 @@ export const WordBuilderQuestion: React.FC<Props> = ({
             onClick={handleReset}
             className="text-xs font-bold text-gray-300 hover:text-white px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 cursor-pointer"
           >
-            {isKiswahili ? 'Anza Upya ↺' : 'Clear ↺'}
+            {language === 'sw' ? 'Anza Upya ↺' : 'Clear ↺'}
           </button>
         </div>
       )}
@@ -102,7 +105,7 @@ export const WordBuilderQuestion: React.FC<Props> = ({
       {/* Available Scrambled Tiles */}
       <div className="space-y-2">
         <span className="text-xs font-black text-gray-300 uppercase tracking-wider block">
-          {isKiswahili ? 'Maneno Yanayopatikana:' : 'Available Words:'}
+          {language === 'sw' ? 'Maneno Yanayopatikana:' : 'Available Words:'}
         </span>
         <div className="flex flex-wrap gap-3">
           {tokens.map((tok, idx) => {

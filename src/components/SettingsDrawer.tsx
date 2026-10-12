@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { JarvisSettings } from '../types/jarvis';
 import {
   X,
@@ -48,6 +48,54 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  const [persona, setPersona] = useState({
+    name: settings.managerName || 'Coach',
+    title: 'Personal AI Manager & Executive Chief of Staff',
+    tone: 'Direct, supportive, calm, high-accountability, and strategic',
+    directnessLevel: 4,
+    corePhilosophy: 'Action creates motivation, never the reverse. Consistency compounds exponentially. Protect momentum.',
+    customDirectives: '',
+  });
+  const [isSavingPersona, setIsSavingPersona] = useState(false);
+  const [personaSavedNotice, setPersonaSavedNotice] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetch('/api/jarvis/persona')
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data) {
+            setPersona({
+              name: settings.managerName || data.name || 'Coach',
+              title: data.title || 'Personal AI Manager & Executive Chief of Staff',
+              tone: data.tone || 'Direct, supportive, calm, high-accountability, and strategic',
+              directnessLevel: typeof data.directnessLevel === 'number' ? data.directnessLevel : 4,
+              corePhilosophy: data.corePhilosophy || 'Action creates motivation, never the reverse.',
+              customDirectives: data.customDirectives || '',
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isOpen, settings.managerName]);
+
+  const handleSavePersona = async () => {
+    setIsSavingPersona(true);
+    try {
+      const res = await fetch('/api/jarvis/persona', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(persona),
+      });
+      if (res.ok) {
+        onUpdateSettings({ managerName: persona.name });
+        setPersonaSavedNotice(true);
+        setTimeout(() => setPersonaSavedNotice(false), 2500);
+      }
+    } catch (_) {}
+    setIsSavingPersona(false);
+  };
+
   const voices: { name: JarvisSettings['voiceName']; desc: string }[] = [
     { name: 'Zephyr', desc: 'Calm, refined, articulate English persona (Recommended)' },
     { name: 'Fenrir', desc: 'Deep, authoritative, tactical timbre' },
@@ -78,26 +126,88 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
         </div>
 
         <div className="flex-1 py-6 space-y-6">
-          {/* Personal Manager Settings */}
-          <div className="p-4 rounded-xl bg-[#091F16] border border-[#134E39] space-y-3">
-            <div className="flex items-center gap-2">
-              <UserCheck className="w-4 h-4 text-[#10B981]" />
-              <span className="text-xs font-semibold text-[#ECFDF5] tracking-wide">
-                PERSONAL MANAGER
-              </span>
+          {/* Personal Manager Persona Editor (Milestone 2) */}
+          <div className="p-4 rounded-xl bg-[#091F16] border border-[#134E39] space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <UserCheck className="w-4 h-4 text-[#10B981]" />
+                <span className="text-xs font-semibold text-[#ECFDF5] tracking-wide">
+                  PERSONAL MANAGER PERSONA
+                </span>
+              </div>
+              {personaSavedNotice && (
+                <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-semibold animate-pulse">
+                  ✓ SAVED
+                </span>
+              )}
             </div>
-            <p className="text-xs text-emerald-300/80 leading-relaxed">
-              Name of your personal manager and coach persona (default: "Coach"):
-            </p>
-            <div className="pt-1">
+
+            {/* Persona Name */}
+            <div className="space-y-1">
+              <label className="text-[11px] text-emerald-300 font-medium block">
+                Coach / Assistant Name
+              </label>
               <input
                 type="text"
-                value={settings.managerName || 'Coach'}
-                onChange={(e) => onUpdateSettings({ managerName: e.target.value })}
-                placeholder="e.g. Coach, Marcus, Sarah..."
+                value={persona.name}
+                onChange={(e) => setPersona({ ...persona, name: e.target.value })}
+                placeholder="e.g. Coach, Friday, Marcus, Sarah..."
                 className="w-full bg-[#06140F] border border-[#134E39] rounded-lg px-3 py-2 text-xs text-[#ECFDF5] placeholder-emerald-600 focus:outline-none focus:border-[#10B981]"
               />
             </div>
+
+            {/* Directness & Accountability Level */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] text-emerald-300 font-medium block">
+                Directness & Accountability Level
+              </label>
+              <div className="grid grid-cols-2 gap-1.5">
+                {[
+                  { level: 2, label: 'Gentle Mentor', desc: 'Patient & reflective' },
+                  { level: 3, label: 'Balanced Partner', desc: 'Supportive & structured' },
+                  { level: 4, label: 'Tactical Coach', desc: 'Direct & actionable' },
+                  { level: 5, label: 'Chief of Staff', desc: 'High directness, zero fluff' },
+                ].map((item) => (
+                  <button
+                    key={item.level}
+                    type="button"
+                    onClick={() => setPersona({ ...persona, directnessLevel: item.level })}
+                    className={`p-2 rounded-lg text-left border transition-all ${
+                      persona.directnessLevel === item.level
+                        ? 'bg-[#10B981]/15 border-[#10B981] text-[#ECFDF5]'
+                        : 'bg-[#06140F] border-[#134E39] text-emerald-400/80 hover:border-emerald-600'
+                    }`}
+                  >
+                    <div className="text-xs font-semibold">{item.label}</div>
+                    <div className="text-[10px] text-emerald-500/80">{item.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Custom Rules & Directives */}
+            <div className="space-y-1">
+              <label className="text-[11px] text-emerald-300 font-medium block">
+                Custom Personal Directives
+              </label>
+              <textarea
+                value={persona.customDirectives}
+                onChange={(e) => setPersona({ ...persona, customDirectives: e.target.value })}
+                placeholder="e.g. Keep replies under 30 words. Always call out task delays. Never flatter."
+                rows={2}
+                className="w-full bg-[#06140F] border border-[#134E39] rounded-lg px-3 py-2 text-xs text-[#ECFDF5] placeholder-emerald-600 focus:outline-none focus:border-[#10B981] resize-none"
+              />
+            </div>
+
+            {/* Save Persona Button */}
+            <button
+              type="button"
+              onClick={handleSavePersona}
+              disabled={isSavingPersona}
+              className="w-full py-2 bg-[#10B981] hover:bg-emerald-600 text-black font-semibold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+            >
+              {isSavingPersona ? 'Saving...' : 'Save Persona Directives'}
+            </button>
           </div>
 
           {/* User Salutation Config */}
@@ -230,6 +340,74 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                   }`}
                 />
               </button>
+            </div>
+
+            {/* Continuous Wake-Word Detection Toggle */}
+            <div className="flex items-center justify-between pt-2 border-t border-[#134E39]/50">
+              <div className="space-y-0.5 pr-2">
+                <span className="text-xs font-medium text-[#ECFDF5]">
+                  Continuous Wake-Word ("Hey Jarvis")
+                </span>
+                <p className="text-[10px] text-emerald-400/80 leading-relaxed">
+                  Continuously listen for wake phrase and execute spoken commands without manual clicks.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  onUpdateSettings({
+                    enableWakeWord: settings.enableWakeWord !== undefined ? !settings.enableWakeWord : false,
+                  })
+                }
+                data-testid="wake-word-toggle"
+                className={`relative w-11 h-6 rounded-full shrink-0 transition-colors ${
+                  settings.enableWakeWord ?? true ? 'bg-[#10B981]' : 'bg-[#06140F] border border-[#134E39]'
+                }`}
+              >
+                <span
+                  className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${
+                    settings.enableWakeWord ?? true ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Configurable Wake Phrases */}
+            <div className="space-y-1.5 pt-1">
+              <label className="text-[11px] text-emerald-300 font-medium block">
+                Configured Wake Phrases (comma separated)
+              </label>
+              <input
+                type="text"
+                value={(settings.wakePhrases || ['hey jarvis', 'jarvis']).join(', ')}
+                onChange={(e) => {
+                  const phrases = e.target.value
+                    .split(',')
+                    .map((s) => s.trim().toLowerCase())
+                    .filter(Boolean);
+                  onUpdateSettings({ wakePhrases: phrases.length > 0 ? phrases : ['hey jarvis', 'jarvis'] });
+                }}
+                placeholder="e.g. hey jarvis, jarvis, computer"
+                className="w-full bg-[#06140F] border border-[#134E39] rounded-lg px-3 py-2 text-xs text-[#ECFDF5] placeholder-emerald-600 focus:outline-none focus:border-[#10B981]"
+              />
+            </div>
+
+            {/* Speech Pause Detection Threshold */}
+            <div className="space-y-1.5 pt-1">
+              <label className="text-[11px] text-emerald-300 font-medium block">
+                Speech Pause Threshold (Silence Cutoff)
+              </label>
+              <select
+                value={String(settings.silenceTimeoutMs || 2200)}
+                onChange={(e) => onUpdateSettings({ silenceTimeoutMs: Number(e.target.value) })}
+                className="w-full px-3 py-2 bg-[#06140F] border border-[#134E39] rounded-lg text-xs text-[#ECFDF5] focus:outline-none focus:border-[#10B981]"
+              >
+                <option value="1500">1.5 seconds (Quick)</option>
+                <option value="2000">2.0 seconds</option>
+                <option value="2200">2.2 seconds (Recommended)</option>
+                <option value="2500">2.5 seconds (Relaxed)</option>
+                <option value="3000">3.0 seconds (Long pause)</option>
+              </select>
             </div>
           </div>
 

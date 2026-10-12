@@ -3,22 +3,31 @@ import { motion } from 'motion/react';
 import { Mission } from '../../types/cbe.js';
 import { sound } from '../../utils/soundEffects.js';
 import { useReducedMotionPreference } from '../../utils/motion.js';
+import { Language, getSavedLanguage } from '../../utils/i18n.js';
 
 interface Props {
   mission: Mission;
   onStartMission: (missionId: string) => void;
   currentStep?: number;
   totalSteps?: number;
+  language?: Language;
 }
 
 export const HeroQuestCard: React.FC<Props> = ({
   mission,
   onStartMission,
   currentStep = 3,
-  totalSteps = 5
+  totalSteps = 5,
+  language = getSavedLanguage()
 }) => {
   const reducedMotion = useReducedMotionPreference();
   const progressPercent = Math.round((currentStep / totalSteps) * 100);
+
+  const isKiswahiliSubject = Boolean(
+    (mission as any).learningAreaId?.includes('kisw') ||
+    mission.subStrandId?.includes('kisw') ||
+    mission.id?.includes('kisw')
+  );
 
   return (
     <div className="relative overflow-hidden rounded-3xl border-2 border-emerald-400/50 bg-gradient-to-r from-emerald-950 via-teal-950 to-slate-950 p-6 md:p-8 shadow-2xl">
@@ -103,13 +112,8 @@ export const HeroQuestCard: React.FC<Props> = ({
           {/* Quest Title & Story Context */}
           <div>
             <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight">
-              {mission.title}
+              {isKiswahiliSubject && mission.swahiliTitle ? mission.swahiliTitle : mission.title}
             </h3>
-            {mission.swahiliTitle && (
-              <p className="text-xs text-emerald-300/80 italic mt-0.5">
-                {mission.swahiliTitle}
-              </p>
-            )}
           </div>
 
           <p className="text-xs md:text-sm text-emerald-100/90 leading-relaxed">
@@ -157,7 +161,7 @@ export const HeroQuestCard: React.FC<Props> = ({
               <div className="pointer-events-none absolute inset-0 -translate-x-full animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
             )}
 
-            <span>CONTINUE MISSION</span>
+            <span>{language === 'sw' ? 'ENDELEA NA SAFARI' : 'CONTINUE MISSION'}</span>
             <span className="group-hover:translate-x-1 transition-transform">🚀</span>
           </motion.button>
           <span className="text-[11px] text-emerald-400/80 font-medium mt-2">

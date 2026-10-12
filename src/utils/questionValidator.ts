@@ -38,31 +38,31 @@ export function validateQuestion(q: any): string | null {
     return `Invalid question type: "${q.type}"`;
   }
 
-  // 1. Multiple Choice / Image Label / Listen Choose
-  if (['MULTIPLE_CHOICE', 'IMAGE_LABEL', 'LISTEN_CHOOSE'].includes(q.type)) {
+  // 1. Multiple Choice / Scenario / Image Label / Listen Choose
+  if (['MULTIPLE_CHOICE', 'SCENARIO', 'IMAGE_LABEL', 'LISTEN_CHOOSE'].includes(q.type)) {
     if (!Array.isArray(q.options) || q.options.length < 2) {
-      return `MULTIPLE_CHOICE must have >= 2 options (found ${q.options ? q.options.length : 0})`;
+      return `${q.type} must have >= 2 options (found ${q.options ? q.options.length : 0})`;
     }
 
-    const key = q.correctOptionId || q.correctAnswer;
-    if (!key) {
-      return 'Missing correctOptionId or correctAnswer';
+    // Every option must be an object with non-empty id and text
+    for (let i = 0; i < q.options.length; i++) {
+      const opt = q.options[i];
+      if (!opt || typeof opt !== 'object' || !opt.id || typeof opt.id !== 'string' || !opt.id.trim()) {
+        return `Option ${i + 1} is missing a valid id`;
+      }
+      if (opt.text === undefined || opt.text === null || String(opt.text).trim() === '') {
+        return `Option ${opt.id} has empty text`;
+      }
     }
 
-    const keyStr = String(key).trim().toLowerCase();
-    const hasMatch = q.options.some((opt: any) => {
-      const optId = String(opt.id || '').trim().toLowerCase();
-      const optText = String(opt.text || '').trim().toLowerCase();
-      return (
-        optId === keyStr ||
-        optText === keyStr ||
-        optId === `opt-${keyStr}` ||
-        `opt-${optId}` === keyStr
-      );
-    });
+    // correctOptionId must exist and strictly match an option id
+    if (!q.correctOptionId || typeof q.correctOptionId !== 'string' || !q.correctOptionId.trim()) {
+      return 'Missing correctOptionId';
+    }
 
+    const hasMatch = q.options.some((opt: any) => opt.id === q.correctOptionId);
     if (!hasMatch) {
-      return `Answer key "${key}" does not match any option in [${q.options.map((o: any) => o.id || o.text).join(', ')}]`;
+      return `Answer key "${q.correctOptionId}" does not match any option id in [${q.options.map((o: any) => o.id).join(', ')}]`;
     }
   }
 

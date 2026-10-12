@@ -79,7 +79,18 @@ export function normalizeQuestion(q: Question): Question {
     }
   }
 
-  // 6. Normalize FILL_BLANK questions with options or correctAnswer
+  // 6. Normalize ORDERING questions with orderedItems array
+  if (normalized.type === 'ORDERING') {
+    if ((!normalized.options || normalized.options.length === 0) && Array.isArray((normalized as any).orderedItems)) {
+      normalized.options = (normalized as any).orderedItems.map((item: string, idx: number) => ({
+        id: `ord-${idx + 1}`,
+        text: String(item)
+      }));
+      normalized.correctOrderIds = (normalized.options || []).map((o: any) => o.id);
+    }
+  }
+
+  // 7. Normalize FILL_BLANK questions with options or correctAnswer
   if (normalized.type === 'FILL_BLANK') {
     if (!normalized.fillBlankAnswers || normalized.fillBlankAnswers.length === 0) {
       if (Array.isArray(normalized.options) && normalized.correctOptionId) {
@@ -89,6 +100,65 @@ export function normalizeQuestion(q: Question): Question {
         }
       } else if ((normalized as any).correctAnswer) {
         normalized.fillBlankAnswers = [String((normalized as any).correctAnswer)];
+      }
+    }
+  }
+
+  // 8. Normalize MATCHING questions (support snake_case matching_pairs or pairs)
+  if (normalized.type === 'MATCHING') {
+    if (!normalized.matchingPairs && (normalized as any).matching_pairs) {
+      normalized.matchingPairs = (normalized as any).matching_pairs;
+    } else if (!normalized.matchingPairs && (normalized as any).pairs) {
+      normalized.matchingPairs = (normalized as any).pairs;
+    }
+  }
+
+  // 9. Normalize IMAGE_LABEL: If no real image asset exists on disk or imageUrl is missing/placeholder, convert to MULTIPLE_CHOICE
+  if (normalized.type === 'IMAGE_LABEL') {
+    const data = normalized.imageLabelData;
+    const hasRealAsset = Boolean(
+      data?.imageUrl &&
+      !data.imageUrl.includes('placeholder') &&
+      !data.imageUrl.startsWith('/images/curriculum/')
+    );
+
+    // If no real asset exists, convert question into clean MULTIPLE_CHOICE
+    if (!hasRealAsset) {
+      normalized.type = 'MULTIPLE_CHOICE';
+
+      // Clean prompt: remove bracket references like [spot-leaf]
+      if (normalized.prompt) {
+        normalized.prompt = normalized.prompt.replace(/\[spot-[^\]]+\]/g, '').trim();
+      }
+
+      // Convert hotspots or existing options to clean QuestionOption[]
+      if (data?.hotspots && data.hotspots.length > 0) {
+        const rawHotspots = data.hotspots;
+        normalized.options = rawHotspots.map((spot: any, idx: number) => {
+          let labelText = '';
+          if (typeof spot.label === 'object' && spot.label !== null) {
+            labelText = spot.label.en || spot.label.sw || String(spot.label);
+          } else {
+            labelText = String(spot.label || `Option ${String.fromCharCode(65 + idx)}`);
+          }
+          // Remove bracket IDs or raw spot tags
+          labelText = labelText.replace(/\[spot-[^\]]+\]/g, '').trim();
+          return {
+            id: `opt-${idx + 1}`,
+            text: labelText
+          };
+        });
+
+        // Resolve correctOptionId: if previously 'spot-leaf' or index
+        if (normalized.correctOptionId) {
+          const matchSpotIdx = rawHotspots.findIndex((s: any) => s.id === normalized.correctOptionId);
+          if (matchSpotIdx !== -1) {
+            normalized.correctOptionId = `opt-${matchSpotIdx + 1}`;
+          }
+        }
+        if (!normalized.correctOptionId) {
+          normalized.correctOptionId = 'opt-1';
+        }
       }
     }
   }
@@ -107,45 +177,19 @@ export function evaluateAnswer(rawQ: Question, selectedAnswer: any): boolean {
 
   const q = normalizeQuestion(rawQ);
 
-  // 1. Multiple Choice, Image Label, Listen Choose
-  if (q.type === 'MULTIPLE_CHOICE' || q.type === 'IMAGE_LABEL' || q.type === 'LISTEN_CHOOSE') {
+  // 1. Multiple Choice, Scenario, Image Label, Listen Choose
+  if (
+    q.type === 'MULTIPLE_CHOICE' ||
+    q.type === 'SCENARIO' ||
+    q.type === 'IMAGE_LABEL' ||
+    q.type === 'LISTEN_CHOOSE'
+  ) {
+    if (!q.correctOptionId) return false;
     const ansStr = String(selectedAnswer).trim().toLowerCase();
+    const correctId = String(q.correctOptionId).trim().toLowerCase();
 
-    // Check direct ID match
-    if (q.correctOptionId && ansStr === String(q.correctOptionId).toLowerCase()) {
-      return true;
-    }
-
-    // Check letter code to number ID match ('opt-a' vs 'opt-1')
-    if (q.correctOptionId) {
-      const letterCode = q.correctOptionId.replace('opt-', '');
-      if (['a', 'b', 'c', 'd'].includes(letterCode)) {
-        const numId = `opt-${letterCode.charCodeAt(0) - 96}`;
-        if (ansStr === numId) return true;
-      }
-    }
-
-    // Check text match from options
-    if (Array.isArray(q.options)) {
-      const selectedOpt = q.options.find(
-        (o: any) => o.id === selectedAnswer || o.text?.trim().toLowerCase() === ansStr
-      );
-      const selectedText = selectedOpt ? selectedOpt.text.trim().toLowerCase() : ansStr;
-
-      // Check against correct option text
-      const correctOpt = q.options.find((o: any) => o.id === q.correctOptionId);
-      if (correctOpt && correctOpt.text.trim().toLowerCase() === selectedText) {
-        return true;
-      }
-
-      // Check against correctAnswer string
-      if ((q as any).correctAnswer) {
-        const expected = String((q as any).correctAnswer).trim().toLowerCase();
-        if (selectedText === expected) return true;
-      }
-    }
-
-    return false;
+    // Check by option ID strictly (no index- or letter-based guessing)
+    return ansStr === correctId;
   }
 
   // 2. True / False
@@ -287,7 +331,12 @@ export function resolveCorrectAnswerText(rawQ: Question): string {
   if (!rawQ) return '';
   const q = normalizeQuestion(rawQ);
 
-  if (q.type === 'MULTIPLE_CHOICE' || q.type === 'IMAGE_LABEL' || q.type === 'LISTEN_CHOOSE') {
+  if (
+    q.type === 'MULTIPLE_CHOICE' ||
+    q.type === 'SCENARIO' ||
+    q.type === 'IMAGE_LABEL' ||
+    q.type === 'LISTEN_CHOOSE'
+  ) {
     if (Array.isArray(q.options)) {
       const correctOpt = q.options.find((o: any) => o.id === q.correctOptionId);
       if (correctOpt?.text) {
@@ -297,10 +346,7 @@ export function resolveCorrectAnswerText(rawQ: Question): string {
     if ((q as any).correctAnswer) {
       return String((q as any).correctAnswer);
     }
-    if (Array.isArray(q.options) && q.options.length > 0) {
-      return q.options[0].text || 'Option A';
-    }
-    return 'Correct Answer';
+    return '';
   }
 
   if (q.type === 'TRUE_FALSE') {
@@ -328,9 +374,34 @@ export function resolveCorrectAnswerText(rawQ: Question): string {
     }
   }
 
+  if (q.type === 'MATCHING') {
+    const pairs = q.matchingPairs || (q as any).pairs;
+    if (Array.isArray(pairs) && pairs.length > 0) {
+      return pairs
+        .map((p: any) => `${p.leftText ?? p.left ?? ''} → ${p.rightText ?? p.right ?? ''}`)
+        .join(', ');
+    }
+  }
+
+  if (q.type === 'ORDERING') {
+    if (Array.isArray(q.correctOrderIds) && Array.isArray(q.options)) {
+      const texts = q.correctOrderIds.map(id => {
+        const found = q.options?.find((o: any) => o.id === id);
+        return found ? found.text : id;
+      });
+      return texts.join(' → ');
+    }
+    if (Array.isArray((q as any).correctOrder)) {
+      return (q as any).correctOrder.join(' → ');
+    }
+    if (Array.isArray((q as any).orderedItems)) {
+      return (q as any).orderedItems.join(' → ');
+    }
+  }
+
   if ((q as any).correctAnswer) {
     return String((q as any).correctAnswer);
   }
 
-  return 'Correct Answer';
+  return '';
 }

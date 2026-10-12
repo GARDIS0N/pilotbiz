@@ -3,6 +3,7 @@ import confetti from 'canvas-confetti';
 import { motion } from 'motion/react';
 import { sound } from '../../utils/soundEffects.js';
 import { useReducedMotionPreference } from '../../utils/motion.js';
+import { Language, getSavedLanguage } from '../../utils/i18n.js';
 
 interface Props {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface Props {
   nextLevelXp?: number;
   currentLevel: number;
   leveledUp?: boolean;
+  language?: Language;
 }
 
 export const CelebrationModal: React.FC<Props> = ({
@@ -27,7 +29,8 @@ export const CelebrationModal: React.FC<Props> = ({
   currentXp,
   nextLevelXp = 650,
   currentLevel,
-  leveledUp = false
+  leveledUp = false,
+  language = getSavedLanguage()
 }) => {
   const reducedMotion = useReducedMotionPreference();
 
@@ -126,7 +129,7 @@ export const CelebrationModal: React.FC<Props> = ({
           }}
           className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-base shadow-xl shadow-emerald-950/80 transition-all cursor-pointer min-h-[56px]"
         >
-          CONTINUE ➔
+          {language === 'sw' ? 'ENDELEA' : 'CONTINUE'} ➔
         </button>
       </motion.div>
     </div>

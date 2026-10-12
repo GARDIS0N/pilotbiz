@@ -7,6 +7,7 @@
 -- 1. Create Question Type Enum or Table if not exists
 CREATE TABLE IF NOT EXISTS public.questions (
   id TEXT PRIMARY KEY,
+  grade_id TEXT DEFAULT 'grade-4',
   sub_strand_id TEXT NOT NULL,
   type TEXT NOT NULL,
   prompt TEXT NOT NULL,
@@ -31,6 +32,8 @@ CREATE TABLE IF NOT EXISTS public.questions (
   created_at TIMESTAMPTZ NOT NULL DEFAULT TIMEZONE('utc'::text, NOW()),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT TIMEZONE('utc'::text, NOW())
 );
+
+ALTER TABLE public.questions ADD COLUMN IF NOT EXISTS grade_id TEXT DEFAULT 'grade-4';
 
 -- 2. Add CHECK Constraints for baseline content integrity
 ALTER TABLE public.questions DROP CONSTRAINT IF EXISTS chk_prompt_not_empty;

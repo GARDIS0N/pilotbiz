@@ -19,7 +19,15 @@ import {
   Trees,
   Church,
   Scroll,
-  HelpCircle
+  HelpCircle,
+  Heart,
+  Moon,
+  Hash,
+  Flame,
+  Trophy,
+  Star,
+  Languages,
+  TreePine
 } from 'lucide-react';
 
 interface Props {
@@ -69,7 +77,24 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string; size?: 
   Church,
   church: Church,
   Scroll,
-  scroll: Scroll
+  scroll: Scroll,
+  Heart,
+  heart: Heart,
+  Moon,
+  moon: Moon,
+  Hash,
+  hash: Hash,
+  Flame,
+  flame: Flame,
+  Trophy,
+  trophy: Trophy,
+  Star,
+  star: Star,
+  Languages,
+  languages: Languages,
+  TreePine,
+  treepine: TreePine,
+  'tree-pine': TreePine
 };
 
 // Check if string is an emoji

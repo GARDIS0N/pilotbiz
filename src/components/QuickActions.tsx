@@ -17,7 +17,9 @@ import {
   JarvisVoiceController,
   detectBrowserCapabilities,
   VoiceMode,
+  detectWakePhrase,
 } from '../utils/speechRecognition';
+import { playHudSound } from '../utils/audio';
 
 interface QuickActionsProps {
   onSendMessage: (text: string) => void;
@@ -39,6 +41,10 @@ interface QuickActionsProps {
   onStopAudioPlayback?: () => void;
   isConversationMode?: boolean;
   onToggleConversationMode?: (enabled: boolean) => void;
+  enableWakeWord?: boolean;
+  wakePhrases?: string[];
+  silenceTimeoutMs?: number;
+  onWakeWordAcknowledged?: () => void;
 }
 
 interface B30Command {
@@ -90,6 +96,10 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
   onStopAudioPlayback,
   isConversationMode = false,
   onToggleConversationMode,
+  enableWakeWord = true,
+  wakePhrases = ['hey jarvis', 'jarvis'],
+  silenceTimeoutMs = 2200,
+  onWakeWordAcknowledged,
 }) => {
   const [inputText, setInputText] = useState('');
   const [micState, setMicState] = useState<MicState>('idle');
@@ -116,6 +126,9 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
       lang: voiceLanguage,
       autoSend: autoSendVoice,
       mode: isConversationMode ? 'conversation' : 'single_command',
+      wakeWordEnabled: enableWakeWord,
+      wakePhrases,
+      silenceTimeoutMs,
       onStateChange: (state, message) => {
         setMicState(state);
         if (state === 'error' && message) {
@@ -138,6 +151,15 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
             onSendMessage(clean);
             setInputText('');
           }, 350);
+        }
+      },
+      onWakeWordDetected: (match) => {
+        if (match.isWakeOnly) {
+          playHudSound('ping');
+          setInputText('');
+          if (onWakeWordAcknowledged) {
+            onWakeWordAcknowledged();
+          }
         }
       },
       onError: (errMsg) => {
@@ -163,7 +185,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
       controller.destroy();
       voiceControllerRef.current = null;
     };
-  }, [voiceLanguage, onSendMessage, onStopAudioPlayback]);
+  }, [voiceLanguage, onSendMessage, onStopAudioPlayback, enableWakeWord, wakePhrases, silenceTimeoutMs, onWakeWordAcknowledged]);
 
   // Sync conversation mode setting
   useEffect(() => {
@@ -192,9 +214,12 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
         lang: voiceLanguage,
         autoSend: autoSendVoice,
         mode: isConversationMode ? 'conversation' : 'single_command',
+        wakeWordEnabled: enableWakeWord,
+        wakePhrases,
+        silenceTimeoutMs,
       });
     }
-  }, [voiceLanguage, autoSendVoice, isConversationMode]);
+  }, [voiceLanguage, autoSendVoice, isConversationMode, enableWakeWord, wakePhrases, silenceTimeoutMs]);
 
   // Close command menu when clicking outside
   useEffect(() => {
@@ -373,6 +398,18 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
               {isConversationMode ? 'ON' : 'OFF'}
             </span>
           </button>
+
+          {/* Wake Word Status Indicator */}
+          {enableWakeWord && (
+            <div
+              data-testid="wake-word-indicator"
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-mono font-semibold bg-[#091F16] border border-[#134E39] text-emerald-400/90"
+              title={`Wake phrase active: Say "${wakePhrases[0] || 'Hey Jarvis'}" to wake`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
+              <span>⚡ Wake: "{wakePhrases[0] || 'Hey Jarvis'}"</span>
+            </div>
+          )}
         </div>
 
         {/* Real-Time Voice State Pill (🔴 LISTENING, 🟡 PROCESSING, 🔵 JARVIS SPEAKING, ⚪ IDLE) */}

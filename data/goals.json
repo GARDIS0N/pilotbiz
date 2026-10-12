@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "id": "goal-test-1",
+      "title": "Launch SaaS MVP",
+      "whyItMatters": "Financial independence",
+      "targetDate": "2026-12-31",
+      "progress": 35,
+      "status": "Active",
+      "milestones": [
+        "Design wireframes",
+        "Build backend",
+        "Deploy to prod"
+      ],
+      "dailyAction": "Commit code daily"
+    }
+  ]
+}

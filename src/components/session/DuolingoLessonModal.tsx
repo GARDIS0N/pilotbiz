@@ -35,14 +35,7 @@ export const DuolingoLessonModal: React.FC<Props> = ({
   language = 'en'
 }) => {
   const getInitialHearts = (): number => {
-    try {
-      const stored = localStorage.getItem('jifuno_hearts');
-      if (stored !== null) {
-        const parsed = parseInt(stored, 10);
-        if (!isNaN(parsed) && parsed >= 0 && parsed <= 5) return parsed;
-      }
-    } catch (e) {}
-    return initialHearts ?? 5;
+    return Math.min(5, Math.max(1, initialHearts ?? 5));
   };
 
   const [loading, setLoading] = useState(true);
@@ -64,6 +57,7 @@ export const DuolingoLessonModal: React.FC<Props> = ({
   const [activeHint, setActiveHint] = useState<string | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [attemptId, setAttemptId] = useState<string>(() => `att_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`);
   const questionStartTime = React.useRef<number>(Date.now());
 
   // Hearts tracking (persisted and strictly consistent)
@@ -128,6 +122,7 @@ export const DuolingoLessonModal: React.FC<Props> = ({
   if (!isOpen || !missionId) return null;
 
   const currentQ = queue[0];
+  const isKisw = language === 'sw' || Boolean(missionId?.includes('kisw') || currentQ?.subStrandId?.includes('kisw'));
 
   // Answer validation and human-readable answer label from universal evaluator
   const checkIsCorrect = (q: Question, ans: any): boolean => {
@@ -183,20 +178,21 @@ export const DuolingoLessonModal: React.FC<Props> = ({
       sound.playIncorrect();
       setMistakesCount(prev => prev + 1);
 
-      // In Practice Mode, mistakes never cost hearts
-      if (!isPracticeMode) {
-        const nextHearts = Math.max(0, hearts - 1);
-        setHearts(nextHearts);
-        try {
-          localStorage.setItem('jifuno_hearts', String(nextHearts));
-        } catch (e) {}
-        if (onHeartsChange) {
-          onHeartsChange(nextHearts);
-        }
+      // Lose one heart only on a wrong answer (5 max, persistent in Supabase)
+      const nextHearts = Math.max(0, hearts - 1);
+      setHearts(nextHearts);
+      try {
+        localStorage.setItem('jifuno_hearts', String(nextHearts));
+      } catch (e) {}
+      if (onHeartsChange) {
+        onHeartsChange(nextHearts);
+      }
+      if (studentId) {
+        cbeApi.updateStudentHearts(studentId, nextHearts).catch(() => {});
+      }
 
-        if (nextHearts === 0) {
-          setIsOutOfHearts(true);
-        }
+      if (nextHearts === 0) {
+        setIsOutOfHearts(true);
       }
     }
   };
@@ -231,6 +227,7 @@ export const DuolingoLessonModal: React.FC<Props> = ({
     }
     setIsSpeaking(false);
     questionStartTime.current = Date.now();
+    setAttemptId(`att_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`);
   }, [currentQ?.id, isOpen]);
 
   const handleReadAloud = () => {
@@ -351,21 +348,17 @@ export const DuolingoLessonModal: React.FC<Props> = ({
     }
   }, [currentQ?.id, isComplete, loading, isTeaching]);
 
-  // Progress Bar: Fills smoothly as questions are answered and completed
-  const completedQuestions = Math.max(
-    0,
-    totalInitialCount - queue.length + (answerSubmitted && isCurrentCorrect ? 1 : 0)
-  );
+  // Progress Bar: Fills smoothly on each correct answer
   const progressPercent = Math.min(
     100,
-    Math.max(8, Math.round((completedQuestions / Math.max(1, totalInitialCount)) * 100))
+    Math.max(8, Math.round((solvedCount / Math.max(1, totalInitialCount)) * 100))
   );
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-slate-950 text-white select-none animate-fade-in overflow-hidden">
       {/* 1. Full-Screen Focus Top Bar */}
       <div className="px-4 md:px-8 py-3.5 border-b border-emerald-900/60 bg-slate-950/90 flex items-center justify-between gap-4 shrink-0">
-        {/* Close Button */}
+        {/* Close Button (56px touch target) */}
         <button
           type="button"
           onClick={() => {
@@ -374,7 +367,7 @@ export const DuolingoLessonModal: React.FC<Props> = ({
               onClose();
             }
           }}
-          className="text-gray-400 hover:text-white text-xl font-black p-1.5 rounded-xl hover:bg-slate-900 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+          className="w-14 h-14 min-w-[56px] min-h-[56px] text-gray-400 hover:text-white text-2xl font-black rounded-2xl hover:bg-slate-900 transition-all cursor-pointer flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
           aria-label="Exit Lesson"
         >
           ✕
@@ -390,34 +383,17 @@ export const DuolingoLessonModal: React.FC<Props> = ({
           />
         </div>
 
-        {/* Hearts HUD & Practice Mode Toggle */}
+        {/* Hearts HUD */}
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              sound.playClick();
-              setIsPracticeMode(prev => !prev);
-            }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-bold transition-all cursor-pointer ${
-              isPracticeMode
-                ? 'bg-emerald-950 border-emerald-400 text-emerald-300 ring-2 ring-emerald-400/40 shadow-sm'
-                : 'bg-slate-900 border-slate-700 text-gray-300 hover:border-slate-500 hover:text-white'
-            }`}
-            title={isPracticeMode ? 'Practice Mode: Infinite Hearts' : 'Enable Practice Mode (No heart loss)'}
-          >
-            <span>🛡️</span>
-            <span className="hidden sm:inline">{isPracticeMode ? 'Practice Mode' : 'Practice'}</span>
-          </button>
-
           <div
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border font-black text-sm transition-all ${
-              isPracticeMode
-                ? 'bg-emerald-950/60 border-emerald-500/60 text-emerald-300'
+            className={`flex items-center gap-2 px-4 py-2 rounded-2xl border-2 font-black text-base transition-all min-h-[56px] ${
+              hearts <= 1
+                ? 'bg-rose-950/70 border-rose-500 text-rose-300 animate-pulse'
                 : 'bg-rose-950/40 border-rose-700/60 text-rose-400'
             }`}
           >
-            <span>❤️</span>
-            <span>{isPracticeMode ? '∞' : hearts}</span>
+            <span className="text-xl">❤️</span>
+            <span className="text-base font-black">{hearts}</span>
           </div>
         </div>
       </div>
@@ -509,7 +485,9 @@ export const DuolingoLessonModal: React.FC<Props> = ({
                   </div>
                   <div>
                     <h3 className="text-xl font-black text-white">
-                      {teachCards[currentTeachCardIdx]?.heading?.[language] || teachCards[currentTeachCardIdx]?.heading?.en}
+                      {isKisw
+                        ? (teachCards[currentTeachCardIdx]?.heading?.sw || teachCards[currentTeachCardIdx]?.heading?.en)
+                        : (teachCards[currentTeachCardIdx]?.heading?.en || (teachCards[currentTeachCardIdx]?.heading as any))}
                     </h3>
                     <p className="text-xs text-emerald-400 font-bold">
                       {questTitle}
@@ -518,7 +496,9 @@ export const DuolingoLessonModal: React.FC<Props> = ({
                 </div>
 
                 <p className="text-base text-gray-200 leading-relaxed font-medium">
-                  {teachCards[currentTeachCardIdx]?.body?.[language] || teachCards[currentTeachCardIdx]?.body?.en}
+                  {isKisw
+                    ? (teachCards[currentTeachCardIdx]?.body?.sw || teachCards[currentTeachCardIdx]?.body?.en)
+                    : (teachCards[currentTeachCardIdx]?.body?.en || (teachCards[currentTeachCardIdx]?.body as any))}
                 </p>
 
                 {/* Worked Example */}
@@ -529,7 +509,9 @@ export const DuolingoLessonModal: React.FC<Props> = ({
                       <span>{language === 'sw' ? 'Mfano Uliofanywa' : 'Worked Example'}</span>
                     </span>
                     <p className="text-sm font-mono text-emerald-200 leading-relaxed">
-                      {teachCards[currentTeachCardIdx]?.workedExample?.[language] || teachCards[currentTeachCardIdx]?.workedExample?.en}
+                      {isKisw
+                        ? (teachCards[currentTeachCardIdx]?.workedExample?.sw || teachCards[currentTeachCardIdx]?.workedExample?.en)
+                        : (teachCards[currentTeachCardIdx]?.workedExample?.en || (teachCards[currentTeachCardIdx]?.workedExample as any))}
                     </p>
                   </div>
                 )}
@@ -573,12 +555,12 @@ export const DuolingoLessonModal: React.FC<Props> = ({
           ) : currentQ ? (
             /* Active Question Challenge */
             <div className="space-y-4 animate-fade-in pb-24 w-full">
-              {/* Question Header: Read Aloud + Single Hint Button (No Stars, No Badges, No Question X of Y) */}
+              {/* Question Header: Read Aloud + Single Hint Button with Coin Cost */}
               <div className="flex items-center justify-between gap-3 pt-1">
                 <button
                   type="button"
                   onClick={handleReadAloud}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border-2 font-bold text-xs transition-all cursor-pointer min-h-[40px] ${
+                  className={`flex items-center gap-2.5 px-5 py-3.5 rounded-2xl border-2 font-bold text-base transition-all cursor-pointer min-h-[56px] ${
                     isSpeaking
                       ? 'bg-emerald-500 text-slate-950 border-emerald-400 animate-pulse ring-2 ring-emerald-400/50'
                       : 'bg-slate-900 hover:bg-slate-800 text-white border-slate-700 hover:border-emerald-500'
@@ -586,36 +568,20 @@ export const DuolingoLessonModal: React.FC<Props> = ({
                   title={language === 'sw' ? 'Soma swali kwa sauti' : 'Read question aloud'}
                   aria-label="Read question aloud"
                 >
-                  <span className="text-base">{isSpeaking ? '🔊' : '🔉'}</span>
+                  <span className="text-xl">{isSpeaking ? '🔊' : '🔉'}</span>
                   <span>{isSpeaking ? (language === 'sw' ? 'Inasoma...' : 'Reading...') : (language === 'sw' ? 'Soma kwa Sauti' : 'Read Aloud')}</span>
                 </button>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleUseHint}
-                    disabled={answerSubmitted || Boolean(activeHint)}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-yellow-950/40 border-2 border-yellow-500/60 text-yellow-300 font-black text-xs hover:bg-yellow-950/80 transition-all cursor-pointer disabled:opacity-40 min-h-[40px]"
-                    title="Spend 1 Coin for a hint"
-                  >
-                    <span className="text-base">💡</span>
-                    <span>{language === 'sw' ? 'Dokezo (1 🪙)' : 'Hint (1 🪙)'}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      sound.playClick();
-                      setIsReportModalOpen(true);
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 border-2 border-slate-700 text-gray-300 hover:text-white hover:border-amber-500/60 font-bold text-xs transition-all cursor-pointer min-h-[40px]"
-                    title={language === 'sw' ? 'Ripoti tatizo na swali hili' : 'Report a problem with this question'}
-                    aria-label="Report a problem"
-                  >
-                    <span className="text-sm">🚩</span>
-                    <span>{language === 'sw' ? 'Ripoti' : 'Report'}</span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={handleUseHint}
+                  disabled={answerSubmitted || Boolean(activeHint)}
+                  className="flex items-center gap-2 px-5 py-3.5 rounded-2xl bg-yellow-950/40 border-2 border-yellow-500/60 text-yellow-300 font-black text-base hover:bg-yellow-950/80 transition-all cursor-pointer disabled:opacity-40 min-h-[56px]"
+                  title="Spend 1 Coin for a hint"
+                >
+                  <span className="text-xl">💡</span>
+                  <span>{language === 'sw' ? 'Dokezo (1 🪙)' : 'Hint (1 🪙)'}</span>
+                </button>
               </div>
 
               {/* Hint Drawer */}
@@ -649,6 +615,8 @@ export const DuolingoLessonModal: React.FC<Props> = ({
                   selectedAnswer={currentAnswer}
                   onSelectAnswer={setCurrentAnswer}
                   disabled={answerSubmitted}
+                  attemptId={attemptId}
+                  language={language}
                 />
               </QuestionErrorBoundary>
             </div>
@@ -696,16 +664,16 @@ export const DuolingoLessonModal: React.FC<Props> = ({
                   </motion.div>
                 )}
 
-                <div className="text-left space-y-1">
+                <div className="text-left space-y-1.5">
                   {isCurrentCorrect ? (
                     <>
                       <div className="flex items-center gap-2">
-                        <h4 className="text-base sm:text-lg font-black text-white">
+                        <h4 className="text-lg sm:text-xl font-black text-white">
                           Hongera!
                         </h4>
-                        <span className="text-sm">🎉</span>
+                        <span className="text-base">🎉</span>
                       </div>
-                      <p className="text-xs sm:text-sm text-emerald-200 font-medium leading-snug">
+                      <p className="text-sm sm:text-base text-emerald-200 font-medium leading-snug">
                         {getFirstSentence(currentQ?.explanation) || (language === 'sw' ? 'Umefanya vizuri sana! Endelea hivi!' : 'Great job! You found the right solution!')}
                       </p>
                       <p className="text-xs text-emerald-400 font-bold">
@@ -714,13 +682,13 @@ export const DuolingoLessonModal: React.FC<Props> = ({
                     </>
                   ) : (
                     <>
-                      <h4 className="text-base sm:text-lg font-black text-amber-300">
-                        {language === 'sw' ? 'Karibu upate! Jaribu tena' : 'Almost! Try again'}
+                      <h4 className="text-lg sm:text-xl font-black text-amber-300">
+                        {language === 'sw' ? 'Karibu upate!' : 'Almost!'}
                       </h4>
-                      <p className="text-xs sm:text-sm text-amber-200 font-bold">
+                      <p className="text-base sm:text-lg font-bold text-amber-200">
                         {language === 'sw' ? 'Jibu Sahihi' : 'Correct Answer'}: {getCorrectAnswerLabel(currentQ)}
                       </p>
-                      <p className="text-xs text-slate-100 font-medium leading-relaxed max-w-md">
+                      <p className="text-xs sm:text-sm text-slate-200 font-medium leading-relaxed max-w-md">
                         {getFirstSentence(currentQ?.explanation) || (language === 'sw' ? 'Kumbuka dokezo na jaribu tena mwishoni mwa somo.' : 'Think about the clues and try again at the end of the lesson.')}
                       </p>
                     </>
@@ -728,18 +696,18 @@ export const DuolingoLessonModal: React.FC<Props> = ({
                 </div>
               </div>
             ) : (
-              <div className="hidden sm:block text-xs text-gray-400 font-medium">
+              <div className="hidden sm:block text-xs sm:text-sm text-gray-400 font-medium">
                 {language === 'sw' ? 'Chagua jibu kisha kagua' : 'Select an answer to continue'}
               </div>
             )}
 
-            {/* Main Action Button (Min 56px height) */}
+            {/* Main Action Button (Min 56px height, 18px+ text) */}
             <div className="w-full sm:w-auto shrink-0">
               {answerSubmitted ? (
                 <button
                   type="button"
                   onClick={handleNextQuestion}
-                  className={`w-full sm:w-48 py-4 px-6 rounded-2xl font-black text-base shadow-xl transition-all cursor-pointer active:scale-95 min-h-[56px] ${
+                  className={`w-full sm:w-56 py-4 px-6 rounded-2xl font-black text-lg shadow-xl transition-all cursor-pointer active:scale-95 min-h-[56px] ${
                     isCurrentCorrect
                       ? 'bg-emerald-400 hover:bg-emerald-300 text-slate-950 shadow-emerald-500/30'
                       : 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/30'
@@ -752,7 +720,7 @@ export const DuolingoLessonModal: React.FC<Props> = ({
                   type="button"
                   disabled={currentAnswer === null || currentAnswer === undefined || currentAnswer === ''}
                   onClick={handleCheckAnswer}
-                  className={`w-full sm:w-48 py-4 px-6 rounded-2xl font-black text-base transition-all min-h-[56px] ${
+                  className={`w-full sm:w-56 py-4 px-6 rounded-2xl font-black text-lg transition-all min-h-[56px] ${
                     currentAnswer !== null && currentAnswer !== undefined && currentAnswer !== ''
                       ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/30 cursor-pointer active:scale-95'
                       : 'bg-slate-800 text-gray-500 cursor-not-allowed opacity-60'
@@ -794,7 +762,7 @@ export const DuolingoLessonModal: React.FC<Props> = ({
                 <button
                   type="button"
                   onClick={handleQuickRefill}
-                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm cursor-pointer shadow-lg active:scale-98 transition-all flex items-center justify-center gap-2 min-h-[52px]"
+                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm cursor-pointer shadow-lg active:scale-98 transition-all flex items-center justify-center gap-2 min-h-[56px]"
                 >
                   <span>✨</span>
                   <span>QUICK REVIEW TO REFILL (+5 ❤️)</span>
@@ -807,18 +775,18 @@ export const DuolingoLessonModal: React.FC<Props> = ({
                     setIsPracticeMode(true);
                     setIsOutOfHearts(false);
                   }}
-                  className="w-full py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border-2 border-emerald-500/60 text-emerald-300 font-black text-xs cursor-pointer shadow-md active:scale-98 transition-all flex items-center justify-center gap-2 min-h-[48px]"
+                  className="w-full py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border-2 border-emerald-500/60 text-emerald-300 font-black text-xs cursor-pointer shadow-md active:scale-98 transition-all flex items-center justify-center gap-2 min-h-[56px]"
                 >
-                  <span>🛡️</span>
-                  <span>CONTINUE IN PRACTICE MODE (∞ Hearts)</span>
+                  <span>♾️</span>
+                  <span>{language === 'sw' ? 'ENDELEA KWENYE HALI YA MAZOEZI (∞ Uhai)' : 'CONTINUE IN PRACTICE MODE (∞ Hearts)'}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-full py-2.5 rounded-2xl bg-transparent hover:bg-slate-800 text-gray-400 hover:text-white font-bold text-xs cursor-pointer transition-all"
+                  className="w-full py-3 rounded-2xl bg-transparent hover:bg-slate-800 text-gray-400 hover:text-white font-bold text-xs cursor-pointer transition-all min-h-[56px] flex items-center justify-center"
                 >
-                  RETURN TO HOME 🏠
+                  {language === 'sw' ? 'RUDI NYUMBANI 🏠' : 'RETURN TO HOME 🏠'}
                 </button>
               </div>
             </motion.div>

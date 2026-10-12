@@ -44,7 +44,7 @@ const testMcq: Question = {
 
 assert(evaluateAnswer(testMcq, 'opt-2') === true, 'MCQ evaluates correct option ID as true');
 assert(evaluateAnswer(testMcq, 'opt-1') === false, 'MCQ evaluates wrong option ID as false');
-assert(evaluateAnswer(testMcq, '12') === true, 'MCQ matches option text "12" as true');
+assert(evaluateAnswer(testMcq, '12') === false, 'MCQ rejects raw option text "12" under strict ID evaluation');
 assert(resolveCorrectAnswerText(testMcq) === '12', 'resolveCorrectAnswerText returns human label "12"');
 
 const testTf: Question = {

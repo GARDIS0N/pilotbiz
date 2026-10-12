@@ -3,6 +3,7 @@ import { Mission, Lesson, Question, LearningSessionResult } from '../../types/cb
 import { cbeApi } from '../../services/cbeApi.js';
 import { sound } from '../../utils/soundEffects.js';
 import { QuestionRenderer } from '../questions/QuestionRenderer.js';
+import { resolveCorrectAnswerText } from '../../utils/answerValidation.js';
 import { AITutorModal } from '../tutor/AITutorModal.js';
 import { CelebrationModal } from '../common/CelebrationModal.js';
 
@@ -216,8 +217,9 @@ export const LearningSessionModal: React.FC<Props> = ({
                   <div className="text-xs text-amber-400 font-bold uppercase tracking-wider">
                     Mission Briefing with {mission.characterName}
                   </div>
-                  <h2 className="text-xl font-black text-white">{mission.title}</h2>
-                  <p className="text-xs text-emerald-300/80 italic">{mission.swahiliTitle}</p>
+                  <h2 className="text-xl font-black text-white">
+                    {mission.id?.includes('kisw') && mission.swahiliTitle ? mission.swahiliTitle : mission.title}
+                  </h2>
                 </div>
               </div>
 
@@ -282,6 +284,7 @@ export const LearningSessionModal: React.FC<Props> = ({
                 selectedAnswer={currentAnswer}
                 onSelectAnswer={setCurrentAnswer}
                 disabled={stage === 'FEEDBACK'}
+                attemptId={`session_${mission?.id}_${currentIdx}`}
               />
 
               {/* Feedback Drawer */}
@@ -291,6 +294,9 @@ export const LearningSessionModal: React.FC<Props> = ({
                     <span className="text-lg">💡</span>
                     <span>Explanation & CBE Learning Concept:</span>
                   </div>
+                  <p className="text-xs sm:text-sm font-bold text-emerald-200">
+                    Correct Answer: {resolveCorrectAnswerText(currentQ)}
+                  </p>
                   <p className="text-xs md:text-sm text-emerald-100 leading-relaxed">
                     {lastFeedback.explanation}
                   </p>

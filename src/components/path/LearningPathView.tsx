@@ -20,18 +20,14 @@ interface Props {
   language?: 'en' | 'sw';
 }
 
-// Friendly speech bubble generation from Rafiki the Owl Mascot
-function getRafikiSpeech(
-  studentName: string,
-  subjectTitle: string,
-  isSwahili: boolean,
-  questTitle: string
-): string {
-  const firstName = studentName.split(' ')[0] || 'Learner';
-  if (isSwahili) {
-    return `Jambo ${firstName}! Karibu kwenye ${subjectTitle}. Leo tutajifunza "${questTitle}". Uko tayari kushinda?`;
+function getLocalized(val: any, lang: 'en' | 'sw' = 'en'): string {
+  if (!val) return '';
+  if (typeof val === 'string') return val;
+  if (typeof val === 'object') {
+    if (lang === 'sw') return val.sw || val.en || '';
+    return val.en || val.sw || '';
   }
-  return `Jambo ${firstName}! Ready for ${subjectTitle}? Let's explore "${questTitle}" together!`;
+  return String(val);
 }
 
 export const LearningPathView: React.FC<Props> = ({
@@ -45,15 +41,67 @@ export const LearningPathView: React.FC<Props> = ({
     return getCurriculumGrade(gradeId) || getCurriculumGrade('grade-4')!;
   }, [gradeId]);
 
+  const religiousStream = student.religiousStream || 'CRE';
+
+  // 1. Filter subjects strictly for learner's grade and family's chosen Religious Education stream
+  const filteredSubjects = useMemo(() => {
+    return grade.subjects
+      .filter(subj => {
+        // Exclude optional subjects by default so learner focuses on core CBC
+        if (subj.isOptional) return false;
+
+        // If subject has an explicit religious stream, filter to match family choice
+        if (subj.religiousEducationStream) {
+          return subj.religiousEducationStream === religiousStream;
+        }
+
+        return true;
+      })
+      .map(subj => {
+        // Customize Religious Education subject to reflect family choice (Christian, Islamic, Hindu)
+        const isRE =
+          subj.id.includes('-re-') ||
+          subj.id.startsWith('re-') ||
+          subj.title.en.toLowerCase().includes('religious education');
+
+        if (isRE) {
+          if (religiousStream === 'CRE') {
+            return {
+              ...subj,
+              title: { en: 'Christian Religious Education', sw: 'Elimu ya Dini ya Kikristo' },
+              icon: 'Church',
+              color: '#3b82f6'
+            };
+          }
+          if (religiousStream === 'IRE') {
+            return {
+              ...subj,
+              title: { en: 'Islamic Religious Education', sw: 'Elimu ya Dini ya Kiislamu' },
+              icon: 'Moon',
+              color: '#059669'
+            };
+          }
+          if (religiousStream === 'HRE') {
+            return {
+              ...subj,
+              title: { en: 'Hindu Religious Education', sw: 'Elimu ya Dini ya Kihindu' },
+              icon: 'Scroll',
+              color: '#d97706'
+            };
+          }
+        }
+        return subj;
+      });
+  }, [grade.subjects, religiousStream]);
+
   // Subject selection: default to first subject (e.g. Mathematics)
-  const subjects = grade.subjects;
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>(() => {
-    return subjects[0]?.id || 'g4-math';
+    return filteredSubjects[0]?.id || grade.subjects[0]?.id || 'la-math-g4';
   });
 
   const activeSubject = useMemo(() => {
-    return subjects.find(s => s.id === selectedSubjectId) || subjects[0];
-  }, [subjects, selectedSubjectId]);
+    return filteredSubjects.find(s => s.id === selectedSubjectId) || filteredSubjects[0] || grade.subjects[0];
+  }, [filteredSubjects, selectedSubjectId, grade.subjects]);
 
   // Flatten all quests in the active subject to calculate next uncompleted quest
   const subjectQuests = useMemo(() => {
@@ -88,9 +136,9 @@ export const LearningPathView: React.FC<Props> = ({
     return recommendNextLesson({
       gradeId,
       completedLessonIds: student.completedMissionIds,
-      preferredSubjectId: selectedSubjectId
+      preferredSubjectId: activeSubject?.id || selectedSubjectId
     });
-  }, [gradeId, student.completedMissionIds, selectedSubjectId]);
+  }, [gradeId, student.completedMissionIds, activeSubject?.id, selectedSubjectId]);
 
   // Find the authoritative NEXT lesson node (highlighted on the learning path)
   const nextLessonItem = useMemo(() => {
@@ -150,22 +198,91 @@ export const LearningPathView: React.FC<Props> = ({
     }
   };
 
-  // Sine wave offsets for the short winding node path
+  // Sine wave offsets for the zig-zag node path
   const OFFSETS = [0, -36, 36, -20, 20];
 
   const nextQuestTitle = activeSubject?.id?.includes('kisw')
-    ? nextLessonItem?.quest.title.sw || 'Kujifunza'
-    : nextLessonItem?.quest.title.en || 'Learning';
+    ? getLocalized(nextLessonItem?.quest.title, 'sw') || 'Kujifunza'
+    : getLocalized(nextLessonItem?.quest.title, 'en') || 'Learning';
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6 text-left py-2 px-3 sm:px-0">
-      {/* 1. Large Subject Icon Tiles (Mathematics, English, Kiswahili, Science) */}
-      <div className="space-y-2">
-        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block px-1">
-          {language === 'sw' ? 'Chagua Somo' : 'Learning Areas'}
-        </span>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {subjects.map(subj => {
+      {/* =========================================================================
+          1. ONE LARGE CONTINUE CARD DIRECTLY UNDER TOP BAR
+          Merges Rafiki mascot into the card with short speech bubble and big START button.
+          ========================================================================= */}
+      {nextLessonItem && (
+        <motion.div
+          initial={reducedMotion ? {} : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={springTransition}
+          className="w-full p-5 sm:p-6 rounded-3xl bg-slate-900/95 border-2 border-emerald-500/50 shadow-2xl space-y-4"
+        >
+          {/* Top Line: Subject Badge + Next Up Tag */}
+          <div className="flex items-center justify-between gap-3">
+            <span
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider text-slate-950 shadow-sm"
+              style={{ backgroundColor: activeSubject?.color || '#10b981' }}
+            >
+              <CurriculumIcon name={activeSubject?.icon || 'Calculator'} size={15} />
+              <span>{getLocalized(activeSubject?.title, language)}</span>
+            </span>
+
+            <span className="text-[11px] font-bold text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-800">
+              {language === 'sw' ? 'Somo Lifuatalo' : 'Next Up'}
+            </span>
+          </div>
+
+          {/* Lesson Title & Unit Context */}
+          <div>
+            <h2 className="text-xl sm:text-2xl font-black text-white leading-tight">
+              {nextQuestTitle}
+            </h2>
+            <p className="text-xs text-emerald-300 font-bold mt-1 line-clamp-1">
+              {activeStrand ? getLocalized(activeStrand.title, language) : ''}
+            </p>
+          </div>
+
+          {/* Merged Rafiki Avatar + Speech Bubble Inside Card */}
+          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-slate-950 border border-amber-500/40 shadow-inner">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-2xl shrink-0 shadow-md">
+              🦉
+            </div>
+            <p className="text-xs sm:text-sm text-amber-200 font-medium leading-relaxed">
+              "{language === 'sw' ? `Hebu tutatue "${nextQuestTitle}"!` : `Let's solve "${nextQuestTitle}"!`}"
+            </p>
+          </div>
+
+          {/* Big START Button (56px+ height, prominent, inviting) */}
+          <button
+            type="button"
+            onClick={handlePrimaryContinue}
+            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-lg shadow-xl shadow-emerald-500/30 transition-all cursor-pointer flex items-center justify-center gap-3 min-h-[56px] active:scale-98"
+          >
+            <span className="text-xl">▶</span>
+            <span>{language === 'sw' ? 'ANZA SOMO' : 'START LESSON'}</span>
+            <span className="text-xl">➔</span>
+          </button>
+        </motion.div>
+      )}
+
+      {/* =========================================================================
+          2. COMPACT HORIZONTAL SUBJECT SWITCHER
+          Small round icons with labels, distinct icon and color per subject.
+          ========================================================================= */}
+      <div className="space-y-1.5 pt-1">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+            {language === 'sw' ? 'Masomo ya Darasa' : 'Subjects'}
+          </span>
+          <span className="text-[11px] text-emerald-400 font-bold bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-800/60">
+            {getLocalized(grade.name, language)}
+          </span>
+        </div>
+
+        {/* Compact Horizontal Scroll Row */}
+        <div className="flex items-center gap-3 overflow-x-auto pb-2 pt-1 scrollbar-none px-1">
+          {filteredSubjects.map(subj => {
             const isSelected = subj.id === selectedSubjectId;
 
             return (
@@ -173,28 +290,33 @@ export const LearningPathView: React.FC<Props> = ({
                 key={subj.id}
                 type="button"
                 onClick={() => handleSelectSubject(subj.id)}
-                className={`p-3.5 sm:p-4 rounded-3xl border-2 flex flex-col items-center justify-center text-center gap-2.5 transition-all cursor-pointer min-h-[86px] active:scale-95 shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-400 ${
-                  isSelected
-                    ? 'bg-slate-900 shadow-xl scale-[1.02] ring-2 ring-emerald-400/80 border-emerald-400'
-                    : 'bg-slate-950/80 hover:bg-slate-900 border-slate-800/80 hover:border-slate-700'
-                }`}
-                style={{
-                  borderColor: isSelected ? subj.color : undefined,
-                  backgroundColor: isSelected ? `${subj.color}25` : undefined
-                }}
+                className="flex flex-col items-center gap-1.5 shrink-0 group cursor-pointer focus:outline-none"
                 aria-pressed={isSelected}
               >
+                {/* Small Round Icon (52px diameter) */}
                 <div
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center text-2xl shadow-inner shrink-0"
+                  className={`w-13 h-13 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-xl transition-all shadow-md ${
+                    isSelected
+                      ? 'ring-4 scale-105 shadow-lg'
+                      : 'bg-slate-900 border-2 border-slate-800 hover:border-slate-700 opacity-80 group-hover:opacity-100 group-hover:scale-102'
+                  }`}
                   style={{
-                    backgroundColor: `${subj.color}30`,
-                    color: subj.color
+                    backgroundColor: isSelected ? `${subj.color}35` : undefined,
+                    borderColor: isSelected ? subj.color : undefined,
+                    color: isSelected ? subj.color : '#94a3b8',
+                    boxShadow: isSelected ? `0 0 16px ${subj.color}40` : undefined
                   }}
                 >
-                  <CurriculumIcon name={subj.icon} size={24} />
+                  <CurriculumIcon name={subj.icon} size={22} />
                 </div>
-                <span className="text-xs sm:text-sm font-black text-white leading-tight">
-                  {language === 'sw' ? subj.title.sw : subj.title.en}
+
+                {/* Small Clean Label */}
+                <span
+                  className={`text-[11px] font-bold text-center max-w-[76px] truncate leading-tight ${
+                    isSelected ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'
+                  }`}
+                >
+                  {getLocalized(subj.title, language)}
                 </span>
               </button>
             );
@@ -202,57 +324,9 @@ export const LearningPathView: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* 2. Rafiki Owl Mascot Guide (Speech Bubble Instead of Badges) */}
-      <motion.div
-        initial={reducedMotion ? {} : { opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={springTransition}
-        className="flex items-center gap-3.5 p-4 rounded-3xl bg-slate-900/90 border border-amber-500/40 shadow-xl"
-      >
-        <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-3xl shrink-0 shadow-lg select-none animate-pulse">
-          🦉
-        </div>
-        <div className="relative flex-1 bg-slate-950 border border-amber-400/40 rounded-2xl p-3 sm:p-3.5 text-xs sm:text-sm text-amber-100 font-medium shadow-inner">
-          {/* Arrow pointing to Rafiki */}
-          <div className="absolute -left-2 top-4 w-0 h-0 border-t-6 border-t-transparent border-b-6 border-b-transparent border-r-8 border-r-slate-950" />
-          <p className="leading-snug">
-            "{getRafikiSpeech(
-              student.fullName,
-              language === 'sw' ? activeSubject?.title.sw : activeSubject?.title.en,
-              language === 'sw',
-              nextQuestTitle
-            )}"
-          </p>
-        </div>
-      </motion.div>
-
-      {/* 3. ONE PRIMARY ACTION: Single Large Continue Button */}
-      {nextLessonItem && (
-        <motion.button
-          type="button"
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={handlePrimaryContinue}
-          className="w-full py-4.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-base sm:text-lg shadow-2xl shadow-emerald-500/30 transition-all cursor-pointer flex items-center justify-between gap-4 min-h-[60px] border-2 border-emerald-300/40"
-        >
-          <div className="flex items-center gap-3.5 text-left min-w-0">
-            <span className="w-10 h-10 rounded-xl bg-slate-950/20 flex items-center justify-center text-xl shrink-0">
-              ▶
-            </span>
-            <div className="min-w-0">
-              <span className="text-[11px] uppercase tracking-wider font-extrabold opacity-85 block truncate">
-                {language === 'sw' ? 'ENDELEA NA SOMO' : 'CONTINUE LESSON'}
-              </span>
-              <span className="text-sm sm:text-base font-black text-slate-950 block truncate">
-                {nextQuestTitle}
-              </span>
-            </div>
-          </div>
-          <span className="text-2xl font-black shrink-0">➔</span>
-        </motion.button>
-      )}
-
-      {/* 4. Unit Selector (Tabs for the Strands if more than one exists) */}
+      {/* =========================================================================
+          3. UNIT SELECTOR TABS (If multiple units exist in active subject)
+          ========================================================================= */}
       {activeSubject && activeSubject.strands.length > 1 && (
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none pt-1">
           {activeSubject.strands.map((strand, sIdx) => {
@@ -271,17 +345,21 @@ export const LearningPathView: React.FC<Props> = ({
                     : 'bg-slate-900/60 border-slate-800 text-gray-400 hover:text-gray-200'
                 }`}
               >
-                Unit {sIdx + 1}: {language === 'sw' ? strand.title.sw : strand.title.en}
+                Unit {sIdx + 1}: {getLocalized(strand.title, language)}
               </button>
             );
           })}
         </div>
       )}
 
-      {/* 5. Short Focused Path of Lesson Nodes (Active Unit: 3-5 Nodes) */}
+      {/* =========================================================================
+          4. LESSON PATH: ZIG-ZAG NODES GROUPED BY UNIT
+          Node states: locked (grey), current (large pulsing with START), completed (gold with stars).
+          Unit milestone trophy at the end.
+          ========================================================================= */}
       {activeStrand && (
         <div className="space-y-4 pt-2">
-          {/* Unit Header Card */}
+          {/* Unit Banner Header Card */}
           <div
             className="p-4 sm:p-5 rounded-3xl border-2 shadow-xl flex items-center justify-between gap-4"
             style={{
@@ -299,10 +377,10 @@ export const LearningPathView: React.FC<Props> = ({
                 {activeSubject.strands.findIndex(s => s.id === activeStrand.id) + 1}
               </span>
               <h3 className="text-base sm:text-lg font-black text-white mt-1">
-                {language === 'sw' ? activeStrand.title.sw : activeStrand.title.en}
+                {getLocalized(activeStrand.title, language)}
               </h3>
               <p className="text-xs text-gray-300 mt-1 line-clamp-1">
-                {language === 'sw' ? activeStrand.description.sw : activeStrand.description.en}
+                {getLocalized(activeStrand.description, language)}
               </p>
             </div>
 
@@ -317,7 +395,7 @@ export const LearningPathView: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Short Path Nodes Column */}
+          {/* Zig-Zag Lesson Nodes Column */}
           <div className="relative py-4 flex flex-col items-center">
             {strandQuests.map((item, idx) => {
               const { quest, isCompleted, isNext } = item;
@@ -330,7 +408,7 @@ export const LearningPathView: React.FC<Props> = ({
                   className="relative my-3 flex flex-col items-center"
                   style={{ transform: `translateX(${offsetPx}px)` }}
                 >
-                  {/* Interactive Node Button */}
+                  {/* Interactive Node Button with Distinct Visual States */}
                   <button
                     type="button"
                     disabled={!isAvailable}
@@ -338,24 +416,29 @@ export const LearningPathView: React.FC<Props> = ({
                       sound.playClick();
                       onStartQuest(quest.id);
                     }}
-                    className={`relative w-16 h-16 sm:w-18 sm:h-18 rounded-full flex flex-col items-center justify-center text-2xl font-black transition-all cursor-pointer shadow-xl focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-400 active:scale-95 ${
+                    className={`relative rounded-full flex flex-col items-center justify-center font-black transition-all cursor-pointer shadow-xl focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-400 active:scale-95 ${
                       isCompleted
-                        ? 'bg-amber-400 text-slate-950 border-4 border-amber-300 shadow-amber-500/25 hover:scale-105'
+                        ? 'w-16 h-16 sm:w-18 sm:h-18 bg-amber-400 text-slate-950 border-4 border-amber-300 shadow-amber-500/25 hover:scale-105'
                         : isNext
-                        ? 'bg-emerald-500 text-slate-950 border-4 border-emerald-300 shadow-emerald-500/40 animate-pulse hover:scale-105'
-                        : 'bg-slate-800 text-gray-500 border-4 border-slate-700 cursor-not-allowed opacity-60'
+                        ? 'w-18 h-18 sm:w-20 sm:h-20 bg-emerald-500 text-slate-950 border-4 border-emerald-300 shadow-emerald-500/50 animate-pulse hover:scale-105 ring-4 ring-emerald-400/30'
+                        : 'w-16 h-16 sm:w-18 sm:h-18 bg-slate-800 text-gray-500 border-4 border-slate-700 cursor-not-allowed opacity-60'
                     }`}
-                    aria-label={`${quest.title.en} - ${isCompleted ? 'Completed' : isNext ? 'Current' : 'Locked'}`}
+                    aria-label={`${getLocalized(quest.title, 'en')} - ${isCompleted ? 'Completed' : isNext ? 'Current' : 'Locked'}`}
                   >
                     {isCompleted ? (
                       <span className="text-xl">⭐</span>
                     ) : isNext ? (
-                      <span className="text-xl">▶</span>
+                      <div className="flex flex-col items-center">
+                        <span className="text-xl">▶</span>
+                        <span className="text-[9px] font-black tracking-wider uppercase bg-slate-950 text-emerald-300 px-1.5 py-0.5 rounded-full mt-0.5 border border-emerald-400/60 shadow">
+                          {language === 'sw' ? 'ANZA' : 'START'}
+                        </span>
+                      </div>
                     ) : (
                       <span className="text-base">🔒</span>
                     )}
 
-                    {/* Star badge for completed nodes */}
+                    {/* Gold stars badge for completed nodes */}
                     {isCompleted && (
                       <div className="absolute -bottom-2 flex items-center justify-center gap-0.5 bg-slate-900 border border-amber-400 rounded-full px-1.5 py-0.5 shadow-sm">
                         <span className="text-[9px] text-amber-400">⭐⭐⭐</span>
@@ -363,17 +446,17 @@ export const LearningPathView: React.FC<Props> = ({
                     )}
                   </button>
 
-                  {/* Clean Single-Language Node Label */}
+                  {/* Clean Node Label */}
                   <div className="text-center mt-2 max-w-[130px]">
                     <span className="text-[11px] font-bold text-gray-200 line-clamp-1 block">
-                      {activeSubject?.id?.includes('kisw') ? quest.title.sw : quest.title.en}
+                      {getLocalized(quest.title, activeSubject?.id?.includes('kisw') ? 'sw' : 'en')}
                     </span>
                   </div>
                 </div>
               );
             })}
 
-            {/* End of Unit Milestone Chest */}
+            {/* Unit Milestone Trophy at End of Unit */}
             <div className="relative my-4 flex flex-col items-center">
               <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border-2 border-amber-400/60 flex items-center justify-center text-3xl shadow-lg">
                 🏆
@@ -386,14 +469,17 @@ export const LearningPathView: React.FC<Props> = ({
         </div>
       )}
 
-      {/* 6. Savanna Quest (Positioned BELOW the Lesson Path) */}
+      {/* =========================================================================
+          5. SAVANNA QUEST (Below the Lesson Path)
+          Real-world Kenyan practice challenge.
+          ========================================================================= */}
       <div className="p-5 rounded-3xl bg-slate-950 border-2 border-amber-500/40 shadow-xl space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <span className="text-2xl">🦁</span>
             <div>
               <h4 className="text-sm font-black text-amber-300">
-                {language === 'sw' ? 'Safari ya Savanna: Safari ya Baraka' : 'Savanna Quest: Baraka in Kongowea'}
+                {language === 'sw' ? 'Safari ya Savanna: Baraka Kongowea' : 'Savanna Quest: Baraka in Kongowea'}
               </h4>
               <p className="text-xs text-gray-300">
                 {language === 'sw' ? 'Changamoto ya Bonasi ya Kenya' : 'Kenyan Real-World Practice Challenge'}
@@ -408,7 +494,7 @@ export const LearningPathView: React.FC<Props> = ({
         <p className="text-xs text-gray-300 leading-relaxed">
           {language === 'sw'
             ? 'Tumia ujuzi uliyojifunza kumsaidia Baraka kwenye soko la Kongowea kupima bidhaa na kupata sarafu za bonasi!'
-            : "Put your skills to work helping Baraka measure fresh produce at Kongowea Market and earn bonus Shilingi coins!"}
+            : 'Put your skills to work helping Baraka measure fresh produce at Kongowea Market and earn bonus Shilingi coins!'}
         </p>
 
         <button

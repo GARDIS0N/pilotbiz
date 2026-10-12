@@ -195,7 +195,10 @@ apiRouter.post('/game/submit-session', (req: Request, res: Response) => {
         is_correct: questionReviews.find((r: any) => r.questionId === ans.questionId)?.isCorrect ?? false,
         time_ms: (ans.timeSpentSeconds || 0) * 1000
       }));
-      supabase.from('attempts').insert(attemptRecords).catch(e => console.warn('[Batch Attempt Log Error]:', e));
+      supabase.from('attempts').insert(attemptRecords).then(
+        () => {},
+        (e: any) => console.warn('[Batch Attempt Log Error]:', e)
+      );
     }
 
     return res.json({
@@ -218,7 +221,7 @@ apiRouter.post('/check-answer', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Missing questionId or selectedAnswer' });
     }
 
-    const question = questionData || cbeDb.getQuestions().find(q => q.id === questionId);
+    const question = questionData || cbeDb.getQuestionById(questionId);
     if (!question) {
       return res.status(404).json({ error: 'Question not found' });
     }
@@ -532,6 +535,19 @@ apiRouter.post('/game/shop/buy', (req: Request, res: Response) => {
   } else {
     return res.status(400).json({ success: false, error: 'Not enough coins or invalid item!' });
   }
+});
+
+apiRouter.post('/game/student/hearts', (req: Request, res: Response) => {
+  const { studentId, hearts } = req.body as { studentId: string; hearts: number };
+  if (!studentId || typeof hearts !== 'number') {
+    return res.status(400).json({ error: 'studentId and hearts required' });
+  }
+  const safeHearts = Math.min(5, Math.max(0, hearts));
+  const student = cbeDb.getStudentProfile(studentId);
+  if (student) {
+    cbeDb.updateStudent(student.id, { hearts: safeHearts });
+  }
+  return res.json({ success: true, hearts: safeHearts });
 });
 
 // -------------------------------------------------------------

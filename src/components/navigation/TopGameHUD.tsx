@@ -4,6 +4,8 @@ import { StudentProfile } from '../../types/cbe.js';
 import { sound } from '../../utils/soundEffects.js';
 import { StreakFlame } from '../common/StreakFlame.js';
 
+import { JifunoLogo } from '../common/JifunoLogo.js';
+
 interface Props {
   student: StudentProfile;
   onOpenShop?: () => void;
@@ -28,60 +30,74 @@ export const TopGameHUD: React.FC<Props> = ({
 
   return (
     <>
-      {/* Top Strip HUD (Streak & Hearts Only) */}
+      {/* Top Strip HUD (Logo, Streak & Hearts Only - Nothing Else) */}
       <header className="sticky top-0 z-30 bg-slate-950/95 backdrop-blur-md border-b border-emerald-900/60 px-3 sm:px-6 py-2.5 transition-all">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
-          {/* Streak Flame + Daily Goal Ring */}
-          <button
-            type="button"
-            onClick={() => handleMetricClick('STREAK')}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-amber-950/40 border border-amber-600/50 hover:border-amber-400 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 group active:scale-95"
-            aria-label={`Streak: ${student.streakDays} days. Daily goal: 70%. Tap for info.`}
-          >
-            <StreakFlame streakDays={student.streakDays} streakFrozen={student.streakFrozen} />
-            <span className="text-xs sm:text-sm font-black text-amber-400 group-hover:text-amber-300">
-              {student.streakDays}
-            </span>
-
-            {/* Small Circular Progress Ring for Daily Goal */}
-            <div className="relative w-5 h-5 shrink-0 ml-0.5" title="Daily Goal: 70%">
-              <svg className="w-5 h-5 transform -rotate-90" viewBox="0 0 36 36">
-                <path
-                  className="text-slate-800"
-                  strokeWidth="4"
-                  stroke="currentColor"
-                  fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-                <path
-                  className="text-amber-400 transition-all duration-700"
-                  strokeDasharray="70, 100"
-                  strokeWidth="4"
-                  strokeLinecap="round"
-                  stroke="currentColor"
-                  fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-              </svg>
+          {/* Jifuno Logo (Left) */}
+          <div className="flex items-center gap-2 select-none shrink-0">
+            <JifunoLogo size="sm" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-base sm:text-lg font-black tracking-tight text-white">Jifuno</span>
+              <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.5 rounded-full border border-emerald-500/30 hidden xs:inline-block">
+                CBC
+              </span>
             </div>
-          </button>
+          </div>
 
-          {/* Hearts Energy */}
-          <button
-            type="button"
-            onClick={() => handleMetricClick('HEARTS')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 group active:scale-95 ${
-              student.hearts <= 1
-                ? 'bg-rose-950/60 border-rose-500 animate-pulse'
-                : 'bg-rose-950/30 border-rose-700/50 hover:border-rose-400'
-            }`}
-            aria-label={`Hearts: ${student.hearts} of ${student.maxHearts}. Tap for info.`}
-          >
-            <span className="text-sm sm:text-base select-none">❤️</span>
-            <span className="text-xs sm:text-sm font-black text-rose-400 group-hover:text-rose-300">
-              {student.hearts}/{student.maxHearts}
-            </span>
-          </button>
+          {/* Stats: Streak with Small Daily Goal Ring + Hearts HUD (Right) */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Streak Flame + Daily Goal Ring */}
+            <button
+              type="button"
+              onClick={() => handleMetricClick('STREAK')}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-amber-950/40 border border-amber-600/50 hover:border-amber-400 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 group active:scale-95"
+              aria-label={`Streak: ${student.streakDays} days. Daily goal: 70%. Tap for info.`}
+            >
+              <StreakFlame streakDays={student.streakDays} streakFrozen={student.streakFrozen} />
+              <span className="text-xs sm:text-sm font-black text-amber-400 group-hover:text-amber-300">
+                {student.streakDays}
+              </span>
+
+              {/* Small Circular Progress Ring for Daily Goal (Hidden as a small ring beside streak) */}
+              <div className="relative w-5 h-5 shrink-0 ml-0.5" title="Daily Goal: 70%">
+                <svg className="w-5 h-5 transform -rotate-90" viewBox="0 0 36 36">
+                  <path
+                    className="text-slate-800"
+                    strokeWidth="4"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                  <path
+                    className="text-amber-400 transition-all duration-700"
+                    strokeDasharray="70, 100"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                </svg>
+              </div>
+            </button>
+
+            {/* Hearts Energy */}
+            <button
+              type="button"
+              onClick={() => handleMetricClick('HEARTS')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 group active:scale-95 ${
+                student.hearts <= 1
+                  ? 'bg-rose-950/60 border-rose-500 animate-pulse'
+                  : 'bg-rose-950/30 border-rose-700/50 hover:border-rose-400'
+              }`}
+              aria-label={`Hearts: ${student.hearts} of ${student.maxHearts}. Tap for info.`}
+            >
+              <span className="text-sm sm:text-base select-none">❤️</span>
+              <span className="text-xs sm:text-sm font-black text-rose-400 group-hover:text-rose-300">
+                {student.hearts}/{student.maxHearts}
+              </span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -190,7 +206,7 @@ export const TopGameHUD: React.FC<Props> = ({
                         }}
                         className="w-full py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-yellow-400 font-bold text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
                       >
-                        <span>{language === 'sw' ? 'TEMBELEA DUKANI' : 'VISIT DUKANI SHOP'}</span>
+                        <span>{language === 'sw' ? 'TEMBELEA DUKANI' : 'VISIT DUKANI'}</span>
                         <span>🏬</span>
                       </button>
                     )}

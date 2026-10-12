@@ -261,28 +261,60 @@ BEGIN
   WHERE learner_id = p_anon_learner_id;
 
   -- 2. Merge Review Queue
+  DELETE FROM public.review_queue
+  WHERE learner_id = p_anon_learner_id
+    AND question_id IN (
+      SELECT question_id FROM public.review_queue WHERE learner_id = p_target_learner_id
+    );
+
   UPDATE public.review_queue 
   SET learner_id = p_target_learner_id 
-  WHERE learner_id = p_anon_learner_id
-  ON CONFLICT (learner_id, question_id) DO NOTHING;
+  WHERE learner_id = p_anon_learner_id;
 
   -- 3. Merge Lesson Progress
+  UPDATE public.lesson_progress target
+  SET
+    completed = target.completed OR anon.completed,
+    stars = GREATEST(target.stars, anon.stars),
+    score_percentage = GREATEST(target.score_percentage, anon.score_percentage),
+    attempts_count = target.attempts_count + anon.attempts_count,
+    last_attempted_at = GREATEST(target.last_attempted_at, anon.last_attempted_at)
+  FROM public.lesson_progress anon
+  WHERE anon.learner_id = p_anon_learner_id
+    AND target.learner_id = p_target_learner_id
+    AND target.lesson_id = anon.lesson_id;
+
+  DELETE FROM public.lesson_progress
+  WHERE learner_id = p_anon_learner_id
+    AND lesson_id IN (
+      SELECT lesson_id FROM public.lesson_progress WHERE learner_id = p_target_learner_id
+    );
+
   UPDATE public.lesson_progress 
   SET learner_id = p_target_learner_id 
-  WHERE learner_id = p_anon_learner_id
-  ON CONFLICT (learner_id, lesson_id) DO UPDATE SET
-    completed = EXCLUDED.completed,
-    stars = GREATEST(public.lesson_progress.stars, EXCLUDED.stars),
-    score_percentage = GREATEST(public.lesson_progress.score_percentage, EXCLUDED.score_percentage);
+  WHERE learner_id = p_anon_learner_id;
 
   -- 4. Merge Skill Mastery
+  UPDATE public.skill_mastery target
+  SET
+    mastery_percentage = GREATEST(target.mastery_percentage, anon.mastery_percentage),
+    total_attempts = target.total_attempts + anon.total_attempts,
+    correct_attempts = target.correct_attempts + anon.correct_attempts,
+    last_practiced_at = GREATEST(target.last_practiced_at, anon.last_practiced_at)
+  FROM public.skill_mastery anon
+  WHERE anon.learner_id = p_anon_learner_id
+    AND target.learner_id = p_target_learner_id
+    AND target.skill_id = anon.skill_id;
+
+  DELETE FROM public.skill_mastery
+  WHERE learner_id = p_anon_learner_id
+    AND skill_id IN (
+      SELECT skill_id FROM public.skill_mastery WHERE learner_id = p_target_learner_id
+    );
+
   UPDATE public.skill_mastery 
   SET learner_id = p_target_learner_id 
-  WHERE learner_id = p_anon_learner_id
-  ON CONFLICT (learner_id, skill_id) DO UPDATE SET
-    mastery_percentage = GREATEST(public.skill_mastery.mastery_percentage, EXCLUDED.mastery_percentage),
-    total_attempts = public.skill_mastery.total_attempts + EXCLUDED.total_attempts,
-    correct_attempts = public.skill_mastery.correct_attempts + EXCLUDED.correct_attempts;
+  WHERE learner_id = p_anon_learner_id;
 
   RETURN jsonb_build_object(
     'success', true,

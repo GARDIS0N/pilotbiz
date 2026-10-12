@@ -303,5 +303,9 @@ export interface JarvisSettings {
   chatMode?: ChatMode;
   voiceLanguage?: string; // default: "en-US"
   autoSendVoice?: boolean; // default: true
+  enableWakeWord?: boolean; // default: true
+  wakePhrases?: string[]; // default: ['hey jarvis', 'jarvis']
+  silenceTimeoutMs?: number; // default: 2200
+  bargeInEnabled?: boolean; // default: true
 }
 

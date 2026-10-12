@@ -29,7 +29,7 @@ async function status() {
     if (head === 1 && workdir === 1 && stage === 1) continue;
 
     for (const pat of blockedPatterns) {
-      if (pat.test(path.basename(filepath))) {
+      if (pat.test(path.basename(filepath)) && path.basename(filepath) !== '.env.example') {
         throw new Error(`SECURITY ALERT: Blocked sensitive file detected in status: ${filepath}`);
       }
     }
@@ -52,7 +52,7 @@ async function stageAll() {
     if (head === 1 && workdir === 1 && stage === 1) continue;
 
     for (const pat of blockedPatterns) {
-      if (pat.test(path.basename(filepath))) {
+      if (pat.test(path.basename(filepath)) && path.basename(filepath) !== '.env.example') {
         throw new Error(`SECURITY ALERT: Attempting to stage sensitive file: ${filepath}`);
       }
     }
