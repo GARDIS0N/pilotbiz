@@ -31,6 +31,9 @@ export interface User {
   studentProfileId?: string;
   parentProfileId?: string;
   teacherProfileId?: string;
+  // Legal consent tracking (Terms & Privacy under Kenya Data Protection Act)
+  consentAgreedAt?: string;
+  consentVersion?: string;
 }
 
 export interface StudentProfile {

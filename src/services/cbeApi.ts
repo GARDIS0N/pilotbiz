@@ -128,6 +128,8 @@ class CbeApiService {
     county?: string;
     schoolName?: string;
     avatar?: string;
+    consentAgreedAt?: string;
+    consentVersion?: string;
   }): Promise<{ success: boolean; user: User }> {
     try {
       return await this.request('/api/auth/register', {
@@ -143,7 +145,9 @@ class CbeApiService {
           email: payload.email,
           role: payload.role || 'STUDENT',
           avatar: payload.avatar || 'cheetah',
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          consentAgreedAt: payload.consentAgreedAt,
+          consentVersion: payload.consentVersion
         }
       };
     }

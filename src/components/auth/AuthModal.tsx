@@ -3,6 +3,7 @@ import { User, UserRole, Grade } from '../../types/cbe.js';
 import { cbeApi } from '../../services/cbeApi.js';
 import { sound } from '../../utils/soundEffects.js';
 import { AVATARS } from '../../utils/avatars.js';
+import { LEGAL_VERSION } from '../../content/legal/constants.js';
 
 interface Props {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface Props {
   onAuthSuccess: (user: User) => void;
   onOpenLoginPage?: () => void;
   onLogout?: () => void;
+  onNavigateLegal?: (doc: 'privacy' | 'terms') => void;
 }
 
 const KENYAN_COUNTIES = [
@@ -26,7 +28,8 @@ export const AuthModal: React.FC<Props> = ({
   grades,
   onAuthSuccess,
   onOpenLoginPage,
-  onLogout
+  onLogout,
+  onNavigateLegal
 }) => {
   const [mode, setMode] = useState<'QUICK_SWITCH' | 'REGISTER' | 'LOGIN'>('QUICK_SWITCH');
   const [role, setRole] = useState<UserRole>('STUDENT');
@@ -36,6 +39,7 @@ export const AuthModal: React.FC<Props> = ({
   const [county, setCounty] = useState('Nakuru');
   const [schoolName, setSchoolName] = useState('Simba Primary Academy');
   const [selectedAvatar, setSelectedAvatar] = useState('cheetah');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -59,6 +63,10 @@ export const AuthModal: React.FC<Props> = ({
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!agreedToTerms) {
+      setErrorMsg('Please confirm parental consent and agree to the Terms of Service and Privacy Policy.');
+      return;
+    }
     try {
       sound.playClick();
       setLoading(true);
@@ -70,7 +78,9 @@ export const AuthModal: React.FC<Props> = ({
         gradeId,
         county,
         schoolName: schoolName.trim(),
-        avatar: selectedAvatar
+        avatar: selectedAvatar,
+        consentAgreedAt: new Date().toISOString(),
+        consentVersion: LEGAL_VERSION
       });
       sound.playCorrect();
       onAuthSuccess(res.user);
@@ -347,10 +357,53 @@ export const AuthModal: React.FC<Props> = ({
               </div>
             </div>
 
+            {/* Legal & Parental Consent Checkbox (Kenya Data Protection Act, 2019) */}
+            <div className="pt-1">
+              <label className="flex items-start gap-2.5 cursor-pointer text-left select-none">
+                <input
+                  type="checkbox"
+                  required
+                  checked={agreedToTerms}
+                  onChange={e => setAgreedToTerms(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded border-emerald-800 bg-slate-950 text-emerald-500 focus:ring-emerald-400 focus:ring-offset-slate-900 cursor-pointer accent-emerald-500 shrink-0"
+                />
+                <span className="text-[11px] leading-relaxed text-gray-300">
+                  I am a parent or guardian, or I have my parent or guardian&apos;s permission, and I agree to the{' '}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      sound.playClick();
+                      onClose();
+                      if (onNavigateLegal) onNavigateLegal('terms');
+                      else window.location.href = '/terms';
+                    }}
+                    className="text-emerald-400 hover:text-emerald-300 underline font-semibold cursor-pointer inline"
+                  >
+                    Terms of Service
+                  </button>{' '}
+                  and{' '}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      sound.playClick();
+                      onClose();
+                      if (onNavigateLegal) onNavigateLegal('privacy');
+                      else window.location.href = '/privacy';
+                    }}
+                    className="text-emerald-400 hover:text-emerald-300 underline font-semibold cursor-pointer inline"
+                  >
+                    Privacy Policy
+                  </button>.
+                </span>
+              </label>
+            </div>
+
             <button
               type="submit"
-              disabled={loading}
-              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm shadow-xl transition-all cursor-pointer"
+              disabled={loading || !agreedToTerms}
+              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm shadow-xl transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               START YOUR JIFUNO JOURNEY 🚀
             </button>
@@ -383,7 +436,7 @@ export const AuthModal: React.FC<Props> = ({
         )}
 
         {onOpenLoginPage && (
-          <div className="pt-2 border-t border-slate-800 text-center">
+          <div className="pt-2 border-t border-slate-800 text-center space-y-2">
             <button
               type="button"
               onClick={() => {
@@ -397,6 +450,35 @@ export const AuthModal: React.FC<Props> = ({
             </button>
           </div>
         )}
+
+        {/* Legal links footer */}
+        <div className="flex items-center justify-center gap-3 text-[11px] text-gray-400 pt-1 border-t border-slate-800/80">
+          <button
+            type="button"
+            onClick={() => {
+              sound.playClick();
+              onClose();
+              if (onNavigateLegal) onNavigateLegal('privacy');
+              else window.location.href = '/privacy';
+            }}
+            className="hover:text-emerald-400 underline cursor-pointer"
+          >
+            Privacy Policy
+          </button>
+          <span>•</span>
+          <button
+            type="button"
+            onClick={() => {
+              sound.playClick();
+              onClose();
+              if (onNavigateLegal) onNavigateLegal('terms');
+              else window.location.href = '/terms';
+            }}
+            className="hover:text-emerald-400 underline cursor-pointer"
+          >
+            Terms of Service
+          </button>
+        </div>
       </div>
     </div>
   );

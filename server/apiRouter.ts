@@ -79,7 +79,9 @@ apiRouter.post('/auth/register', (req: Request, res: Response) => {
     role: role as UserRole,
     avatar,
     createdAt: new Date().toISOString(),
-    studentProfileId: role === 'STUDENT' ? newStudentId : undefined
+    studentProfileId: role === 'STUDENT' ? newStudentId : undefined,
+    consentAgreedAt: req.body.consentAgreedAt || new Date().toISOString(),
+    consentVersion: req.body.consentVersion || '2026-10-12'
   };
 
   cbeDb.createUser(newUser);

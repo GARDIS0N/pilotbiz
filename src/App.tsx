@@ -12,6 +12,7 @@ import { AuthModal } from './components/auth/AuthModal.js';
 import { AITutorModal } from './components/tutor/AITutorModal.js';
 import { LoginPage } from './components/auth/LoginPage.js';
 import { OnboardingFlow } from './components/onboarding/OnboardingFlow.js';
+import { LegalPage } from './components/legal/LegalPage.js';
 import {
   isReturningUser,
   getPersistedUserProfile,
@@ -19,6 +20,14 @@ import {
   clearPersistedUserProfile,
   markOnboardingCompleted
 } from './services/onboardingStorage.js';
+
+function getInitialLegalDoc(): 'privacy' | 'terms' | null {
+  if (typeof window === 'undefined') return null;
+  const path = window.location.pathname.toLowerCase();
+  if (path === '/privacy' || path.startsWith('/privacy/')) return 'privacy';
+  if (path === '/terms' || path.startsWith('/terms/')) return 'terms';
+  return null;
+}
 
 const getPersistedHearts = (fallback = 5): number => {
   try {
@@ -132,6 +141,33 @@ export function App() {
   // Global AI Tutor Modal
   const [isGlobalTutorOpen, setIsGlobalTutorOpen] = useState(false);
 
+  // Legal Document Route (/privacy, /terms)
+  const [legalDoc, setLegalDoc] = useState<'privacy' | 'terms' | null>(() => getInitialLegalDoc());
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setLegalDoc(getInitialLegalDoc());
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigateToLegal = (target: 'privacy' | 'terms' | 'app') => {
+    if (target === 'app') {
+      setLegalDoc(null);
+      if (window.location.pathname === '/privacy' || window.location.pathname === '/terms') {
+        window.history.pushState({}, '', '/');
+      }
+    } else {
+      setLegalDoc(target);
+      const newPath = target === 'privacy' ? '/privacy' : '/terms';
+      if (window.location.pathname !== newPath) {
+        window.history.pushState({}, '', newPath);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   useEffect(() => {
     initApp();
   }, []);
@@ -242,6 +278,16 @@ export function App() {
     }
   });
 
+  // 0. Public Legal Pages (/privacy, /terms) - readable without logging in
+  if (legalDoc) {
+    return (
+      <LegalPage
+        documentType={legalDoc}
+        onNavigate={navigateToLegal}
+      />
+    );
+  }
+
   if (!isSupabaseConfigured() && !dismissUnconfigured) {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 text-center selection:bg-emerald-500 selection:text-black">
@@ -303,6 +349,7 @@ export function App() {
         onCompleteOnboarding={handleCompleteOnboarding}
         onOpenLogin={() => setCurrentView('LOGIN')}
         language={uiLanguage}
+        onNavigateLegal={(doc) => navigateToLegal(doc)}
       />
     );
   }
@@ -334,6 +381,7 @@ export function App() {
             setCurrentView('ONBOARDING');
           }
         }}
+        onNavigateLegal={(doc) => navigateToLegal(doc)}
       />
     );
   }
@@ -498,6 +546,7 @@ export function App() {
             onOpenTutor={() => setIsGlobalTutorOpen(true)}
             language={uiLanguage}
             onToggleLanguage={handleToggleLanguage}
+            onNavigateLegal={(doc) => navigateToLegal(doc)}
           />
         ) : currentUser?.role === 'PARENT' ? (
           <ParentDashboard />
@@ -513,13 +562,30 @@ export function App() {
       </main>
 
       {/* Bottom Footer */}
-      <footer className="border-t border-emerald-950 bg-slate-950/80 px-4 py-4 text-center text-xs text-gray-500 space-y-1">
+      <footer className="border-t border-emerald-950 bg-slate-950/80 px-4 py-4 text-center text-xs text-gray-500 space-y-2">
         <p>
           🇰🇪 <strong className="text-gray-400">Jifuno</strong> • Learn. Play. Level Up. • Designed for Kenyan Competency-Based Education (CBE / CBC).
         </p>
         <p className="text-[11px] text-gray-600">
           Curriculum-aligned practice for Mathematics, Science & Tech, Kiswahili, and English. Content is strictly designed for educational practice and child safety.
         </p>
+        <div className="flex items-center justify-center gap-4 text-[11px] pt-1">
+          <button
+            type="button"
+            onClick={() => navigateToLegal('privacy')}
+            className="text-gray-400 hover:text-emerald-400 transition-colors underline cursor-pointer"
+          >
+            Privacy Policy
+          </button>
+          <span className="text-gray-700">•</span>
+          <button
+            type="button"
+            onClick={() => navigateToLegal('terms')}
+            className="text-gray-400 hover:text-emerald-400 transition-colors underline cursor-pointer"
+          >
+            Terms of Service
+          </button>
+        </div>
       </footer>
 
       {/* Duolingo Gamified CBE Lesson Modal */}
@@ -550,7 +616,14 @@ export function App() {
           markOnboardingCompleted();
           initApp();
         }}
-        onOpenLoginPage={() => setCurrentView('LOGIN')}
+        onOpenLoginPage={() => {
+          setIsAuthModalOpen(false);
+          setCurrentView('LOGIN');
+        }}
+        onNavigateLegal={(doc) => {
+          setIsAuthModalOpen(false);
+          navigateToLegal(doc);
+        }}
       />
 
       {/* Global Socratic AI Tutor Modal */}

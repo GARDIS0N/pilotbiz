@@ -21,11 +21,13 @@ import { Question, User, StudentProfile, LearningSessionResult } from '../../typ
 import { getRecommendedNextQuest } from '../../data/curriculum/index.js';
 import { DuolingoLessonModal } from '../session/DuolingoLessonModal.js';
 import { cbeApi } from '../../services/cbeApi.js';
+import { LEGAL_VERSION } from '../../content/legal/constants.js';
 
 interface Props {
   onCompleteOnboarding: (user: User, studentProfile: StudentProfile) => void;
   onOpenLogin: () => void;
   language?: 'en' | 'sw';
+  onNavigateLegal?: (doc: 'privacy' | 'terms') => void;
 }
 
 const GRADES = [
@@ -93,7 +95,8 @@ const GOALS = [
 export const OnboardingFlow: React.FC<Props> = ({
   onCompleteOnboarding,
   onOpenLogin,
-  language = 'en'
+  language = 'en',
+  onNavigateLegal
 }) => {
   const reducedMotion = useReducedMotionPreference();
 
@@ -253,7 +256,9 @@ export const OnboardingFlow: React.FC<Props> = ({
         role: 'STUDENT',
         gradeId: selectedGradeId,
         county: 'Nairobi',
-        schoolName: 'Primary School'
+        schoolName: 'Primary School',
+        consentAgreedAt: new Date().toISOString(),
+        consentVersion: LEGAL_VERSION
       });
 
       const baseStudent: StudentProfile = {
@@ -892,9 +897,67 @@ export const OnboardingFlow: React.FC<Props> = ({
                     className="mt-0.5 w-4 h-4 rounded text-emerald-500 focus:ring-emerald-400 bg-slate-950 border-slate-700 cursor-pointer shrink-0"
                   />
                   <span>
-                    {language === 'sw'
-                      ? 'Nina idhini kutoka kwa mzazi au mlezi wangu ya kujifunza kwenye Jifuno.'
-                      : 'I have permission from my parent or guardian to learn on Jifuno.'}
+                    {language === 'sw' ? (
+                      <>
+                        Mimi ni mzazi au mlezi, au nina idhini kutoka kwa mzazi au mlezi wangu, na ninakubali{' '}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (onNavigateLegal) onNavigateLegal('terms');
+                            else window.open('/terms', '_blank');
+                          }}
+                          className="text-emerald-400 underline font-semibold hover:text-emerald-300"
+                        >
+                          Masharti ya Huduma
+                        </button>{' '}
+                        na{' '}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (onNavigateLegal) onNavigateLegal('privacy');
+                            else window.open('/privacy', '_blank');
+                          }}
+                          className="text-emerald-400 underline font-semibold hover:text-emerald-300"
+                        >
+                          Sera ya Faragha
+                        </button>
+                        .
+                      </>
+                    ) : (
+                      <>
+                        I am a parent or guardian, or I have my parent or guardian&apos;s permission, and I agree to the{' '}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (onNavigateLegal) onNavigateLegal('terms');
+                            else window.open('/terms', '_blank');
+                          }}
+                          className="text-emerald-400 underline font-semibold hover:text-emerald-300"
+                        >
+                          Terms of Service
+                        </button>{' '}
+                        and{' '}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (onNavigateLegal) onNavigateLegal('privacy');
+                            else window.open('/privacy', '_blank');
+                          }}
+                          className="text-emerald-400 underline font-semibold hover:text-emerald-300"
+                        >
+                          Privacy Policy
+                        </button>
+                        .
+                      </>
+                    )}
                   </span>
                 </label>
 

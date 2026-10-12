@@ -24,6 +24,7 @@ interface Props {
   onLogout?: () => void;
   onOpenAuthModal?: () => void;
   onOpenTutor?: () => void;
+  onNavigateLegal?: (doc: 'privacy' | 'terms') => void;
 }
 
 export const StudentDashboard: React.FC<Props> = ({
@@ -39,7 +40,8 @@ export const StudentDashboard: React.FC<Props> = ({
   onGradeChange,
   onLogout,
   onOpenAuthModal,
-  onOpenTutor
+  onOpenTutor,
+  onNavigateLegal
 }) => {
   const [currentTab, setCurrentTab] = useState<AppTab>('LEARN');
   const [isTutorOpen, setIsTutorOpen] = useState(false);
@@ -151,6 +153,7 @@ export const StudentDashboard: React.FC<Props> = ({
                   onOpenTutor={handleOpenTutor}
                   onStartMission={onStartMission}
                   onOpenShop={() => setCurrentTab('SHOP')}
+                  onNavigateLegal={onNavigateLegal}
                 />
               </motion.div>
             )}

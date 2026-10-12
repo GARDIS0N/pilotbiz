@@ -6,12 +6,14 @@ import { sound } from '../../utils/soundEffects.js';
 import { AVATARS } from '../../utils/avatars.js';
 import { useReducedMotionPreference, springTransition } from '../../utils/motion.js';
 import { signInWithEmail, signUpWithEmail, isSupabaseConfigured } from '../../services/supabaseClient.js';
+import { LEGAL_VERSION } from '../../content/legal/constants.js';
 
 interface Props {
   currentUser: User | null;
   grades: Grade[];
   onLoginSuccess: (user: User) => void;
   onCancel?: () => void;
+  onNavigateLegal?: (doc: 'privacy' | 'terms') => void;
 }
 
 const KENYAN_COUNTIES = [
@@ -25,10 +27,12 @@ export const LoginPage: React.FC<Props> = ({
   currentUser,
   grades,
   onLoginSuccess,
-  onCancel
+  onCancel,
+  onNavigateLegal
 }) => {
   const reducedMotion = useReducedMotionPreference();
   const [activeTab, setActiveTab] = useState<AuthTab>('DEMO');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Credentials State
   const [loginEmail, setLoginEmail] = useState('');
@@ -159,10 +163,18 @@ export const LoginPage: React.FC<Props> = ({
       return;
     }
 
+    if (!agreedToTerms) {
+      setErrorMsg('Please confirm parental consent and agree to the Terms of Service and Privacy Policy to create an account.');
+      sound.playIncorrect();
+      return;
+    }
+
     try {
       sound.playClick();
       setLoading(true);
       setErrorMsg(null);
+
+      const consentTime = new Date().toISOString();
 
       // Attempt Supabase sign up if configured
       if (isSupabaseConfigured() && loginPassword.trim().length >= 6) {
@@ -171,7 +183,9 @@ export const LoginPage: React.FC<Props> = ({
             fullName: signUpName.trim(),
             role: signUpRole,
             gradeId: signUpGradeId,
-            county: signUpCounty
+            county: signUpCounty,
+            consentAgreedAt: consentTime,
+            consentVersion: LEGAL_VERSION
           });
         } catch (_) {}
       }
@@ -183,7 +197,9 @@ export const LoginPage: React.FC<Props> = ({
         gradeId: signUpGradeId,
         county: signUpCounty,
         schoolName: signUpSchool.trim(),
-        avatar: signUpAvatar
+        avatar: signUpAvatar,
+        consentAgreedAt: consentTime,
+        consentVersion: LEGAL_VERSION
       });
       sound.playCorrect();
       setSuccessMsg(`Hongera! Welcome to Jifuno, ${res.user.name}!`);
@@ -580,10 +596,51 @@ export const LoginPage: React.FC<Props> = ({
                   </div>
                 </div>
 
+                {/* Legal & Parental Consent Checkbox (Kenya Data Protection Act, 2019) */}
+                <div className="pt-2 pb-1">
+                  <label className="flex items-start gap-2.5 cursor-pointer text-left select-none">
+                    <input
+                      type="checkbox"
+                      required
+                      checked={agreedToTerms}
+                      onChange={e => setAgreedToTerms(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 rounded border-emerald-800 bg-slate-950 text-emerald-500 focus:ring-emerald-400 focus:ring-offset-slate-900 cursor-pointer accent-emerald-500 shrink-0"
+                    />
+                    <span className="text-[11px] leading-relaxed text-gray-300">
+                      I am a parent or guardian, or I have my parent or guardian&apos;s permission, and I agree to the{' '}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          sound.playClick();
+                          if (onNavigateLegal) onNavigateLegal('terms');
+                          else window.location.href = '/terms';
+                        }}
+                        className="text-emerald-400 hover:text-emerald-300 underline font-semibold cursor-pointer inline"
+                      >
+                        Terms of Service
+                      </button>{' '}
+                      and{' '}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          sound.playClick();
+                          if (onNavigateLegal) onNavigateLegal('privacy');
+                          else window.location.href = '/privacy';
+                        }}
+                        className="text-emerald-400 hover:text-emerald-300 underline font-semibold cursor-pointer inline"
+                      >
+                        Privacy Policy
+                      </button>.
+                    </span>
+                  </label>
+                </div>
+
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm tracking-wide transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98] cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
+                  disabled={loading || !agreedToTerms}
+                  className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm tracking-wide transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
                 >
                   {loading ? (
                     <div className="w-5 h-5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
@@ -612,18 +669,43 @@ export const LoginPage: React.FC<Props> = ({
               <span>Low-Data Ready</span>
             </div>
             <div className="p-2.5 rounded-2xl bg-slate-900/50 border border-emerald-900/40 text-emerald-300 flex items-center justify-center gap-1.5">
-              <span>⚡</span>
-              <span>Supabase Cloud</span>
+              <span>🛡️</span>
+              <span>Safe & Private</span>
             </div>
           </div>
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-emerald-950 bg-slate-950 px-4 py-4 text-center text-xs text-gray-500 space-y-1">
+      {/* Footer with Legal Links */}
+      <footer className="border-t border-emerald-950 bg-slate-950 px-4 py-4 text-center text-xs text-gray-500 space-y-2">
         <p>
           <strong className="text-gray-400">Jifuno</strong> • Learn. Play. Level Up. • Designed for Kenyan Competency-Based Education (CBE / CBC).
         </p>
+        <div className="flex items-center justify-center gap-4 text-xs text-gray-400">
+          <button
+            type="button"
+            onClick={() => {
+              sound.playClick();
+              if (onNavigateLegal) onNavigateLegal('privacy');
+              else window.location.href = '/privacy';
+            }}
+            className="hover:text-emerald-400 underline cursor-pointer"
+          >
+            Privacy Policy
+          </button>
+          <span>•</span>
+          <button
+            type="button"
+            onClick={() => {
+              sound.playClick();
+              if (onNavigateLegal) onNavigateLegal('terms');
+              else window.location.href = '/terms';
+            }}
+            className="hover:text-emerald-400 underline cursor-pointer"
+          >
+            Terms of Service
+          </button>
+        </div>
         <p className="text-[11px] text-gray-600">
           Curriculum-aligned practice for Mathematics, Science & Tech, Kiswahili, and English.
         </p>

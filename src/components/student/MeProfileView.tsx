@@ -21,6 +21,7 @@ interface Props {
   onOpenTutor?: () => void;
   onStartMission?: (missionId: string) => void;
   onOpenShop?: () => void;
+  onNavigateLegal?: (doc: 'privacy' | 'terms') => void;
 }
 
 export const MeProfileView: React.FC<Props> = ({
@@ -37,7 +38,8 @@ export const MeProfileView: React.FC<Props> = ({
   onOpenAuthModal,
   onOpenTutor,
   onStartMission,
-  onOpenShop
+  onOpenShop,
+  onNavigateLegal
 }) => {
   const avatarInfo = getAvatar(student.avatar);
   const currentGrade = grades.find(g => g.id === student.gradeId) || grades[1] || grades[0];
@@ -499,6 +501,31 @@ export const MeProfileView: React.FC<Props> = ({
           <p className="mt-1">
             Jifuno stores only minimal learner data (grade level and optional school name). No tracking cookies, no public chat, and all records are safeguarded under parent/guardian consent.
           </p>
+          <div className="flex items-center gap-3 pt-2 text-[11px]">
+            <button
+              type="button"
+              onClick={() => {
+                sound.playClick();
+                if (onNavigateLegal) onNavigateLegal('privacy');
+                else window.location.href = '/privacy';
+              }}
+              className="text-emerald-400 hover:text-emerald-300 underline font-semibold cursor-pointer"
+            >
+              Privacy Policy
+            </button>
+            <span className="text-gray-600">•</span>
+            <button
+              type="button"
+              onClick={() => {
+                sound.playClick();
+                if (onNavigateLegal) onNavigateLegal('terms');
+                else window.location.href = '/terms';
+              }}
+              className="text-emerald-400 hover:text-emerald-300 underline font-semibold cursor-pointer"
+            >
+              Terms of Service
+            </button>
+          </div>
         </div>
 
         {/* Data Deletion Path */}
