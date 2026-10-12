@@ -5,7 +5,7 @@
  */
 
 import { Question } from '../types/cbe.js';
-import { ALL_CURRICULUM_GRADES } from '../data/curriculum/index.js';
+import { ALL_CURRICULUM_GRADES, normalizeContentQuestion, hasUsableAnswerKey } from '../data/curriculum/index.js';
 
 export function getPlacementQuestionsForGrade(gradeId: string): Question[] {
   const grade = ALL_CURRICULUM_GRADES.find(g => g.id === gradeId) || ALL_CURRICULUM_GRADES[1];
@@ -16,32 +16,10 @@ export function getPlacementQuestionsForGrade(gradeId: string): Question[] {
     subject.strands.forEach(strand => {
       strand.subStrands.forEach(subStrand => {
         subStrand.quests.forEach(quest => {
-          quest.questions.forEach(q => {
-            if (q.type === 'MULTIPLE_CHOICE' || q.type === 'TRUE_FALSE') {
-              candidates.push({
-                id: q.id,
-                subStrandId: q.subStrandId,
-                type: q.type as any,
-                prompt: typeof q.prompt === 'string' ? q.prompt : q.prompt?.en || '',
-                swahiliPrompt: typeof q.prompt === 'object' ? q.prompt?.sw : undefined,
-                storyScenario: q.storyScenario?.en,
-                swahiliStoryScenario: q.storyScenario?.sw,
-                difficulty: q.difficulty === 1 ? 'BEGINNER' : q.difficulty === 2 ? 'EASY' : 'MEDIUM',
-                options: q.options?.map(opt => ({
-                  id: opt.id,
-                  text: typeof opt.text === 'string' ? opt.text : opt.text?.en || '',
-                  explanation: typeof opt.explanation === 'string' ? opt.explanation : opt.explanation?.en
-                })),
-                correctOptionId: q.correctOptionId,
-                explanation: typeof q.explanation === 'string' ? q.explanation : (q.explanation as any)?.en || '',
-                swahiliExplanation: typeof q.explanation === 'object' ? (q.explanation as any)?.sw : undefined,
-                socraticHint: typeof (q as any).hint === 'string' ? (q as any).hint : (q as any).hint?.en || 'Think carefully about the question.',
-                hint: typeof (q as any).hint === 'string' ? (q as any).hint : (q as any).hint?.en,
-                answerKey: (q as any).answerKey,
-                kenyanCulturalContext: (q as any).kenyanCulturalContext || 'CBC inquiry learning.',
-                sourceType: 'CURRICULUM_ALIGNED',
-                contentStatus: 'APPROVED'
-              });
+          quest.questions.forEach(rawQ => {
+            const q = normalizeContentQuestion(rawQ, subStrand.id);
+            if ((q.type === 'MULTIPLE_CHOICE' || q.type === 'TRUE_FALSE') && hasUsableAnswerKey(q)) {
+              candidates.push(q);
             }
           });
         });

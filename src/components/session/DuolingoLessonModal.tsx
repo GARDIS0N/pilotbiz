@@ -4,7 +4,7 @@ import { Question, LearningSessionResult } from '../../types/cbe.js';
 import { cbeApi } from '../../services/cbeApi.js';
 import { sound } from '../../utils/soundEffects.js';
 import { QuestionRenderer } from '../questions/QuestionRenderer.js';
-import { evaluateAnswer, resolveCorrectAnswerText, normalizeQuestion } from '../../utils/answerValidation.js';
+import { evaluateAnswer, resolveCorrectAnswerText, normalizeQuestion, hasUsableAnswerKey } from '../../utils/answerValidation.js';
 import { validateQuestion } from '../../utils/questionValidator.js';
 import { QuestionErrorBoundary } from '../common/QuestionErrorBoundary.js';
 import { ReportProblemModal } from '../common/ReportProblemModal.js';
@@ -155,6 +155,13 @@ export const DuolingoLessonModal: React.FC<Props> = ({
   const handleCheckAnswer = () => {
     if (!currentQ || currentAnswer === null || currentAnswer === undefined || currentAnswer === '') return;
     sound.playClick();
+
+    if (!hasUsableAnswerKey(currentQ)) {
+      console.error(`[Grading Error] Question ${currentQ.id} has no usable answer key! Skipping.`);
+      setSkippedNotice(`Question ${currentQ.id} had an invalid answer key and was skipped.`);
+      handleNextQuestion();
+      return;
+    }
 
     const timeMs = Math.max(100, Date.now() - questionStartTime.current);
     const correct = evaluateAnswer(currentQ, currentAnswer);

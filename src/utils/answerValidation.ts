@@ -1,4 +1,7 @@
 import { Question } from '../types/cbe.js';
+import { normalizeContentQuestion, hasUsableAnswerKey } from '../data/curriculum/contentAdapter.js';
+
+export { normalizeContentQuestion, hasUsableAnswerKey };
 
 /**
  * Normalizes question data structure to ensure all required fields
@@ -7,7 +10,9 @@ import { Question } from '../types/cbe.js';
 export function normalizeQuestion(q: Question): Question {
   if (!q) return q;
 
-  const normalized: Question = { ...q };
+  // Run comprehensive content adapter first to resolve snake_case types, `answer` fields, etc.
+  const base = normalizeContentQuestion(q, q.subStrandId || 'substrand-general');
+  const normalized: Question = { ...base };
 
   // 1. Ensure prompt is populated
   if (!normalized.prompt && (normalized as any).text) {
@@ -177,6 +182,11 @@ export function evaluateAnswer(rawQ: Question, selectedAnswer: any): boolean {
 
   const q = normalizeQuestion(rawQ);
 
+  if (!hasUsableAnswerKey(q)) {
+    console.error(`[Grading Error] Question ${q?.id} (${q?.type}) has no usable answer key!`, q);
+    return false;
+  }
+
   // 1. Multiple Choice, Scenario, Image Label, Listen Choose
   if (
     q.type === 'MULTIPLE_CHOICE' ||
@@ -231,9 +241,18 @@ export function evaluateAnswer(rawQ: Question, selectedAnswer: any): boolean {
 
     // Check target boolean
     let expectedBool = q.correctBoolean;
-    if (typeof expectedBool !== 'boolean' && (q as any).correctAnswer) {
+    if (typeof expectedBool !== 'boolean' && (q as any).correctAnswer !== undefined) {
       const expStr = String((q as any).correctAnswer).trim().toLowerCase();
-      expectedBool = (expStr === 'true' || expStr === 'kweli' || expStr === 'yes');
+      if (expStr === 'true' || expStr === 'kweli' || expStr === 'yes' || expStr === 'ndiyo') {
+        expectedBool = true;
+      } else if (expStr === 'false' || expStr === 'si kweli' || expStr === 'hapana' || expStr === 'no') {
+        expectedBool = false;
+      }
+    }
+
+    if (typeof expectedBool !== 'boolean') {
+      console.error(`[Grading Error] Question ${q.id} of type TRUE_FALSE has missing or non-boolean correctBoolean!`, q);
+      return false;
     }
 
     // Special safeguard for known commutative property prompts
@@ -350,10 +369,19 @@ export function resolveCorrectAnswerText(rawQ: Question): string {
   }
 
   if (q.type === 'TRUE_FALSE') {
-    const isTrue = q.correctBoolean !== undefined
-      ? q.correctBoolean
-      : (String((q as any).correctAnswer).toLowerCase() === 'true');
-    return isTrue ? 'True' : 'False';
+    if (typeof q.correctBoolean === 'boolean') {
+      return q.correctBoolean ? 'True' : 'False';
+    }
+    if ((q as any).correctAnswer !== undefined) {
+      const expStr = String((q as any).correctAnswer).trim().toLowerCase();
+      if (expStr === 'true' || expStr === 'kweli' || expStr === 'yes' || expStr === 'ndiyo') {
+        return 'True';
+      }
+      if (expStr === 'false' || expStr === 'si kweli' || expStr === 'hapana' || expStr === 'no') {
+        return 'False';
+      }
+    }
+    return '';
   }
 
   if (q.type === 'NUMBER_ENTRY' || q.type === 'KENYAN_MONEY') {
@@ -396,6 +424,12 @@ export function resolveCorrectAnswerText(rawQ: Question): string {
     }
     if (Array.isArray((q as any).orderedItems)) {
       return (q as any).orderedItems.join(' → ');
+    }
+    if (Array.isArray((q as any).orderingItems)) {
+      return (q as any).orderingItems.join(' → ');
+    }
+    if ((q as any).correctAnswer) {
+      return String((q as any).correctAnswer);
     }
   }
 

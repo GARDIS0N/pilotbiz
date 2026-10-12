@@ -28,6 +28,7 @@ import {
 export * from './types.js';
 export * from './validator.js';
 export * from './comprehensiveCurriculum.js';
+export * from './contentAdapter.js';
 
 export const ALL_CURRICULUM_GRADES: CurriculumGrade[] = [
   grade3Curriculum,

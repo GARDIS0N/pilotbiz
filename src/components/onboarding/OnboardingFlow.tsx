@@ -15,7 +15,7 @@ import {
   OnboardingStep
 } from '../../services/onboardingStorage.js';
 import { getPlacementQuestionsForGrade } from '../../services/placementQuestions.js';
-import { evaluateAnswer, resolveCorrectAnswerText } from '../../utils/answerValidation.js';
+import { evaluateAnswer, resolveCorrectAnswerText, hasUsableAnswerKey } from '../../utils/answerValidation.js';
 import { getShuffledOptions } from '../../utils/optionShuffler.js';
 import { Question, User, StudentProfile, LearningSessionResult } from '../../types/cbe.js';
 import { getRecommendedNextQuest } from '../../data/curriculum/index.js';
@@ -179,6 +179,12 @@ export const OnboardingFlow: React.FC<Props> = ({
     if (!selectedOption || isAnswerChecked) return;
     const currentQ = placementQuestions[currentQIndex];
     if (!currentQ) return;
+
+    if (!hasUsableAnswerKey(currentQ)) {
+      console.error(`[Grading Error] Diagnostic question ${currentQ.id} has no valid answer key! Skipping.`);
+      handleNextPlacementQuestion();
+      return;
+    }
 
     const isCorrect = evaluateAnswer(currentQ, selectedOption);
     setIsOptionCorrect(isCorrect);
@@ -758,7 +764,7 @@ export const OnboardingFlow: React.FC<Props> = ({
                   <div className="flex items-center gap-2">
                     <span className="text-lg">{isOptionCorrect ? '🎉' : '💡'}</span>
                     <span className="font-black text-base text-white">
-                      {isOptionCorrect ? 'Hongera! Correct!' : 'Almost! Try again later.'}
+                      {isOptionCorrect ? 'Hongera! Correct!' : language === 'sw' ? 'Sivyo kabisa. Sababu ni:' : "Not quite. Here's why:"}
                     </span>
                   </div>
                   {!isOptionCorrect && (
