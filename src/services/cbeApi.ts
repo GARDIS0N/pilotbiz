@@ -43,7 +43,7 @@ import {
   getAllQuests as getCurriculumAllQuests
 } from '../data/curriculum/index.js';
 
-import { supabase, isSupabaseConfigured } from './supabaseClient.js';
+import { supabase, isSupabaseConfigured, getSession } from './supabaseClient.js';
 import { offlineSyncService } from './offlineSync.js';
 
 export interface AuthMeResponse {
@@ -68,12 +68,23 @@ export interface StudentStatsResponse {
 
 class CbeApiService {
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    let authHeader: Record<string, string> = {};
+    if (isSupabaseConfigured()) {
+      try {
+        const session = await getSession();
+        if (session?.access_token) {
+          authHeader = { Authorization: `Bearer ${session.access_token}` };
+        }
+      } catch (_) {}
+    }
+
     const res = await fetch(endpoint, {
+      ...options,
       headers: {
         'Content-Type': 'application/json',
+        ...authHeader,
         ...options?.headers
-      },
-      ...options
+      }
     });
 
     if (!res.ok) {

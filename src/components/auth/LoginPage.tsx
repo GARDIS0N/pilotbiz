@@ -44,6 +44,8 @@ export const LoginPage: React.FC<Props> = ({
   const [signUpRole, setSignUpRole] = useState<UserRole>('STUDENT');
   const [signUpName, setSignUpName] = useState('');
   const [signUpEmail, setSignUpEmail] = useState('');
+  const [signUpPassword, setSignUpPassword] = useState('');
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   const [signUpGradeId, setSignUpGradeId] = useState(grades[1]?.id || 'grade-4');
   const [signUpCounty, setSignUpCounty] = useState('Nakuru');
   const [signUpSchool, setSignUpSchool] = useState('Simba Primary Academy');
@@ -118,7 +120,8 @@ export const LoginPage: React.FC<Props> = ({
 
   const handleCredentialsLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!loginEmail.trim()) {
+    const email = loginEmail.trim();
+    if (!email) {
       setErrorMsg('Please enter your email or learner identifier');
       sound.playIncorrect();
       return;
@@ -131,17 +134,48 @@ export const LoginPage: React.FC<Props> = ({
 
       // Attempt Supabase sign in if configured and password is provided
       if (isSupabaseConfigured() && loginPassword.trim().length >= 6) {
-        try {
-          const { data: sbData, error: sbError } = await signInWithEmail(loginEmail.trim(), loginPassword.trim());
-          if (sbError) {
-            console.warn('[Supabase Auth Info]:', sbError.message);
-          } else if (sbData?.user) {
-            console.log('[Supabase Auth Success]: User authenticated via Supabase');
+        const { data: sbData, error: sbError } = await signInWithEmail(email, loginPassword.trim());
+        if (sbError) {
+          // Check if this is a predefined demo account (e.g. for testing)
+          const matchedDemo = demoAccounts.find(d => d.email.toLowerCase() === email.toLowerCase());
+          if (matchedDemo) {
+            const res = await cbeApi.switchRole(matchedDemo.role);
+            sound.playCorrect();
+            setSuccessMsg(`Karibu! Logged in as ${res.user.name}`);
+            setTimeout(() => {
+              onLoginSuccess(res.user);
+            }, 400);
+            return;
           }
-        } catch (_) {}
+          sound.playIncorrect();
+          setErrorMsg(sbError.message || 'Login failed. Please verify credentials.');
+          return;
+        }
+
+        if (sbData?.user) {
+          const authMe = await cbeApi.getMe();
+          sound.playCorrect();
+          setSuccessMsg(`Hongera! Welcome back, ${authMe.user.name}!`);
+          setTimeout(() => {
+            onLoginSuccess(authMe.user);
+          }, 400);
+          return;
+        }
       }
 
-      const res = await cbeApi.login(loginEmail.trim());
+      // If demo email or offline fallback
+      const matchedDemo = demoAccounts.find(d => d.email.toLowerCase() === email.toLowerCase());
+      if (matchedDemo) {
+        const res = await cbeApi.switchRole(matchedDemo.role);
+        sound.playCorrect();
+        setSuccessMsg(`Karibu! Logged in as ${res.user.name}`);
+        setTimeout(() => {
+          onLoginSuccess(res.user);
+        }, 400);
+        return;
+      }
+
+      const res = await cbeApi.login(email);
       sound.playCorrect();
       setSuccessMsg(`Hongera! Welcome back, ${res.user.name}!`);
       setTimeout(() => {
@@ -163,6 +197,12 @@ export const LoginPage: React.FC<Props> = ({
       return;
     }
 
+    if (isSupabaseConfigured() && signUpPassword.trim().length < 6) {
+      setErrorMsg('Password must be at least 6 characters long');
+      sound.playIncorrect();
+      return;
+    }
+
     if (!agreedToTerms) {
       setErrorMsg('Please confirm parental consent and agree to the Terms of Service and Privacy Policy to create an account.');
       sound.playIncorrect();
@@ -176,20 +216,51 @@ export const LoginPage: React.FC<Props> = ({
 
       const consentTime = new Date().toISOString();
 
-      // Attempt Supabase sign up if configured
-      if (isSupabaseConfigured() && loginPassword.trim().length >= 6) {
-        try {
-          await signUpWithEmail(signUpEmail.trim(), loginPassword.trim(), {
+      // Sign up via Supabase if configured
+      if (isSupabaseConfigured()) {
+        const { data: sbData, error: sbError } = await signUpWithEmail(
+          signUpEmail.trim(),
+          signUpPassword.trim(),
+          {
             fullName: signUpName.trim(),
             role: signUpRole,
             gradeId: signUpGradeId,
             county: signUpCounty,
+            schoolName: signUpSchool.trim(),
+            avatar: signUpAvatar,
             consentAgreedAt: consentTime,
             consentVersion: LEGAL_VERSION
-          });
-        } catch (_) {}
+          }
+        );
+
+        if (sbError) {
+          sound.playIncorrect();
+          setErrorMsg(sbError.message || 'Sign up failed. Please try again.');
+          return;
+        }
+
+        // Sync with backend API to initialize profile and in-memory session
+        const res = await cbeApi.register({
+          name: signUpName.trim(),
+          email: signUpEmail.trim(),
+          role: signUpRole,
+          gradeId: signUpGradeId,
+          county: signUpCounty,
+          schoolName: signUpSchool.trim(),
+          avatar: signUpAvatar,
+          consentAgreedAt: consentTime,
+          consentVersion: LEGAL_VERSION
+        });
+
+        sound.playCorrect();
+        setSuccessMsg(`Hongera! Welcome to Jifuno, ${res.user.name}!`);
+        setTimeout(() => {
+          onLoginSuccess(res.user);
+        }, 500);
+        return;
       }
 
+      // Supabase unconfigured offline fallback
       const res = await cbeApi.register({
         name: signUpName.trim(),
         email: signUpEmail.trim(),
@@ -540,6 +611,27 @@ export const LoginPage: React.FC<Props> = ({
                     onChange={e => setSignUpEmail(e.target.value)}
                     placeholder="e.g. wanjiku@jifuno.ke"
                     className="w-full px-4 py-2.5 rounded-2xl bg-slate-950 border border-emerald-900/60 text-white text-xs outline-none placeholder:text-gray-600"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-gray-300">Password / PIN (min 6 characters)</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                      className="text-[11px] text-emerald-400 hover:underline cursor-pointer"
+                    >
+                      {showSignUpPassword ? 'Hide PIN' : 'Show PIN'}
+                    </button>
+                  </div>
+                  <input
+                    type={showSignUpPassword ? 'text' : 'password'}
+                    required={isSupabaseConfigured()}
+                    value={signUpPassword}
+                    onChange={e => setSignUpPassword(e.target.value)}
+                    placeholder="Create a password or 6-digit PIN"
+                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-950 border border-emerald-900/60 text-white text-xs outline-none placeholder:text-gray-600 focus:border-emerald-500"
                   />
                 </div>
 

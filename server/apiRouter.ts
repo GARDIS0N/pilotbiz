@@ -2,12 +2,16 @@ import express, { Request, Response } from 'express';
 import { cbeDb } from './cbeDb.js';
 import { gameEngine } from './gameEngine.js';
 import { tutorEngine } from './tutorEngine.js';
-import { UserRole, Question, ContentStatus } from '../src/types/cbe.js';
+import { User, StudentProfile, UserRole, Question, ContentStatus } from '../src/types/cbe.js';
 import { evaluateAnswer, resolveCorrectAnswerText } from '../src/utils/answerValidation.js';
 import { supabase, isSupabaseConfigured } from '../src/services/supabaseClient.js';
 import { recommendNextLesson, calculateNextReviewInterval } from '../src/utils/learningEngine.js';
+import { authMiddleware } from './authMiddleware.js';
 
 export const apiRouter = express.Router();
+
+// Mount Supabase authentication middleware on API routes
+apiRouter.use(authMiddleware);
 
 // Active demo user in memory for seamless pairing / testing
 let currentUserId = 'user-student-amina';
@@ -15,9 +19,9 @@ let currentUserId = 'user-student-amina';
 // -------------------------------------------------------------
 // Authentication & Roles
 // -------------------------------------------------------------
-apiRouter.get('/auth/me', (_req: Request, res: Response) => {
-  const user = cbeDb.findUserById(currentUserId) || cbeDb.getUsers()[0];
-  let studentProfile = user.studentProfileId ? cbeDb.getStudentProfile(user.studentProfileId) : undefined;
+apiRouter.get('/auth/me', (req: Request, res: Response) => {
+  const user: User = req.user || cbeDb.findUserById(currentUserId) || cbeDb.getUsers()[0];
+  let studentProfile: StudentProfile | undefined = req.studentProfile || (user.studentProfileId ? cbeDb.getStudentProfile(user.studentProfileId) : undefined);
   let parentProfile = user.parentProfileId ? cbeDb.getParentProfile(user.id) : undefined;
   let teacherProfile = user.teacherProfileId ? cbeDb.getTeacherProfile(user.id) : undefined;
 
@@ -61,6 +65,29 @@ apiRouter.post('/auth/register', (req: Request, res: Response) => {
   const { name, email, role = 'STUDENT', gradeId = 'grade-4', county = 'Nairobi', schoolName = 'Starehe Primary', avatar = 'cheetah' } = req.body;
   if (!name || !email) {
     return res.status(400).json({ error: 'Name and email are required' });
+  }
+
+  // If already authenticated via Supabase in this request, update in-memory user
+  if (req.user) {
+    req.user.name = name;
+    req.user.role = role as UserRole;
+    req.user.avatar = avatar;
+    req.user.consentAgreedAt = req.body.consentAgreedAt || req.user.consentAgreedAt || new Date().toISOString();
+    req.user.consentVersion = req.body.consentVersion || req.user.consentVersion || '2026-10-12';
+
+    if (role === 'STUDENT') {
+      const studentId = req.user.studentProfileId || `student-${req.user.id}`;
+      let student = cbeDb.getStudentProfile(studentId);
+      if (student) {
+        student.fullName = name;
+        student.gradeId = gradeId;
+        student.county = county;
+        student.schoolName = schoolName;
+        student.avatar = avatar;
+      }
+    }
+
+    return res.json({ success: true, user: req.user });
   }
 
   const existing = cbeDb.findUserByEmail(email);
@@ -400,7 +427,7 @@ apiRouter.post('/learning/process-review', async (req: Request, res: Response) =
 apiRouter.post('/privacy/delete-data', async (req: Request, res: Response) => {
   try {
     const { learnerId } = req.body;
-    const targetId = learnerId || currentUserId;
+    const targetId = learnerId || req.user?.id || currentUserId;
 
     if (isSupabaseConfigured()) {
       try {
@@ -587,7 +614,7 @@ apiRouter.post('/tutor/chat', async (req: Request, res: Response) => {
 // Parent Dashboard
 // -------------------------------------------------------------
 apiRouter.get('/parent/children', (req: Request, res: Response) => {
-  const user = cbeDb.findUserById(currentUserId);
+  const user = req.user || cbeDb.findUserById(currentUserId);
   const parent = user?.parentProfileId ? cbeDb.getParentProfile(user.id) : cbeDb.getParentProfile('user-parent-mama');
 
   const childrenIds = parent?.childrenStudentIds || ['student-amina-01'];
@@ -708,14 +735,19 @@ const demoReports = [
   }
 ];
 
-function checkIsAdmin(): boolean {
+function checkIsAdmin(): boolean;
+function checkIsAdmin(req?: Request): boolean;
+function checkIsAdmin(req?: Request): boolean {
+  if (req?.user) {
+    return req.user.role === 'ADMIN';
+  }
   const user = cbeDb.findUserById(currentUserId);
   return user?.role === 'ADMIN';
 }
 
 // 1. Open Problem Reports View
 apiRouter.get('/admin/reports', async (req: Request, res: Response) => {
-  if (!checkIsAdmin()) {
+  if (!checkIsAdmin(req)) {
     return res.status(403).json({ error: 'Access denied: Admin role required.' });
   }
 
@@ -740,7 +772,7 @@ apiRouter.get('/admin/reports', async (req: Request, res: Response) => {
 
 // Update Report Status (Resolve / Dismiss)
 apiRouter.put('/admin/reports/:id', async (req: Request, res: Response) => {
-  if (!checkIsAdmin()) {
+  if (!checkIsAdmin(req)) {
     return res.status(403).json({ error: 'Access denied: Admin role required.' });
   }
 
@@ -773,7 +805,7 @@ apiRouter.put('/admin/reports/:id', async (req: Request, res: Response) => {
 
 // 2. Questions with Highest Failure Rate View
 apiRouter.get('/admin/failure-rates', async (req: Request, res: Response) => {
-  if (!checkIsAdmin()) {
+  if (!checkIsAdmin(req)) {
     return res.status(403).json({ error: 'Access denied: Admin role required.' });
   }
 
@@ -815,7 +847,7 @@ apiRouter.get('/admin/failure-rates', async (req: Request, res: Response) => {
 
 // 3. Lesson Completion Rates View
 apiRouter.get('/admin/lesson-completion-rates', async (req: Request, res: Response) => {
-  if (!checkIsAdmin()) {
+  if (!checkIsAdmin(req)) {
     return res.status(403).json({ error: 'Access denied: Admin role required.' });
   }
 
@@ -853,7 +885,7 @@ apiRouter.get('/admin/lesson-completion-rates', async (req: Request, res: Respon
 
 // 4. Daily Active Learners View
 apiRouter.get('/admin/daily-active-learners', async (req: Request, res: Response) => {
-  if (!checkIsAdmin()) {
+  if (!checkIsAdmin(req)) {
     return res.status(403).json({ error: 'Access denied: Admin role required.' });
   }
 
@@ -964,8 +996,8 @@ apiRouter.post('/jobs/weekly-summary', async (_req: Request, res: Response) => {
 });
 
 // Admin System Health Report
-apiRouter.get('/admin/system-health', async (_req: Request, res: Response) => {
-  if (!checkIsAdmin()) {
+apiRouter.get('/admin/system-health', async (req: Request, res: Response) => {
+  if (!checkIsAdmin(req)) {
     return res.status(403).json({ error: 'Access denied: Admin role required.' });
   }
 

@@ -4,6 +4,7 @@ import { cbeApi } from '../../services/cbeApi.js';
 import { sound } from '../../utils/soundEffects.js';
 import { AVATARS } from '../../utils/avatars.js';
 import { LEGAL_VERSION } from '../../content/legal/constants.js';
+import { signInWithEmail, signUpWithEmail, isSupabaseConfigured } from '../../services/supabaseClient.js';
 
 interface Props {
   isOpen: boolean;
@@ -35,6 +36,8 @@ export const AuthModal: React.FC<Props> = ({
   const [role, setRole] = useState<UserRole>('STUDENT');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [gradeId, setGradeId] = useState(grades[1]?.id || 'grade-4');
   const [county, setCounty] = useState('Nakuru');
   const [schoolName, setSchoolName] = useState('Simba Primary Academy');
@@ -63,6 +66,14 @@ export const AuthModal: React.FC<Props> = ({
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!name.trim() || !email.trim()) {
+      setErrorMsg('Please enter name and email');
+      return;
+    }
+    if (isSupabaseConfigured() && password.trim().length < 6) {
+      setErrorMsg('Password must be at least 6 characters long');
+      return;
+    }
     if (!agreedToTerms) {
       setErrorMsg('Please confirm parental consent and agree to the Terms of Service and Privacy Policy.');
       return;
@@ -71,6 +82,42 @@ export const AuthModal: React.FC<Props> = ({
       sound.playClick();
       setLoading(true);
       setErrorMsg(null);
+      const consentTime = new Date().toISOString();
+
+      if (isSupabaseConfigured()) {
+        const { data: sbData, error: sbError } = await signUpWithEmail(email.trim(), password.trim(), {
+          fullName: name.trim(),
+          role,
+          gradeId,
+          county,
+          schoolName: schoolName.trim(),
+          avatar: selectedAvatar,
+          consentAgreedAt: consentTime,
+          consentVersion: LEGAL_VERSION
+        });
+
+        if (sbError) {
+          setErrorMsg(sbError.message || 'Registration failed');
+          return;
+        }
+
+        const res = await cbeApi.register({
+          name: name.trim(),
+          email: email.trim(),
+          role,
+          gradeId,
+          county,
+          schoolName: schoolName.trim(),
+          avatar: selectedAvatar,
+          consentAgreedAt: consentTime,
+          consentVersion: LEGAL_VERSION
+        });
+        sound.playCorrect();
+        onAuthSuccess(res.user);
+        onClose();
+        return;
+      }
+
       const res = await cbeApi.register({
         name: name.trim(),
         email: email.trim(),
@@ -79,7 +126,7 @@ export const AuthModal: React.FC<Props> = ({
         county,
         schoolName: schoolName.trim(),
         avatar: selectedAvatar,
-        consentAgreedAt: new Date().toISOString(),
+        consentAgreedAt: consentTime,
         consentVersion: LEGAL_VERSION
       });
       sound.playCorrect();
@@ -94,10 +141,31 @@ export const AuthModal: React.FC<Props> = ({
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email.trim()) {
+      setErrorMsg('Please enter account email');
+      return;
+    }
     try {
       sound.playClick();
       setLoading(true);
       setErrorMsg(null);
+
+      if (isSupabaseConfigured() && password.trim().length >= 6) {
+        const { data: sbData, error: sbError } = await signInWithEmail(email.trim(), password.trim());
+        if (sbError) {
+          setErrorMsg(sbError.message || 'Login failed. Please verify credentials.');
+          return;
+        }
+
+        if (sbData?.user) {
+          const authMe = await cbeApi.getMe();
+          sound.playCorrect();
+          onAuthSuccess(authMe.user);
+          onClose();
+          return;
+        }
+      }
+
       const res = await cbeApi.login(email.trim());
       sound.playCorrect();
       onAuthSuccess(res.user);
@@ -297,6 +365,27 @@ export const AuthModal: React.FC<Props> = ({
               />
             </div>
 
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs text-gray-300 font-bold">Password / PIN (min 6 characters)</label>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-[10px] text-emerald-400 hover:underline cursor-pointer"
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required={isSupabaseConfigured()}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Create a password or 6-digit PIN"
+                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:outline-none focus:border-emerald-400"
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs text-gray-300 font-bold block mb-1">Select Grade</label>
@@ -421,6 +510,26 @@ export const AuthModal: React.FC<Props> = ({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="e.g. amina@jifuno.ke"
+                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-emerald-400"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs text-gray-300 font-bold">Password / PIN</label>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-[10px] text-emerald-400 hover:underline cursor-pointer"
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter password or PIN"
                 className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-emerald-400"
               />
             </div>

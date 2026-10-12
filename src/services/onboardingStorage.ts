@@ -317,10 +317,14 @@ export function getPersistedUserProfile(): { user: User | null; studentProfile: 
 /**
  * Saves active user and student profile to localStorage for instant reload restoration.
  */
-export function savePersistedUserProfile(user: User, studentProfile: StudentProfile): void {
+export function savePersistedUserProfile(user: User, studentProfile?: StudentProfile | null): void {
   try {
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-    localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(studentProfile));
+    if (studentProfile) {
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(studentProfile));
+    } else {
+      localStorage.removeItem(PROFILE_STORAGE_KEY);
+    }
   } catch (err) {
     console.warn('[OnboardingStorage] Error saving persisted profile:', err);
   }

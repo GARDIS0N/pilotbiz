@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, StudentProfile, Grade } from './types/cbe.js';
 import { cbeApi } from './services/cbeApi.js';
-import { isSupabaseConfigured } from './services/supabaseClient.js';
+import { supabase, isSupabaseConfigured, signOut } from './services/supabaseClient.js';
 import { sound } from './utils/soundEffects.js';
 import { StudentDashboard } from './components/student/StudentDashboard.js';
 import { ParentDashboard } from './components/parent/ParentDashboard.js';
@@ -170,6 +170,41 @@ export function App() {
 
   useEffect(() => {
     initApp();
+
+    if (!isSupabaseConfigured()) return;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        if (session?.user) {
+          try {
+            const authRes = await cbeApi.getMe();
+            if (authRes.user) {
+              setCurrentUser(authRes.user);
+              if (authRes.studentProfile) {
+                const hearts = getPersistedHearts(authRes.studentProfile.hearts ?? 5);
+                const fullStudent = { ...authRes.studentProfile, hearts };
+                setStudentProfile(fullStudent);
+                setSelectedGradeId(fullStudent.gradeId);
+                savePersistedUserProfile(authRes.user, fullStudent);
+              } else {
+                savePersistedUserProfile(authRes.user);
+              }
+              markOnboardingCompleted();
+            }
+          } catch (err) {
+            console.warn('[Supabase Auth onAuthStateChange Error]:', err);
+          }
+        }
+      } else if (event === 'SIGNED_OUT') {
+        clearPersistedUserProfile();
+        setCurrentUser(null);
+        setStudentProfile(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const initApp = async () => {
@@ -205,6 +240,21 @@ export function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLogout = async () => {
+    sound.playClick();
+    if (isSupabaseConfigured()) {
+      try {
+        await signOut();
+      } catch (err) {
+        console.warn('[Supabase SignOut Warning]:', err);
+      }
+    }
+    clearPersistedUserProfile();
+    setCurrentUser(null);
+    setStudentProfile(null);
+    setCurrentView('LOGIN');
   };
 
   const handleToggleMute = () => {
@@ -536,12 +586,7 @@ export function App() {
             isMuted={isMuted}
             onToggleMute={handleToggleMute}
             onGradeChange={handleGradeChange}
-            onLogout={() => {
-              clearPersistedUserProfile();
-              setCurrentUser(null);
-              setStudentProfile(null);
-              setCurrentView('LOGIN');
-            }}
+            onLogout={handleLogout}
             onOpenAuthModal={() => setIsAuthModalOpen(true)}
             onOpenTutor={() => setIsGlobalTutorOpen(true)}
             language={uiLanguage}
@@ -620,6 +665,7 @@ export function App() {
           setIsAuthModalOpen(false);
           setCurrentView('LOGIN');
         }}
+        onLogout={handleLogout}
         onNavigateLegal={(doc) => {
           setIsAuthModalOpen(false);
           navigateToLegal(doc);
