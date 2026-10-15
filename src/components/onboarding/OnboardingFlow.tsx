@@ -21,6 +21,7 @@ import { Question, User, StudentProfile, LearningSessionResult } from '../../typ
 import { getRecommendedNextQuest } from '../../data/curriculum/index.js';
 import { DuolingoLessonModal } from '../session/DuolingoLessonModal.js';
 import { cbeApi } from '../../services/cbeApi.js';
+import { signUpWithEmail, isSupabaseConfigured } from '../../services/supabaseClient.js';
 import { LEGAL_VERSION } from '../../content/legal/constants.js';
 
 interface Props {
@@ -125,6 +126,8 @@ export const OnboardingFlow: React.FC<Props> = ({
   // Sign Up Form State (COPPA & Kenya Data Protection compliant)
   const [learnerName, setLearnerName] = useState('');
   const [parentEmail, setParentEmail] = useState('');
+  const [parentPassword, setParentPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [hasParentConsent, setHasParentConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [signUpError, setSignUpError] = useState<string | null>(null);
@@ -256,6 +259,28 @@ export const OnboardingFlow: React.FC<Props> = ({
 
     try {
       sound.playClick();
+      const consentTime = new Date().toISOString();
+
+      // Create Supabase Auth credentials if configured
+      if (isSupabaseConfigured() && parentPassword.trim().length >= 6) {
+        try {
+          const { error: sbError } = await signUpWithEmail(parentEmail.trim(), parentPassword.trim(), {
+            fullName: learnerName.trim(),
+            role: 'STUDENT',
+            gradeId: selectedGradeId,
+            county: 'Nairobi',
+            schoolName: 'Primary School',
+            consentAgreedAt: consentTime,
+            consentVersion: LEGAL_VERSION
+          });
+          if (sbError) {
+            console.warn('[Onboarding] Supabase signUp info:', sbError.message);
+          }
+        } catch (err) {
+          console.warn('[Onboarding] Supabase signUp warning:', err);
+        }
+      }
+
       const res = await cbeApi.register({
         name: learnerName.trim(),
         email: parentEmail.trim(),
@@ -263,7 +288,7 @@ export const OnboardingFlow: React.FC<Props> = ({
         gradeId: selectedGradeId,
         county: 'Nairobi',
         schoolName: 'Primary School',
-        consentAgreedAt: new Date().toISOString(),
+        consentAgreedAt: consentTime,
         consentVersion: LEGAL_VERSION
       });
 
@@ -894,7 +919,30 @@ export const OnboardingFlow: React.FC<Props> = ({
                   </p>
                 </div>
 
-                {/* Field 3: Consent Checkbox */}
+                {/* Field 3: Password / PIN */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-gray-300">
+                      {language === 'sw' ? 'Nenosiri / PIN ya Kuingia' : 'Password / PIN (min 6 characters)'}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="text-[10px] text-emerald-400 hover:underline cursor-pointer"
+                    >
+                      {showPassword ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={parentPassword}
+                    onChange={e => setParentPassword(e.target.value)}
+                    placeholder={language === 'sw' ? 'Weka nenosiri au PIN ya nambari 6' : 'Create a password or 6-digit PIN'}
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-900 border-2 border-slate-800 focus:border-emerald-400 text-white font-medium text-base outline-none transition-all min-h-[50px]"
+                  />
+                </div>
+
+                {/* Field 4: Consent Checkbox */}
                 <label className="flex items-start gap-3 p-3 rounded-2xl bg-slate-900/60 border border-slate-800 cursor-pointer text-xs text-gray-300 leading-relaxed hover:border-slate-700 transition-colors">
                   <input
                     type="checkbox"

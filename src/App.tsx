@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, StudentProfile, Grade } from './types/cbe.js';
 import { cbeApi } from './services/cbeApi.js';
-import { supabase, isSupabaseConfigured, signOut } from './services/supabaseClient.js';
+import { supabase, isSupabaseConfigured, signOut, getSession } from './services/supabaseClient.js';
 import { sound } from './utils/soundEffects.js';
 import { StudentDashboard } from './components/student/StudentDashboard.js';
 import { ParentDashboard } from './components/parent/ParentDashboard.js';
@@ -82,23 +82,40 @@ const DEFAULT_GRADES: Grade[] = [
 ];
 
 export function App() {
+  const [isGuestMode, setIsGuestMode] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem('jifuno_guest_mode') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
   const [currentView, setCurrentView] = useState<'DASHBOARD' | 'LOGIN' | 'ONBOARDING'>(() => {
-    return isReturningUser() ? 'DASHBOARD' : 'ONBOARDING';
+    try {
+      if (sessionStorage.getItem('jifuno_guest_mode') === 'true') {
+        return 'DASHBOARD';
+      }
+    } catch {}
+    return 'LOGIN';
   });
 
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    if (isReturningUser()) {
-      const persisted = getPersistedUserProfile();
-      return persisted.user || DEFAULT_STUDENT_USER;
-    }
+    try {
+      if (sessionStorage.getItem('jifuno_guest_mode') === 'true') {
+        const persisted = getPersistedUserProfile();
+        return persisted.user || DEFAULT_STUDENT_USER;
+      }
+    } catch {}
     return null;
   });
 
   const [studentProfile, setStudentProfile] = useState<StudentProfile | null>(() => {
-    if (isReturningUser()) {
-      const persisted = getPersistedUserProfile();
-      return persisted.studentProfile || DEFAULT_STUDENT_PROFILE;
-    }
+    try {
+      if (sessionStorage.getItem('jifuno_guest_mode') === 'true') {
+        const persisted = getPersistedUserProfile();
+        return persisted.studentProfile || DEFAULT_STUDENT_PROFILE;
+      }
+    } catch {}
     return null;
   });
 
@@ -210,33 +227,71 @@ export function App() {
   const initApp = async () => {
     try {
       setLoading(true);
-      const [authRes, gRes] = await Promise.all([
-        cbeApi.getMe(),
-        cbeApi.getGrades()
+      const [gRes, session] = await Promise.all([
+        cbeApi.getGrades(),
+        isSupabaseConfigured() ? getSession() : Promise.resolve(null)
       ]);
 
-      if (isReturningUser()) {
-        const persisted = getPersistedUserProfile();
-        const activeUser = persisted.user || authRes.user;
-        const activeStudent = persisted.studentProfile || authRes.studentProfile;
+      setGrades(gRes.grades);
 
+      // Check active Supabase authenticated session
+      if (session?.user) {
+        try {
+          const authRes = await cbeApi.getMe();
+          if (authRes.user) {
+            setCurrentUser(authRes.user);
+            setIsGuestMode(false);
+            try {
+              sessionStorage.removeItem('jifuno_guest_mode');
+            } catch {}
+            if (authRes.studentProfile) {
+              const hearts = getPersistedHearts(authRes.studentProfile.hearts ?? 5);
+              const fullStudent = { ...authRes.studentProfile, hearts };
+              setStudentProfile(fullStudent);
+              setSelectedGradeId(fullStudent.gradeId);
+              savePersistedUserProfile(authRes.user, fullStudent);
+            } else {
+              savePersistedUserProfile(authRes.user);
+            }
+            markOnboardingCompleted();
+            setCurrentView('DASHBOARD');
+            return;
+          }
+        } catch (authErr) {
+          console.warn('[initApp] Failed to load authenticated user profile:', authErr);
+        }
+      }
+
+      // Check if user previously chosen Guest / Demo mode in this session
+      let guestApproved = false;
+      try {
+        guestApproved = sessionStorage.getItem('jifuno_guest_mode') === 'true';
+      } catch {}
+
+      if (guestApproved) {
+        const persisted = getPersistedUserProfile();
+        const activeUser = persisted.user || DEFAULT_STUDENT_USER;
+        const activeStudent = persisted.studentProfile || DEFAULT_STUDENT_PROFILE;
         setCurrentUser(activeUser);
+        setIsGuestMode(true);
         if (activeStudent) {
           const hearts = getPersistedHearts(activeStudent.hearts ?? 5);
           const fullStudent = { ...activeStudent, hearts };
           setStudentProfile(fullStudent);
           setSelectedGradeId(fullStudent.gradeId);
         }
-      } else {
-        // First-time or midway visitor: Keep on OnboardingFlow
-        setCurrentUser(null);
-        setStudentProfile(null);
-        setCurrentView('ONBOARDING');
+        setCurrentView('DASHBOARD');
+        return;
       }
 
-      setGrades(gRes.grades);
+      // Otherwise, enforce Auth Gate: show LOGIN
+      setCurrentUser(null);
+      setStudentProfile(null);
+      setIsGuestMode(false);
+      setCurrentView('LOGIN');
     } catch (err) {
       console.error('Failed to initialize Jifuno app:', err);
+      setCurrentView('LOGIN');
     } finally {
       setLoading(false);
     }
@@ -251,9 +306,13 @@ export function App() {
         console.warn('[Supabase SignOut Warning]:', err);
       }
     }
+    try {
+      sessionStorage.removeItem('jifuno_guest_mode');
+    } catch {}
     clearPersistedUserProfile();
     setCurrentUser(null);
     setStudentProfile(null);
+    setIsGuestMode(false);
     setCurrentView('LOGIN');
   };
 
@@ -361,6 +420,10 @@ export function App() {
         currentUser={currentUser}
         grades={grades}
         onLoginSuccess={(user) => {
+          setIsGuestMode(false);
+          try {
+            sessionStorage.removeItem('jifuno_guest_mode');
+          } catch {}
           setCurrentUser(user);
           markOnboardingCompleted();
           if (user.studentProfileId) {
@@ -375,11 +438,17 @@ export function App() {
           setCurrentView('DASHBOARD');
         }}
         onCancel={() => {
-          if (isReturningUser()) {
-            setCurrentView('DASHBOARD');
-          } else {
-            setCurrentView('ONBOARDING');
-          }
+          setIsGuestMode(true);
+          try {
+            sessionStorage.setItem('jifuno_guest_mode', 'true');
+          } catch {}
+          const persisted = getPersistedUserProfile();
+          const demoUser = persisted.user || DEFAULT_STUDENT_USER;
+          const demoProfile = persisted.studentProfile || DEFAULT_STUDENT_PROFILE;
+          setCurrentUser(demoUser);
+          setStudentProfile(demoProfile);
+          setSelectedGradeId(demoProfile.gradeId);
+          setCurrentView('DASHBOARD');
         }}
         onNavigateLegal={(doc) => navigateToLegal(doc)}
       />
@@ -457,34 +526,58 @@ export function App() {
             <span>Rafiki AI</span>
           </button>
 
-          {/* Role Access: Learner views NEVER show admin/teacher/parent pills */}
+          {/* Role Access: Learner views show Log In if in guest mode, or Exit if authenticated */}
           {currentUser?.role === 'STUDENT' ? (
-            <button
-              type="button"
-              onClick={() => {
-                sound.playClick();
-                setIsAuthModalOpen(true);
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-emerald-900/60 hover:border-emerald-600 text-gray-300 hover:text-white font-bold text-xs cursor-pointer shadow-sm transition-all"
-              title="Parent & Teacher Area"
-            >
-              <span>👨‍👩‍👧</span>
-              <span className="hidden sm:inline">Parent Area</span>
-            </button>
-          ) : (
-            <>
-              {/* Log In Page Trigger Button */}
+            <div className="flex items-center gap-2">
+              {isGuestMode ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.playClick();
+                    setCurrentView('LOGIN');
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs cursor-pointer shadow-md shadow-emerald-500/20 transition-all"
+                  title="Log In / Sign Up to save progress"
+                >
+                  <span>🔑</span>
+                  <span>Log In</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-rose-900/40 hover:border-rose-600 text-rose-300 hover:text-white font-bold text-xs cursor-pointer shadow-sm transition-all"
+                  title="Sign Out / Ondoka"
+                >
+                  <span>🚪</span>
+                  <span className="hidden sm:inline">Exit</span>
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={() => {
                   sound.playClick();
-                  setCurrentView('LOGIN');
+                  setIsAuthModalOpen(true);
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-emerald-900/60 hover:border-emerald-500 text-gray-300 hover:text-white font-bold text-xs cursor-pointer shadow-sm transition-all"
-                title="Open Full Log In Page"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-emerald-900/60 hover:border-emerald-600 text-gray-300 hover:text-white font-bold text-xs cursor-pointer shadow-sm transition-all"
+                title="Parent & Teacher Area"
               >
-                <span>🔑</span>
-                <span className="hidden sm:inline">Log In</span>
+                <span>👨‍👩‍👧</span>
+                <span className="hidden sm:inline">Parent Area</span>
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              {/* Log Out / Exit Button */}
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-rose-900/40 hover:border-rose-600 text-rose-300 hover:text-white font-bold text-xs cursor-pointer shadow-sm transition-all"
+                title="Sign Out to Login Screen"
+              >
+                <span>🚪</span>
+                <span className="hidden sm:inline">Exit</span>
               </button>
 
               {/* Adult Role Pill Switcher */}
@@ -512,7 +605,7 @@ export function App() {
                 </span>
                 <span className="text-[10px] text-emerald-400">▼</span>
               </button>
-            </>
+            </div>
           )}
         </div>
       </header>

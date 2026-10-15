@@ -31,7 +31,7 @@ export const LoginPage: React.FC<Props> = ({
   onNavigateLegal
 }) => {
   const reducedMotion = useReducedMotionPreference();
-  const [activeTab, setActiveTab] = useState<AuthTab>('DEMO');
+  const [activeTab, setActiveTab] = useState<AuthTab>('CREDENTIALS');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Credentials State
@@ -311,9 +311,10 @@ export const LoginPage: React.FC<Props> = ({
               sound.playClick();
               onCancel();
             }}
-            className="text-xs font-bold px-3.5 py-1.5 rounded-xl border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white transition-all cursor-pointer"
+            className="text-xs font-bold px-3.5 py-1.5 rounded-xl border border-emerald-800/80 hover:border-emerald-500 bg-slate-900 text-emerald-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5"
           >
-            ← Back to App
+            <span>⚡</span>
+            <span>Explore as Guest →</span>
           </button>
         )}
       </header>
@@ -370,21 +371,6 @@ export const LoginPage: React.FC<Props> = ({
                 type="button"
                 onClick={() => {
                   sound.playClick();
-                  setActiveTab('DEMO');
-                  setErrorMsg(null);
-                }}
-                className={`py-2 px-1 text-xs font-bold rounded-xl transition-all cursor-pointer text-center ${
-                  activeTab === 'DEMO'
-                    ? 'bg-emerald-500 text-slate-950 shadow-md font-black'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                ⚡ 1-Tap Demo
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  sound.playClick();
                   setActiveTab('CREDENTIALS');
                   setErrorMsg(null);
                 }}
@@ -410,6 +396,21 @@ export const LoginPage: React.FC<Props> = ({
                 }`}
               >
                 ✨ Sign Up
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  setActiveTab('DEMO');
+                  setErrorMsg(null);
+                }}
+                className={`py-2 px-1 text-xs font-bold rounded-xl transition-all cursor-pointer text-center ${
+                  activeTab === 'DEMO'
+                    ? 'bg-emerald-500 text-slate-950 shadow-md font-black'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                ⚡ 1-Tap Demo
               </button>
             </div>
 

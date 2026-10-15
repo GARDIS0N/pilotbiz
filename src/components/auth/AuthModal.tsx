@@ -32,7 +32,7 @@ export const AuthModal: React.FC<Props> = ({
   onLogout,
   onNavigateLegal
 }) => {
-  const [mode, setMode] = useState<'QUICK_SWITCH' | 'REGISTER' | 'LOGIN'>('QUICK_SWITCH');
+  const [mode, setMode] = useState<'QUICK_SWITCH' | 'REGISTER' | 'LOGIN'>('LOGIN');
   const [role, setRole] = useState<UserRole>('STUDENT');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -205,12 +205,12 @@ export const AuthModal: React.FC<Props> = ({
         <div className="flex items-center gap-2 p-1 bg-slate-950 rounded-2xl border border-emerald-950">
           <button
             type="button"
-            onClick={() => setMode('QUICK_SWITCH')}
+            onClick={() => setMode('LOGIN')}
             className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
-              mode === 'QUICK_SWITCH' ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:text-white'
+              mode === 'LOGIN' ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:text-white'
             }`}
           >
-            Demo Accounts
+            Log In
           </button>
           <button
             type="button"
@@ -223,12 +223,12 @@ export const AuthModal: React.FC<Props> = ({
           </button>
           <button
             type="button"
-            onClick={() => setMode('LOGIN')}
+            onClick={() => setMode('QUICK_SWITCH')}
             className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
-              mode === 'LOGIN' ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:text-white'
+              mode === 'QUICK_SWITCH' ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:text-white'
             }`}
           >
-            Log In
+            Demo Accounts
           </button>
         </div>
 
