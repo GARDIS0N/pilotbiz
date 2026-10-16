@@ -5,32 +5,45 @@
  */
 
 import { User, StudentProfile } from '../types/cbe.js';
+import { OnboardingStepId } from '../config/onboardingConfig.js';
 
 export type OnboardingStep =
   | 'WELCOME'
   | 'GRADE'
+  | 'INTERESTS'
+  | 'LEVEL_CHECK'
+  | 'FIRST_LESSON'
+  | 'DAILY_GOAL'
+  | 'SAVE_PROGRESS'
+  | 'PARENT_STEP'
+  | 'HOME'
+  | 'COMPLETED'
   | 'GOAL'
   | 'PLACEMENT'
-  | 'FIRST_LESSON'
-  | 'SIGNUP'
-  | 'COMPLETED';
+  | 'SIGNUP';
 
 export interface AnonymousStudentProgress {
   gradeId: string;
+  selectedInterests: string[];
   dailyGoalMinutes: number;
   xp: number;
   coins: number;
   hearts: number;
+  streakDays: number;
   completedMissionIds: string[];
   placementScore?: number;
   placementCompleted?: boolean;
   firstLessonCompleted?: boolean;
+  parentPhone?: string;
+  parentPin?: string;
+  learnerName?: string;
   religiousStream?: 'CRE' | 'IRE' | 'HRE';
 }
 
 export interface OnboardingState {
   step: OnboardingStep;
   gradeId: string;
+  selectedInterests: string[];
   dailyGoalMinutes: number;
   religiousStream?: 'CRE' | 'IRE' | 'HRE';
   guestProgress: AnonymousStudentProgress;
@@ -46,14 +59,17 @@ const COMPLETED_FLAG_KEY = 'jifuno_onboarding_completed';
 export const DEFAULT_ONBOARDING_STATE: OnboardingState = {
   step: 'WELCOME',
   gradeId: 'grade-4',
+  selectedInterests: ['math', 'science'],
   dailyGoalMinutes: 10,
   religiousStream: 'CRE',
   guestProgress: {
     gradeId: 'grade-4',
+    selectedInterests: ['math', 'science'],
     dailyGoalMinutes: 10,
     xp: 0,
     coins: 10,
     hearts: 5,
+    streakDays: 0,
     completedMissionIds: [],
     placementScore: 0,
     placementCompleted: false,
@@ -67,24 +83,39 @@ export const DEFAULT_ONBOARDING_STATE: OnboardingState = {
 };
 
 /**
+ * Normalizes legacy step keys to current step IDs.
+ */
+function normalizeStep(rawStep?: string): OnboardingStep {
+  if (!rawStep) return 'WELCOME';
+  if (rawStep === 'GOAL') return 'DAILY_GOAL';
+  if (rawStep === 'PLACEMENT') return 'LEVEL_CHECK';
+  if (rawStep === 'SIGNUP') return 'SAVE_PROGRESS';
+  return rawStep as OnboardingStep;
+}
+
+/**
  * Retrieves the current persisted onboarding state.
  * Returns default initial state if no state is saved.
  */
 export function getOnboardingState(): OnboardingState {
   try {
-    // If explicit completed flag is set, mark completed
     const completedFlag = localStorage.getItem(COMPLETED_FLAG_KEY);
     const raw = localStorage.getItem(STORAGE_KEY);
 
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<OnboardingState>;
+      const step = normalizeStep(parsed.step);
+
       return {
         ...DEFAULT_ONBOARDING_STATE,
         ...parsed,
+        step,
+        selectedInterests: parsed.selectedInterests || parsed.guestProgress?.selectedInterests || DEFAULT_ONBOARDING_STATE.selectedInterests,
         hasCompletedOnboarding: completedFlag === 'true' || Boolean(parsed.hasCompletedOnboarding),
         guestProgress: {
           ...DEFAULT_ONBOARDING_STATE.guestProgress,
-          ...(parsed.guestProgress || {})
+          ...(parsed.guestProgress || {}),
+          selectedInterests: parsed.guestProgress?.selectedInterests || parsed.selectedInterests || DEFAULT_ONBOARDING_STATE.guestProgress.selectedInterests
         }
       };
     }
@@ -113,10 +144,12 @@ export function saveOnboardingState(updates: Partial<OnboardingState>): Onboardi
       ...current,
       ...updates,
       lastUpdated: new Date().toISOString(),
+      selectedInterests: updates.selectedInterests || updates.guestProgress?.selectedInterests || current.selectedInterests,
       guestProgress: {
         ...current.guestProgress,
         ...(updates.guestProgress || {}),
         gradeId: updates.gradeId || updates.guestProgress?.gradeId || current.guestProgress.gradeId,
+        selectedInterests: updates.selectedInterests || updates.guestProgress?.selectedInterests || current.guestProgress.selectedInterests,
         dailyGoalMinutes: updates.dailyGoalMinutes || updates.guestProgress?.dailyGoalMinutes || current.guestProgress.dailyGoalMinutes
       }
     };
@@ -137,8 +170,8 @@ export function saveOnboardingState(updates: Partial<OnboardingState>): Onboardi
 /**
  * Advances or sets the current onboarding step.
  */
-export function setOnboardingStep(step: OnboardingStep): OnboardingState {
-  return saveOnboardingState({ step });
+export function setOnboardingStep(step: OnboardingStepId | OnboardingStep): OnboardingState {
+  return saveOnboardingState({ step: normalizeStep(step) });
 }
 
 /**
@@ -151,6 +184,20 @@ export function setOnboardingGrade(gradeId: string): OnboardingState {
     guestProgress: {
       ...current.guestProgress,
       gradeId
+    }
+  });
+}
+
+/**
+ * Sets selected interests / subjects.
+ */
+export function setOnboardingInterests(selectedInterests: string[]): OnboardingState {
+  const current = getOnboardingState();
+  return saveOnboardingState({
+    selectedInterests,
+    guestProgress: {
+      ...current.guestProgress,
+      selectedInterests
     }
   });
 }
@@ -202,7 +249,7 @@ export function recordPlacementResult(score: number): OnboardingState {
 }
 
 /**
- * Records completion of the first real lesson (XP, Coins, and Mission ID).
+ * Records completion of the first real lesson (XP, Coins, streak, and Mission ID).
  */
 export function recordFirstLessonCompletion(
   missionId: string,
@@ -216,13 +263,32 @@ export function recordFirstLessonCompletion(
     : [...currentCompleted, missionId];
 
   return saveOnboardingState({
-    step: 'SIGNUP',
     guestProgress: {
       ...current.guestProgress,
       xp: (current.guestProgress.xp || 0) + earnedXp,
       coins: (current.guestProgress.coins || 0) + earnedCoins,
+      streakDays: Math.max(1, current.guestProgress.streakDays || 1),
       completedMissionIds: updatedMissions,
       firstLessonCompleted: true
+    }
+  });
+}
+
+/**
+ * Stores parent phone and 4-digit PIN for guardian handoff.
+ */
+export function setParentContactInfo(
+  parentPhone: string,
+  parentPin: string,
+  learnerName?: string
+): OnboardingState {
+  const current = getOnboardingState();
+  return saveOnboardingState({
+    guestProgress: {
+      ...current.guestProgress,
+      parentPhone,
+      parentPin,
+      learnerName: learnerName || current.guestProgress.learnerName
     }
   });
 }
@@ -268,7 +334,7 @@ export function resetOnboarding(): void {
 }
 
 /**
- * Merges anonymous guest progress (earned XP, coins, completed quest IDs)
+ * Merges anonymous guest progress (earned XP, coins, streak, completed quest IDs)
  * into a registered StudentProfile.
  */
 export function mergeGuestProgressIntoProfile(student: StudentProfile): StudentProfile {
@@ -284,6 +350,7 @@ export function mergeGuestProgressIntoProfile(student: StudentProfile): StudentP
     gradeId: guest.gradeId || student.gradeId,
     xp: (student.xp || 0) + (guest.xp || 0),
     coins: (student.coins || 0) + (guest.coins || 0),
+    streakDays: Math.max(student.streakDays || 0, guest.streakDays || (guest.firstLessonCompleted ? 1 : 0)),
     completedMissionIds: mergedMissions,
     hearts: Math.min(5, guest.hearts ?? student.hearts ?? 5),
     religiousStream: guest.religiousStream || state.religiousStream || student.religiousStream || 'CRE'
