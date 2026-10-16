@@ -44,7 +44,7 @@ export const FEATURE_UNLOCK_RULES: Record<AppFeature, FeatureUnlockRule> = {
   },
   PRACTICE: {
     feature: 'PRACTICE',
-    minimumDaysActive: 1, // Available from Day 2 or after 2 quests
+    minimumDaysActive: 2, // Available on Day 2+ or after 2 quests
     minimumCompletedMissions: 2,
     minimumXp: 50,
     titleEn: 'Practice Hub',
@@ -54,7 +54,7 @@ export const FEATURE_UNLOCK_RULES: Record<AppFeature, FeatureUnlockRule> = {
   },
   SHOP: {
     feature: 'SHOP',
-    minimumDaysActive: 1, // Available from Day 2 or after 3 quests
+    minimumDaysActive: 2, // Available on Day 2+ or after 3 quests
     minimumCompletedMissions: 3,
     minimumXp: 75,
     titleEn: 'Dukani Shop',
@@ -89,7 +89,6 @@ export const FEATURE_UNLOCK_RULES: Record<AppFeature, FeatureUnlockRule> = {
  */
 export function getDaysSinceStart(student?: Partial<StudentProfile>): number {
   if (!student) return 0;
-  // If streakDays is present and > 0, count from that
   if (student.streakDays && student.streakDays > 1) {
     return student.streakDays;
   }
@@ -105,17 +104,22 @@ export function isFeatureUnlocked(feature: AppFeature, student?: Partial<Student
   const rule = FEATURE_UNLOCK_RULES[feature];
   if (!rule) return true;
 
-  // Day 1 bypass if student has satisfied quest or XP count
+  // Day 0 core features
+  if (rule.minimumDaysActive === 0 && rule.minimumCompletedMissions === 0) {
+    return true;
+  }
+
   const completedCount = student.completedMissionIds?.length || 0;
   const currentXp = student.xp || 0;
   const daysActive = getDaysSinceStart(student);
 
-  // Unlocked if either days requirement OR mission milestone is satisfied
+  // Fast-track milestone unlock: child has completed required missions & earned XP
   if (completedCount >= rule.minimumCompletedMissions && currentXp >= rule.minimumXp) {
     return true;
   }
 
-  if (daysActive >= rule.minimumDaysActive && completedCount >= Math.max(1, rule.minimumCompletedMissions - 1)) {
+  // Day-based unlock: active for at least minimumDaysActive AND completed at least 1 mission
+  if (daysActive >= rule.minimumDaysActive && completedCount >= 1) {
     return true;
   }
 
