@@ -12,6 +12,7 @@ import { sound } from '../../utils/soundEffects.js';
 import { CurriculumIcon } from '../common/CurriculumIcon.js';
 import { useReducedMotionPreference, springTransition } from '../../utils/motion.js';
 import { recommendNextLesson } from '../../utils/learningEngine.js';
+import { getOnboardingState } from '../../services/onboardingStorage.js';
 
 interface Props {
   student: StudentProfile;
@@ -94,8 +95,25 @@ export const LearningPathView: React.FC<Props> = ({
       });
   }, [grade.subjects, religiousStream]);
 
-  // Subject selection: default to first subject (e.g. Mathematics)
+  // Subject selection: default to learner's top interest from onboarding or first subject
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>(() => {
+    try {
+      const obState = getOnboardingState();
+      const topInterest = obState.selectedInterests?.[0]?.toLowerCase();
+      if (topInterest) {
+        const matched = filteredSubjects.find(s => {
+          const sId = s.id.toLowerCase();
+          const sTitle = (s.title.en || '').toLowerCase();
+          if (topInterest === 'math') return sId.includes('math') || sTitle.includes('math') || sTitle.includes('hisabati');
+          if (topInterest === 'english') return sId.includes('eng') || sTitle.includes('english') || sTitle.includes('kiingereza');
+          if (topInterest === 'kiswahili') return sId.includes('kisw') || sTitle.includes('kiswahili');
+          if (topInterest === 'science') return sId.includes('sci') || sId.includes('env') || sTitle.includes('science') || sTitle.includes('sayansi') || sTitle.includes('mazingira');
+          if (topInterest === 'social') return sId.includes('soc') || sId.includes('agri') || sTitle.includes('social') || sTitle.includes('jamii') || sTitle.includes('kilimo');
+          return sId.includes(topInterest) || sTitle.includes(topInterest);
+        });
+        if (matched) return matched.id;
+      }
+    } catch (_) {}
     return filteredSubjects[0]?.id || grade.subjects[0]?.id || 'la-math-g4';
   });
 

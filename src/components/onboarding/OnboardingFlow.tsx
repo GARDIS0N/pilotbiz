@@ -26,8 +26,11 @@ import { trackEvent } from '../../services/analytics.js';
 import { evaluateAnswer } from '../../utils/answerValidation.js';
 import { Question, User, StudentProfile, LearningSessionResult } from '../../types/cbe.js';
 import { getRecommendedNextQuest } from '../../data/curriculum/index.js';
-import { DuolingoLessonModal } from '../session/DuolingoLessonModal.js';
 import { cbeApi } from '../../services/cbeApi.js';
+
+const DuolingoLessonModal = React.lazy(() =>
+  import('../session/DuolingoLessonModal.js').then(m => ({ default: m.DuolingoLessonModal }))
+);
 
 interface Props {
   onCompleteOnboarding: (user: User, studentProfile: StudentProfile) => void;
@@ -126,10 +129,10 @@ export const OnboardingFlow: React.FC<Props> = ({
   // Top interest determines level check and first quest
   const topInterest = selectedInterests[0] || 'math';
 
-  // Determine real first curriculum quest for chosen grade
+  // Determine real first curriculum quest for chosen grade and interest
   const firstQuest = useMemo(() => {
-    return getRecommendedNextQuest(selectedGradeId, []);
-  }, [selectedGradeId]);
+    return getRecommendedNextQuest(selectedGradeId, [], [], topInterest);
+  }, [selectedGradeId, topInterest]);
 
   // Load level check questions when grade or interest changes
   useEffect(() => {
@@ -152,6 +155,28 @@ export const OnboardingFlow: React.FC<Props> = ({
     return () => window.removeEventListener('beforeunload', handleUnload);
   }, [currentStep, selectedGradeId]);
 
+  // Config-driven enabled steps list
+  const enabledSteps = useMemo(
+    () => ONBOARDING_STEPS_CONFIG.filter(s => s.enabled),
+    []
+  );
+
+  const getNextStepId = (fromStep: OnboardingStepId): OnboardingStepId => {
+    const currentIndex = enabledSteps.findIndex(s => s.id === fromStep);
+    if (currentIndex !== -1 && currentIndex + 1 < enabledSteps.length) {
+      return enabledSteps[currentIndex + 1].id;
+    }
+    return 'HOME';
+  };
+
+  const getPrevStepId = (fromStep: OnboardingStepId): OnboardingStepId | null => {
+    const currentIndex = enabledSteps.findIndex(s => s.id === fromStep);
+    if (currentIndex > 0) {
+      return enabledSteps[currentIndex - 1].id;
+    }
+    return null;
+  };
+
   // Step progression helper
   const goToStep = (nextStep: OnboardingStepId) => {
     sound.playClick();
@@ -162,7 +187,7 @@ export const OnboardingFlow: React.FC<Props> = ({
   // Step 1: Start -> Grade Picker
   const handleStart = () => {
     trackEvent('onboarding_started');
-    goToStep('GRADE');
+    goToStep(getNextStepId('WELCOME'));
   };
 
   // Step 2: Choose Grade -> Interests
@@ -171,7 +196,7 @@ export const OnboardingFlow: React.FC<Props> = ({
     setSelectedGradeId(gradeId);
     setOnboardingGrade(gradeId);
     trackEvent('grade_selected', { gradeId });
-    goToStep('INTERESTS');
+    goToStep(getNextStepId('GRADE'));
   };
 
   // Step 3: Toggle Interests -> Level Check
@@ -194,7 +219,7 @@ export const OnboardingFlow: React.FC<Props> = ({
       interests: selectedInterests,
       topInterest: selectedInterests[0]
     });
-    goToStep('LEVEL_CHECK');
+    goToStep(getNextStepId('INTERESTS'));
   };
 
   // Step 4: Level Check Quiz
@@ -246,7 +271,7 @@ export const OnboardingFlow: React.FC<Props> = ({
       gradeId: selectedGradeId,
       topInterest
     });
-    goToStep('FIRST_LESSON');
+    goToStep(getNextStepId('LEVEL_CHECK'));
   };
 
   const handleSkipLevelCheck = () => {
@@ -267,8 +292,8 @@ export const OnboardingFlow: React.FC<Props> = ({
   };
 
   const handleFirstLessonClose = () => {
-    // Once child closes celebration modal, advance to Daily Goal
-    goToStep('DAILY_GOAL');
+    // Once child closes celebration modal, advance to next step in config
+    goToStep(getNextStepId('FIRST_LESSON'));
   };
 
   // Step 6: Daily Goal -> Save Progress Prompt
@@ -277,14 +302,26 @@ export const OnboardingFlow: React.FC<Props> = ({
     setSelectedGoal(minutes);
     setOnboardingGoal(minutes);
     trackEvent('daily_goal_set', { dailyGoalMinutes: minutes });
-    trackEvent('save_progress_shown');
-    goToStep('SAVE_PROGRESS');
+    const nextStep = getNextStepId('DAILY_GOAL');
+    if (nextStep === 'SAVE_PROGRESS') {
+      trackEvent('save_progress_shown');
+    }
+    if (nextStep === 'HOME') {
+      finishOnboardingAsGuest();
+    } else {
+      goToStep(nextStep);
+    }
   };
 
   // Step 7: Save Progress Prompt Choice
   const handleAcceptSaveProgress = () => {
     sound.playClick();
-    goToStep('PARENT_STEP');
+    const nextStep = getNextStepId('SAVE_PROGRESS');
+    if (nextStep === 'HOME') {
+      finishOnboardingAsGuest();
+    } else {
+      goToStep(nextStep);
+    }
   };
 
   const handleSkipSaveProgress = () => {
@@ -413,47 +450,19 @@ export const OnboardingFlow: React.FC<Props> = ({
     onCompleteOnboarding(guestUser, merged);
   };
 
-  // Back button navigation
+  // Back button navigation (config-driven)
   const handleBack = () => {
     sound.playClick();
-    switch (currentStep) {
-      case 'GRADE':
-        goToStep('WELCOME');
-        break;
-      case 'INTERESTS':
-        goToStep('GRADE');
-        break;
-      case 'LEVEL_CHECK':
-        goToStep('INTERESTS');
-        break;
-      case 'DAILY_GOAL':
-        goToStep('LEVEL_CHECK');
-        break;
-      case 'SAVE_PROGRESS':
-        goToStep('DAILY_GOAL');
-        break;
-      case 'PARENT_STEP':
-        goToStep('SAVE_PROGRESS');
-        break;
-      default:
-        break;
+    const prev = getPrevStepId(currentStep);
+    if (prev) {
+      goToStep(prev);
     }
   };
 
-  // Calculate step progress percentage
-  const stepOrderMap: Record<OnboardingStepId, number> = {
-    WELCOME: 0,
-    GRADE: 1,
-    INTERESTS: 2,
-    LEVEL_CHECK: 3,
-    FIRST_LESSON: 4,
-    DAILY_GOAL: 5,
-    SAVE_PROGRESS: 6,
-    PARENT_STEP: 7,
-    HOME: 8
-  };
-  const currentStepNum = stepOrderMap[currentStep] || 0;
-  const progressPercent = Math.min(100, Math.round((currentStepNum / 7) * 100));
+  // Calculate step progress percentage based on enabled steps
+  const progressIndex = enabledSteps.findIndex(s => s.id === currentStep);
+  const maxStepIndex = Math.max(1, enabledSteps.length - 2); // Exclude HOME and 0-index offset
+  const progressPercent = Math.min(100, Math.round((Math.max(0, progressIndex) / maxStepIndex) * 100));
 
   // Current step config
   const stepConfig = ONBOARDING_STEPS_CONFIG.find(s => s.id === currentStep);
@@ -462,16 +471,28 @@ export const OnboardingFlow: React.FC<Props> = ({
   if (currentStep === 'FIRST_LESSON') {
     return (
       <div className="fixed inset-0 z-50 bg-slate-950 flex flex-col justify-between">
-        <DuolingoLessonModal
-          isOpen={true}
-          missionId={firstQuest.id}
-          studentId="guest-learner"
-          studentName={learnerName || 'Learner'}
-          initialHearts={5}
-          onClose={handleFirstLessonClose}
-          onMissionCompleted={handleFirstLessonCompleted}
-          language={language}
-        />
+        <React.Suspense
+          fallback={
+            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center space-y-4 text-emerald-400">
+              <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+              <div className="text-center">
+                <h2 className="text-lg font-bold text-white">Loading your first quest...</h2>
+                <p className="text-xs text-emerald-300">Rafiki is preparing your questions</p>
+              </div>
+            </div>
+          }
+        >
+          <DuolingoLessonModal
+            isOpen={true}
+            missionId={firstQuest.id}
+            studentId="guest-learner"
+            studentName={learnerName || 'Learner'}
+            initialHearts={5}
+            onClose={handleFirstLessonClose}
+            onMissionCompleted={handleFirstLessonCompleted}
+            language={language}
+          />
+        </React.Suspense>
       </div>
     );
   }

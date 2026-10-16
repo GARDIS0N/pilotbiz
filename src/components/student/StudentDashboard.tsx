@@ -25,6 +25,8 @@ interface Props {
   onOpenAuthModal?: () => void;
   onOpenTutor?: () => void;
   onNavigateLegal?: (doc: 'privacy' | 'terms') => void;
+  isGuestMode?: boolean;
+  onOpenLogin?: () => void;
 }
 
 export const StudentDashboard: React.FC<Props> = ({
@@ -41,7 +43,9 @@ export const StudentDashboard: React.FC<Props> = ({
   onLogout,
   onOpenAuthModal,
   onOpenTutor,
-  onNavigateLegal
+  onNavigateLegal,
+  isGuestMode = false,
+  onOpenLogin
 }) => {
   const [currentTab, setCurrentTab] = useState<AppTab>('LEARN');
   const [isTutorOpen, setIsTutorOpen] = useState(false);
@@ -73,12 +77,18 @@ export const StudentDashboard: React.FC<Props> = ({
 
       {/* 2. Main Content Canvas */}
       <div className="flex-1 md:ml-64 lg:ml-72 flex flex-col min-h-screen pb-20 md:pb-8">
-        {/* Top Strip HUD (Streak with Daily Goal Ring, Hearts) */}
+        {/* Top Strip HUD (Streak with Daily Goal Ring, Hearts, Utilities) */}
         <TopGameHUD
           student={student}
           onOpenShop={() => setCurrentTab('SHOP')}
           onOpenPractice={() => setCurrentTab('PRACTICE')}
           language={language}
+          isMuted={isMuted}
+          onToggleMute={onToggleMute}
+          onOpenParentArea={onOpenAuthModal}
+          onOpenLogin={onOpenLogin}
+          isGuestMode={isGuestMode}
+          onLogout={onLogout}
         />
 
         {/* Tab View Container */}

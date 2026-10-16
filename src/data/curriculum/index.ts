@@ -213,11 +213,26 @@ export function searchCurriculum(
 
 export const searchCurriculumTopics = searchCurriculum;
 
+function matchesSubjectInterest(subjectId: string, subjectTitle: string, interestKey?: string): boolean {
+  if (!interestKey) return false;
+  const sId = subjectId.toLowerCase();
+  const sTitle = subjectTitle.toLowerCase();
+  const key = interestKey.toLowerCase();
+
+  if (key === 'math') return sId.includes('math') || sTitle.includes('math') || sTitle.includes('hisabati');
+  if (key === 'english') return sId.includes('eng') || sTitle.includes('english') || sTitle.includes('kiingereza');
+  if (key === 'kiswahili') return sId.includes('kisw') || sTitle.includes('kiswahili');
+  if (key === 'science') return sId.includes('sci') || sId.includes('env') || sTitle.includes('science') || sTitle.includes('sayansi') || sTitle.includes('mazingira');
+  if (key === 'social') return sId.includes('soc') || sId.includes('agri') || sTitle.includes('social') || sTitle.includes('jamii') || sTitle.includes('kilimo');
+  return sId.includes(key) || sTitle.includes(key);
+}
+
 // Spaced repetition & Adaptive: recommend next quest
 export function getRecommendedNextQuest(
   gradeId: string,
   completedQuestIds: string[],
-  weakStrandIds: string[] = []
+  weakStrandIds: string[] = [],
+  preferredInterest?: string
 ): CurriculumQuest {
   const subjects = getSubjectsForGrade(gradeId);
 
@@ -239,9 +254,42 @@ export function getRecommendedNextQuest(
     }
   }
 
-  // 2. Otherwise find the first uncompleted quest in the grade
-  // Check ALL_CURRICULUM_GRADES first to prefer quests with rich question banks
+  // 2. If preferredInterest is specified, prioritize the first uncompleted quest in that subject
   const seedGrade = ALL_CURRICULUM_GRADES.find(g => g.id === gradeId);
+  if (preferredInterest) {
+    if (seedGrade) {
+      for (const subject of seedGrade.subjects) {
+        if (matchesSubjectInterest(subject.id, subject.title?.en || '', preferredInterest)) {
+          for (const strand of subject.strands) {
+            for (const ss of strand.subStrands) {
+              for (const q of ss.quests) {
+                if (!completedQuestIds.includes(q.id) && q.questions && q.questions.length > 0) {
+                  return q;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    for (const subject of subjects) {
+      if (matchesSubjectInterest(subject.id, subject.title?.en || '', preferredInterest)) {
+        for (const strand of subject.strands) {
+          for (const ss of strand.subStrands) {
+            for (const q of ss.quests) {
+              if (!completedQuestIds.includes(q.id)) {
+                const enriched = questsMap.get(q.id);
+                return enriched || q;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // 3. Otherwise find the first uncompleted quest in the grade
   if (seedGrade) {
     for (const subject of seedGrade.subjects) {
       for (const strand of subject.strands) {
@@ -269,7 +317,7 @@ export function getRecommendedNextQuest(
     }
   }
 
-  // 3. Fallback to canonical mission
+  // 4. Fallback to canonical mission
   return questsMap.get('mission-01-seedlings') || Array.from(questsMap.values())[0];
 }
 

@@ -11,6 +11,12 @@ interface Props {
   onOpenShop?: () => void;
   onOpenPractice?: () => void;
   language?: 'en' | 'sw';
+  isMuted?: boolean;
+  onToggleMute?: () => void;
+  onOpenParentArea?: () => void;
+  onOpenLogin?: () => void;
+  isGuestMode?: boolean;
+  onLogout?: () => void;
 }
 
 type ExplainerMetric = 'STREAK' | 'HEARTS' | null;
@@ -19,7 +25,13 @@ export const TopGameHUD: React.FC<Props> = ({
   student,
   onOpenShop,
   onOpenPractice,
-  language = 'en'
+  language = 'en',
+  isMuted = false,
+  onToggleMute,
+  onOpenParentArea,
+  onOpenLogin,
+  isGuestMode = false,
+  onLogout
 }) => {
   const [activeExplainer, setActiveExplainer] = useState<ExplainerMetric>(null);
 
@@ -30,7 +42,7 @@ export const TopGameHUD: React.FC<Props> = ({
 
   return (
     <>
-      {/* Top Strip HUD (Logo, Streak & Hearts Only - Nothing Else) */}
+      {/* Top Strip HUD (Logo, Streak, Hearts, Mute & Parent Area) */}
       <header className="sticky top-0 z-30 bg-slate-950/95 backdrop-blur-md border-b border-emerald-900/60 px-3 sm:px-6 py-2.5 transition-all">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
           {/* Jifuno Logo (Left) */}
@@ -44,13 +56,13 @@ export const TopGameHUD: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Stats: Streak with Small Daily Goal Ring + Hearts HUD (Right) */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Stats: Streak with Small Daily Goal Ring + Hearts HUD + Utility Controls (Right) */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* Streak Flame + Daily Goal Ring */}
             <button
               type="button"
               onClick={() => handleMetricClick('STREAK')}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-amber-950/40 border border-amber-600/50 hover:border-amber-400 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 group active:scale-95"
+              className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-amber-950/40 border border-amber-600/50 hover:border-amber-400 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 group active:scale-95"
               aria-label={`Streak: ${student.streakDays} days. Daily goal: 70%. Tap for info.`}
             >
               <StreakFlame streakDays={student.streakDays} streakFrozen={student.streakFrozen} />
@@ -58,9 +70,9 @@ export const TopGameHUD: React.FC<Props> = ({
                 {student.streakDays}
               </span>
 
-              {/* Small Circular Progress Ring for Daily Goal (Hidden as a small ring beside streak) */}
-              <div className="relative w-5 h-5 shrink-0 ml-0.5" title="Daily Goal: 70%">
-                <svg className="w-5 h-5 transform -rotate-90" viewBox="0 0 36 36">
+              {/* Small Circular Progress Ring for Daily Goal */}
+              <div className="relative w-4 h-4 sm:w-5 sm:h-5 shrink-0 ml-0.5" title="Daily Goal: 70%">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 transform -rotate-90" viewBox="0 0 36 36">
                   <path
                     className="text-slate-800"
                     strokeWidth="4"
@@ -85,7 +97,7 @@ export const TopGameHUD: React.FC<Props> = ({
             <button
               type="button"
               onClick={() => handleMetricClick('HEARTS')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 group active:scale-95 ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl border transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 group active:scale-95 ${
                 student.hearts <= 1
                   ? 'bg-rose-950/60 border-rose-500 animate-pulse'
                   : 'bg-rose-950/30 border-rose-700/50 hover:border-rose-400'
@@ -97,6 +109,64 @@ export const TopGameHUD: React.FC<Props> = ({
                 {student.hearts}/{student.maxHearts}
               </span>
             </button>
+
+            {/* Sound Toggle */}
+            {onToggleMute && (
+              <button
+                type="button"
+                onClick={onToggleMute}
+                className="w-8 h-8 rounded-xl bg-slate-900 border border-emerald-900/60 hover:border-emerald-700 text-gray-300 flex items-center justify-center text-xs cursor-pointer transition-all active:scale-95"
+                title={isMuted ? 'Unmute Sound' : 'Mute Sound'}
+                aria-label={isMuted ? 'Unmute Sound' : 'Mute Sound'}
+              >
+                {isMuted ? '🔇' : '🔊'}
+              </button>
+            )}
+
+            {/* Guest Save Progress / Log In or Sign Out */}
+            {isGuestMode && onOpenLogin ? (
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  onOpenLogin();
+                }}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs cursor-pointer shadow-sm active:scale-95 transition-all"
+                title="Save Progress"
+              >
+                <span>🔑</span>
+                <span className="hidden xs:inline">Save</span>
+              </button>
+            ) : onLogout ? (
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  onLogout();
+                }}
+                className="w-8 h-8 rounded-xl bg-slate-900 border border-rose-900/40 hover:border-rose-600 text-rose-300 hover:text-white flex items-center justify-center text-xs cursor-pointer transition-all active:scale-95"
+                title="Sign Out"
+                aria-label="Sign Out"
+              >
+                🚪
+              </button>
+            ) : null}
+
+            {/* Parent Area Button */}
+            {onOpenParentArea && (
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  onOpenParentArea();
+                }}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-emerald-900/60 hover:border-emerald-600 text-gray-300 hover:text-white font-bold text-xs cursor-pointer shadow-sm transition-all active:scale-95"
+                title="Parent & Teacher Area"
+              >
+                <span>👨‍👩‍👧</span>
+                <span className="hidden sm:inline">Parent</span>
+              </button>
+            )}
           </div>
         </div>
       </header>

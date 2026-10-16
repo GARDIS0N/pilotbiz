@@ -7,6 +7,7 @@ import { AVATARS } from '../../utils/avatars.js';
 import { useReducedMotionPreference, springTransition } from '../../utils/motion.js';
 import { signInWithEmail, signUpWithEmail, isSupabaseConfigured } from '../../services/supabaseClient.js';
 import { LEGAL_VERSION } from '../../content/legal/constants.js';
+import { getOnboardingState } from '../../services/onboardingStorage.js';
 
 interface Props {
   currentUser: User | null;
@@ -35,6 +36,10 @@ export const LoginPage: React.FC<Props> = ({
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Credentials State
+  const [loginMode, setLoginMode] = useState<'phone' | 'email'>('phone');
+  const [loginPhone, setLoginPhone] = useState('');
+  const [loginPin, setLoginPin] = useState('');
+  const [showPin, setShowPin] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -113,6 +118,62 @@ export const LoginPage: React.FC<Props> = ({
     } catch (err: any) {
       sound.playIncorrect();
       setErrorMsg(err.message || 'Failed to switch to demo account');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePhoneLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanPhone = loginPhone.replace(/\s+/g, '');
+    if (!cleanPhone || cleanPhone.length < 9) {
+      setErrorMsg('Please enter a valid Kenyan phone number (e.g. 0712...)');
+      sound.playIncorrect();
+      return;
+    }
+    if (!loginPin || loginPin.length < 4) {
+      setErrorMsg('Please enter your 4-digit Parent PIN');
+      sound.playIncorrect();
+      return;
+    }
+
+    try {
+      sound.playClick();
+      setLoading(true);
+      setErrorMsg(null);
+
+      // Check against onboarding storage if this user previously saved progress on this device
+      const onboardingState = getOnboardingState();
+      const guestProgress = onboardingState.guestProgress;
+      const registeredPhone = guestProgress?.parentPhone?.replace(/\s+/g, '');
+      const registeredPin = guestProgress?.parentPin;
+
+      // If registered locally and PIN does not match
+      if (registeredPhone && registeredPhone === cleanPhone) {
+        if (registeredPin && registeredPin !== loginPin) {
+          setErrorMsg('Incorrect PIN. Please check your 4-digit PIN and try again.');
+          sound.playIncorrect();
+          setLoading(false);
+          return;
+        }
+      }
+
+      const fakeEmail = `${cleanPhone.replace(/[^0-9]/g, '')}@parent.jifuno.ke`;
+
+      // Try login via CBE API
+      const res = await cbeApi.login(fakeEmail);
+      sound.playCorrect();
+      const displayName = guestProgress?.learnerName || res.user.name || `Learner (${cleanPhone})`;
+      setSuccessMsg(`Hongera! Welcome back, ${displayName}!`);
+      setTimeout(() => {
+        onLoginSuccess({
+          ...res.user,
+          name: displayName
+        });
+      }, 400);
+    } catch (err: any) {
+      sound.playIncorrect();
+      setErrorMsg(err.message || 'Login failed. Please verify phone number and PIN.');
     } finally {
       setLoading(false);
     }
@@ -473,89 +534,198 @@ export const LoginPage: React.FC<Props> = ({
 
             {/* TAB 2: Credentials Login */}
             {activeTab === 'CREDENTIALS' && (
-              <form onSubmit={handleCredentialsLogin} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-300">
-                    Email Address or Learner ID
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={loginEmail}
-                    onChange={e => setLoginEmail(e.target.value)}
-                    placeholder="e.g. amina@jifuno.ke"
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-emerald-900/60 focus:border-emerald-500 text-white text-sm outline-none transition-all placeholder:text-gray-600"
-                  />
-                  <div className="flex items-center gap-2 text-[11px] text-gray-500">
-                    <span>💡 Quick tip: Use</span>
-                    <button
-                      type="button"
-                      onClick={() => setLoginEmail('amina@jifuno.ke')}
-                      className="text-emerald-400 hover:underline font-mono"
-                    >
-                      amina@jifuno.ke
-                    </button>
-                    <span>or</span>
-                    <button
-                      type="button"
-                      onClick={() => setLoginEmail('teacher@jifuno.ke')}
-                      className="text-emerald-400 hover:underline font-mono"
-                    >
-                      teacher@jifuno.ke
-                    </button>
-                  </div>
+              <div className="space-y-4">
+                {/* Mode Selector: Phone & PIN (Kenyan families) vs Email */}
+                <div className="flex p-1 bg-slate-950 rounded-2xl border border-emerald-900/60">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playClick();
+                      setLoginMode('phone');
+                      setErrorMsg(null);
+                    }}
+                    className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                      loginMode === 'phone'
+                        ? 'bg-emerald-500 text-slate-950 shadow-sm font-black'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    <span>📱</span>
+                    <span>Parent Phone & PIN</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playClick();
+                      setLoginMode('email');
+                      setErrorMsg(null);
+                    }}
+                    className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                      loginMode === 'email'
+                        ? 'bg-emerald-500 text-slate-950 shadow-sm font-black'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    <span>✉️</span>
+                    <span>Email & Password</span>
+                  </button>
                 </div>
 
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-gray-300">Password / PIN</label>
+                {loginMode === 'phone' ? (
+                  <form onSubmit={handlePhoneLogin} className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-gray-300">
+                        Parent / Guardian Phone Number
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={loginPhone}
+                        onChange={e => setLoginPhone(e.target.value)}
+                        placeholder="e.g. 0712 345 678"
+                        className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-emerald-900/60 focus:border-emerald-500 text-white text-sm outline-none transition-all placeholder:text-gray-600"
+                      />
+                      <p className="text-[11px] text-gray-400">
+                        The phone number entered when saving progress during onboarding.
+                      </p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-gray-300">4-Digit Parent PIN</label>
+                        <button
+                          type="button"
+                          onClick={() => setShowPin(!showPin)}
+                          className="text-[11px] text-emerald-400 hover:underline"
+                        >
+                          {showPin ? 'Hide PIN' : 'Show PIN'}
+                        </button>
+                      </div>
+                      <input
+                        type={showPin ? 'text' : 'password'}
+                        required
+                        inputMode="numeric"
+                        maxLength={4}
+                        value={loginPin}
+                        onChange={e => setLoginPin(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))}
+                        placeholder="••••"
+                        className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-emerald-900/60 focus:border-emerald-500 text-white text-sm tracking-widest text-center font-mono outline-none transition-all placeholder:text-gray-600"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs text-gray-400 pt-1">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={rememberMe}
+                          onChange={e => setRememberMe(e.target.checked)}
+                          className="w-4 h-4 rounded text-emerald-500 bg-slate-950 border-gray-700"
+                        />
+                        <span>Remember on this device</span>
+                      </label>
+                    </div>
+
                     <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="text-[11px] text-emerald-400 hover:underline"
+                      type="submit"
+                      disabled={loading}
+                      className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm tracking-wide transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98] cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                      {showPassword ? 'Hide PIN' : 'Show PIN'}
+                      {loading ? (
+                        <div className="w-5 h-5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <span>LOG IN WITH PHONE & PIN</span>
+                          <span>➔</span>
+                        </>
+                      )}
                     </button>
-                  </div>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={loginPassword}
-                    onChange={e => setLoginPassword(e.target.value)}
-                    placeholder="Enter learner PIN or password"
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-emerald-900/60 focus:border-emerald-500 text-white text-sm outline-none transition-all placeholder:text-gray-600"
-                  />
-                </div>
+                  </form>
+                ) : (
+                  <form onSubmit={handleCredentialsLogin} className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-gray-300">
+                        Email Address or Learner ID
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={loginEmail}
+                        onChange={e => setLoginEmail(e.target.value)}
+                        placeholder="e.g. amina@jifuno.ke"
+                        className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-emerald-900/60 focus:border-emerald-500 text-white text-sm outline-none transition-all placeholder:text-gray-600"
+                      />
+                      <div className="flex items-center gap-2 text-[11px] text-gray-500">
+                        <span>💡 Quick tip: Use</span>
+                        <button
+                          type="button"
+                          onClick={() => setLoginEmail('amina@jifuno.ke')}
+                          className="text-emerald-400 hover:underline font-mono"
+                        >
+                          amina@jifuno.ke
+                        </button>
+                        <span>or</span>
+                        <button
+                          type="button"
+                          onClick={() => setLoginEmail('teacher@jifuno.ke')}
+                          className="text-emerald-400 hover:underline font-mono"
+                        >
+                          teacher@jifuno.ke
+                        </button>
+                      </div>
+                    </div>
 
-                <div className="flex items-center justify-between text-xs text-gray-400 pt-1">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={e => setRememberMe(e.target.checked)}
-                      className="w-4 h-4 rounded text-emerald-500 bg-slate-950 border-gray-700"
-                    />
-                    <span>Remember on this device</span>
-                  </label>
-                  <span className="text-emerald-400/80 hover:text-emerald-300 cursor-pointer">
-                    Need help?
-                  </span>
-                </div>
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-gray-300">Password / PIN</label>
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="text-[11px] text-emerald-400 hover:underline"
+                        >
+                          {showPassword ? 'Hide PIN' : 'Show PIN'}
+                        </button>
+                      </div>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={loginPassword}
+                        onChange={e => setLoginPassword(e.target.value)}
+                        placeholder="Enter learner PIN or password"
+                        className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-emerald-900/60 focus:border-emerald-500 text-white text-sm outline-none transition-all placeholder:text-gray-600"
+                      />
+                    </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm tracking-wide transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98] cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <div className="w-5 h-5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <span>LOG IN TO JIFUNO</span>
-                      <span>➔</span>
-                    </>
-                  )}
-                </button>
-              </form>
+                    <div className="flex items-center justify-between text-xs text-gray-400 pt-1">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={rememberMe}
+                          onChange={e => setRememberMe(e.target.checked)}
+                          className="w-4 h-4 rounded text-emerald-500 bg-slate-950 border-gray-700"
+                        />
+                        <span>Remember on this device</span>
+                      </label>
+                      <span className="text-emerald-400/80 hover:text-emerald-300 cursor-pointer">
+                        Need help?
+                      </span>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm tracking-wide transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98] cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {loading ? (
+                        <div className="w-5 h-5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <span>LOG IN TO JIFUNO</span>
+                          <span>➔</span>
+                        </>
+                      )}
+                    </button>
+                  </form>
+                )}
+              </div>
             )}
 
             {/* TAB 3: Sign Up */}

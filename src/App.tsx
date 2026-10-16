@@ -4,15 +4,31 @@ import { cbeApi } from './services/cbeApi.js';
 import { supabase, isSupabaseConfigured, signOut, getSession } from './services/supabaseClient.js';
 import { sound } from './utils/soundEffects.js';
 import { StudentDashboard } from './components/student/StudentDashboard.js';
-import { ParentDashboard } from './components/parent/ParentDashboard.js';
-import { TeacherDashboard } from './components/teacher/TeacherDashboard.js';
-import { AdminDashboard } from './components/admin/AdminDashboard.js';
-import { DuolingoLessonModal } from './components/session/DuolingoLessonModal.js';
 import { AuthModal } from './components/auth/AuthModal.js';
 import { AITutorModal } from './components/tutor/AITutorModal.js';
 import { LoginPage } from './components/auth/LoginPage.js';
 import { OnboardingFlow } from './components/onboarding/OnboardingFlow.js';
 import { LegalPage } from './components/legal/LegalPage.js';
+
+const ParentDashboard = React.lazy(() =>
+  import('./components/parent/ParentDashboard.js').then(m => ({ default: m.ParentDashboard }))
+);
+const TeacherDashboard = React.lazy(() =>
+  import('./components/teacher/TeacherDashboard.js').then(m => ({ default: m.TeacherDashboard }))
+);
+const AdminDashboard = React.lazy(() =>
+  import('./components/admin/AdminDashboard.js').then(m => ({ default: m.AdminDashboard }))
+);
+const DuolingoLessonModal = React.lazy(() =>
+  import('./components/session/DuolingoLessonModal.js').then(m => ({ default: m.DuolingoLessonModal }))
+);
+
+const DashboardLoadingFallback: React.FC = () => (
+  <div className="w-full min-h-[300px] flex flex-col items-center justify-center p-8 space-y-3 text-emerald-400">
+    <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+    <span className="text-xs text-gray-400 font-medium">Loading...</span>
+  </div>
+);
 import {
   isReturningUser,
   getPersistedUserProfile,
@@ -486,6 +502,88 @@ export function App() {
 
   const currentGrade = grades.find(g => g.id === selectedGradeId) || grades[1] || grades[0];
 
+  // 3. Dedicated Learner View: Full-Screen Pure Game HUD + Path / Practice / Shop / Profile (Zero header duplication)
+  if (currentUser?.role === 'STUDENT' && studentProfile) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-gray-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-black">
+        <StudentDashboard
+          student={studentProfile}
+          currentUser={currentUser}
+          grades={grades}
+          onStartMission={(mId) => {
+            setActiveMissionId(mId);
+          }}
+          onStudentUpdated={(st) => {
+            setStudentProfile(st);
+            if (currentUser) {
+              savePersistedUserProfile(currentUser, st);
+            }
+          }}
+          isMuted={isMuted}
+          onToggleMute={handleToggleMute}
+          onGradeChange={handleGradeChange}
+          onLogout={handleLogout}
+          onOpenAuthModal={() => setIsAuthModalOpen(true)}
+          onOpenTutor={() => setIsGlobalTutorOpen(true)}
+          language={uiLanguage}
+          onToggleLanguage={handleToggleLanguage}
+          onNavigateLegal={(doc) => navigateToLegal(doc)}
+          isGuestMode={isGuestMode}
+          onOpenLogin={() => setCurrentView('LOGIN')}
+        />
+
+        {/* Duolingo Gamified CBE Lesson Modal */}
+        <React.Suspense fallback={<DashboardLoadingFallback />}>
+          {activeMissionId && studentProfile && (
+            <DuolingoLessonModal
+              isOpen={Boolean(activeMissionId)}
+              missionId={activeMissionId}
+              studentId={studentProfile.id}
+              studentName={studentProfile.fullName}
+              initialHearts={studentProfile.hearts ?? 5}
+              onHeartsChange={(newHearts) => {
+                setStudentProfile(prev => prev ? { ...prev, hearts: newHearts } : null);
+              }}
+              onClose={() => setActiveMissionId(null)}
+              onMissionCompleted={handleMissionCompleted}
+              language={uiLanguage}
+            />
+          )}
+        </React.Suspense>
+
+        {/* Auth / Role Switcher Modal */}
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          currentUser={currentUser}
+          grades={grades}
+          onAuthSuccess={(user) => {
+            setCurrentUser(user);
+            markOnboardingCompleted();
+            initApp();
+          }}
+          onOpenLoginPage={() => {
+            setIsAuthModalOpen(false);
+            setCurrentView('LOGIN');
+          }}
+          onLogout={handleLogout}
+          onNavigateLegal={(doc) => {
+            setIsAuthModalOpen(false);
+            navigateToLegal(doc);
+          }}
+        />
+
+        {/* Global Socratic AI Tutor Modal */}
+        <AITutorModal
+          isOpen={isGlobalTutorOpen}
+          onClose={() => setIsGlobalTutorOpen(false)}
+          studentName={studentProfile?.fullName || 'Learner'}
+          gradeName={currentGrade?.name}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-gray-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-black">
       {/* Top Main Navigation Bar */}
@@ -639,43 +737,21 @@ export function App() {
         </div>
       </header>
 
-      {/* Main View Router based on active role */}
+      {/* Main View Router based on active adult role */}
       <main className="flex-1 px-4 md:px-8 py-6 max-w-7xl mx-auto w-full">
-        {currentUser?.role === 'STUDENT' && studentProfile ? (
-          <StudentDashboard
-            student={studentProfile}
-            currentUser={currentUser}
-            grades={grades}
-            onStartMission={(mId) => {
-              setActiveMissionId(mId);
-            }}
-            onStudentUpdated={(st) => {
-              setStudentProfile(st);
-              if (currentUser) {
-                savePersistedUserProfile(currentUser, st);
-              }
-            }}
-            isMuted={isMuted}
-            onToggleMute={handleToggleMute}
-            onGradeChange={handleGradeChange}
-            onLogout={handleLogout}
-            onOpenAuthModal={() => setIsAuthModalOpen(true)}
-            onOpenTutor={() => setIsGlobalTutorOpen(true)}
-            language={uiLanguage}
-            onToggleLanguage={handleToggleLanguage}
-            onNavigateLegal={(doc) => navigateToLegal(doc)}
-          />
-        ) : currentUser?.role === 'PARENT' ? (
-          <ParentDashboard />
-        ) : currentUser?.role === 'TEACHER' ? (
-          <TeacherDashboard />
-        ) : currentUser?.role === 'ADMIN' ? (
-          <AdminDashboard currentUser={currentUser} />
-        ) : (
-          <div className="text-center py-20">
-            <p className="text-gray-400 text-sm">Please log in or select a demo account.</p>
-          </div>
-        )}
+        <React.Suspense fallback={<DashboardLoadingFallback />}>
+          {currentUser?.role === 'PARENT' ? (
+            <ParentDashboard />
+          ) : currentUser?.role === 'TEACHER' ? (
+            <TeacherDashboard />
+          ) : currentUser?.role === 'ADMIN' ? (
+            <AdminDashboard currentUser={currentUser} />
+          ) : (
+            <div className="text-center py-20">
+              <p className="text-gray-400 text-sm">Please log in or select a demo account.</p>
+            </div>
+          )}
+        </React.Suspense>
       </main>
 
       {/* Bottom Footer */}
@@ -706,21 +782,23 @@ export function App() {
       </footer>
 
       {/* Duolingo Gamified CBE Lesson Modal */}
-      {activeMissionId && studentProfile && (
-        <DuolingoLessonModal
-          isOpen={Boolean(activeMissionId)}
-          missionId={activeMissionId}
-          studentId={studentProfile.id}
-          studentName={studentProfile.fullName}
-          initialHearts={studentProfile.hearts ?? 5}
-          onHeartsChange={(newHearts) => {
-            setStudentProfile(prev => prev ? { ...prev, hearts: newHearts } : null);
-          }}
-          onClose={() => setActiveMissionId(null)}
-          onMissionCompleted={handleMissionCompleted}
-          language={uiLanguage}
-        />
-      )}
+      <React.Suspense fallback={<DashboardLoadingFallback />}>
+        {activeMissionId && studentProfile && (
+          <DuolingoLessonModal
+            isOpen={Boolean(activeMissionId)}
+            missionId={activeMissionId}
+            studentId={studentProfile.id}
+            studentName={studentProfile.fullName}
+            initialHearts={studentProfile.hearts ?? 5}
+            onHeartsChange={(newHearts) => {
+              setStudentProfile(prev => prev ? { ...prev, hearts: newHearts } : null);
+            }}
+            onClose={() => setActiveMissionId(null)}
+            onMissionCompleted={handleMissionCompleted}
+            language={uiLanguage}
+          />
+        )}
+      </React.Suspense>
 
       {/* Auth / Role Switcher Modal */}
       <AuthModal
