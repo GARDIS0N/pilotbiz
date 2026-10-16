@@ -95,8 +95,14 @@ export function App() {
       if (sessionStorage.getItem('jifuno_guest_mode') === 'true') {
         return 'DASHBOARD';
       }
+      if (isReturningUser()) {
+        const persisted = getPersistedUserProfile();
+        if (persisted.user) return 'DASHBOARD';
+        return 'LOGIN';
+      }
     } catch {}
-    return 'LOGIN';
+    // First-time visitor: Duolingo onboarding flow (Value first, commitment second, account last)
+    return 'ONBOARDING';
   });
 
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
@@ -284,14 +290,37 @@ export function App() {
         return;
       }
 
-      // Otherwise, enforce Auth Gate: show LOGIN
+      // Check if user is returning who previously completed onboarding or has stored profile
+      if (isReturningUser()) {
+        const persisted = getPersistedUserProfile();
+        if (persisted.user) {
+          setCurrentUser(persisted.user);
+          if (persisted.studentProfile) {
+            const hearts = getPersistedHearts(persisted.studentProfile.hearts ?? 5);
+            const fullStudent = { ...persisted.studentProfile, hearts };
+            setStudentProfile(fullStudent);
+            setSelectedGradeId(fullStudent.gradeId);
+          }
+          setCurrentView('DASHBOARD');
+          return;
+        }
+
+        // Returning user without active local profile -> show LOGIN
+        setCurrentUser(null);
+        setStudentProfile(null);
+        setIsGuestMode(false);
+        setCurrentView('LOGIN');
+        return;
+      }
+
+      // First-time visitor: Duolingo onboarding flow (Value first, commitment second, account last)
       setCurrentUser(null);
       setStudentProfile(null);
       setIsGuestMode(false);
-      setCurrentView('LOGIN');
+      setCurrentView('ONBOARDING');
     } catch (err) {
       console.error('Failed to initialize Jifuno app:', err);
-      setCurrentView('LOGIN');
+      setCurrentView('ONBOARDING');
     } finally {
       setLoading(false);
     }

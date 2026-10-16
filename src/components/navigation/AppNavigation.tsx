@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { sound } from '../../utils/soundEffects.js';
 import { JifunoLogo } from '../common/JifunoLogo.js';
+import { StudentProfile } from '../../types/cbe.js';
+import { isFeatureUnlocked, getFeatureLockReason } from '../../config/progressiveUnlock.js';
 
 export type AppTab = 'LEARN' | 'PRACTICE' | 'SHOP' | 'ME';
 
 interface Props {
   currentTab: AppTab;
   onSelectTab: (tab: AppTab) => void;
+  student?: Partial<StudentProfile>;
   language?: 'en' | 'sw';
   isMuted?: boolean;
   onToggleMute?: () => void;
@@ -29,17 +32,34 @@ const TABS: TabItem[] = [
 export const AppNavigation: React.FC<Props> = ({
   currentTab,
   onSelectTab,
+  student,
   language = 'en',
   isMuted = false,
   onToggleMute
 }) => {
+  const [lockedNotice, setLockedNotice] = useState<string | null>(null);
+
   const handleTabClick = (tab: AppTab) => {
     sound.playClick();
+    if (student && !isFeatureUnlocked(tab, student)) {
+      const reason = getFeatureLockReason(tab, language);
+      setLockedNotice(reason);
+      setTimeout(() => setLockedNotice(null), 3000);
+      return;
+    }
     onSelectTab(tab);
   };
 
   return (
     <>
+      {/* Locked Notification Toast */}
+      {lockedNotice && (
+        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 bg-amber-950 border border-amber-500/80 text-amber-200 text-xs sm:text-sm font-bold px-4 py-2.5 rounded-2xl shadow-xl shadow-black/80 flex items-center gap-2 animate-bounce">
+          <span>🔒</span>
+          <span>{lockedNotice}</span>
+        </div>
+      )}
+
       {/* Desktop Left Sidebar (Duolingo Style: >= 768px) */}
       <aside className="hidden md:flex flex-col justify-between w-64 lg:w-72 bg-slate-950/95 border-r border-emerald-900/60 p-5 min-h-screen fixed left-0 top-0 z-40 select-none">
         <div className="space-y-7">
@@ -63,6 +83,7 @@ export const AppNavigation: React.FC<Props> = ({
           <nav className="space-y-2">
             {TABS.map(t => {
               const isActive = currentTab === t.id;
+              const isUnlocked = !student || isFeatureUnlocked(t.id, student);
               const label = language === 'sw' ? t.labelSw : t.labelEn;
 
               return (
@@ -70,15 +91,24 @@ export const AppNavigation: React.FC<Props> = ({
                   key={t.id}
                   type="button"
                   onClick={() => handleTabClick(t.id)}
-                  className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl font-black text-sm transition-all cursor-pointer text-left border-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 ${
+                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl font-black text-sm transition-all cursor-pointer text-left border-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 ${
                     isActive
                       ? 'bg-emerald-950/50 border-emerald-400 text-emerald-300 shadow-md shadow-emerald-950/50 scale-[1.02]'
-                      : 'border-transparent text-gray-400 hover:text-white hover:bg-slate-900'
+                      : isUnlocked
+                      ? 'border-transparent text-gray-400 hover:text-white hover:bg-slate-900'
+                      : 'border-transparent text-gray-600 hover:text-gray-400 opacity-60'
                   }`}
                   aria-current={isActive ? 'page' : undefined}
                 >
-                  <span className="text-2xl shrink-0">{t.icon}</span>
-                  <span className="tracking-wide">{label.toUpperCase()}</span>
+                  <div className="flex items-center gap-4">
+                    <span className="text-2xl shrink-0">{t.icon}</span>
+                    <span className="tracking-wide">{label.toUpperCase()}</span>
+                  </div>
+                  {!isUnlocked && (
+                    <span className="text-xs bg-slate-800 text-amber-400 px-2 py-0.5 rounded-full border border-slate-700">
+                      🔒
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -112,6 +142,7 @@ export const AppNavigation: React.FC<Props> = ({
       >
         {TABS.map(t => {
           const isActive = currentTab === t.id;
+          const isUnlocked = !student || isFeatureUnlocked(t.id, student);
           const label = language === 'sw' ? t.labelSw : t.labelEn;
 
           return (
@@ -122,19 +153,26 @@ export const AppNavigation: React.FC<Props> = ({
               className={`flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-2xl transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 min-h-[52px] ${
                 isActive
                   ? 'text-emerald-400 font-black'
-                  : 'text-gray-400 hover:text-gray-200 font-medium'
+                  : isUnlocked
+                  ? 'text-gray-400 hover:text-gray-200 font-medium'
+                  : 'text-gray-600 opacity-60'
               }`}
               aria-label={label}
               aria-current={isActive ? 'page' : undefined}
             >
               <div
-                className={`w-9 h-8 rounded-xl flex items-center justify-center text-xl transition-all ${
+                className={`w-9 h-8 rounded-xl flex items-center justify-center text-xl transition-all relative ${
                   isActive
                     ? 'bg-emerald-950 border border-emerald-500/80 -translate-y-0.5 shadow-sm'
                     : ''
                 }`}
               >
                 {t.icon}
+                {!isUnlocked && (
+                  <span className="absolute -top-1 -right-1 text-[9px] bg-slate-900 rounded-full">
+                    🔒
+                  </span>
+                )}
               </div>
               <span className="text-[10px] mt-0.5 tracking-tight truncate max-w-[64px]">
                 {label}

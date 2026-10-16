@@ -65,6 +65,7 @@ export const StudentDashboard: React.FC<Props> = ({
           sound.playClick();
           setCurrentTab(tab);
         }}
+        student={student}
         language={language}
         isMuted={isMuted}
         onToggleMute={onToggleMute}
