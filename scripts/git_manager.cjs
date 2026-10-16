@@ -199,6 +199,51 @@ async function createPullRequest({ title, body, head, base = 'main' }) {
   });
 }
 
+async function mergePullRequest(pullNumber = 1) {
+  const token = getPatToken();
+  return new Promise((resolve, reject) => {
+    const postData = JSON.stringify({
+      commit_title: `Merge pull request #${pullNumber} from GARDIS0N/feature/onboarding-flow`,
+      commit_message: 'feat(onboarding): Duolingo-style onboarding flow (Value first, commitment second, account last)',
+      merge_method: 'merge'
+    });
+
+    const req = https.request(
+      `https://api.github.com/repos/GARDIS0N/jifuno/pulls/${pullNumber}/merge`,
+      {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${token}`,
+          'User-Agent': 'Node.js-PR-Agent',
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData)
+        }
+      },
+      (res) => {
+        let resData = '';
+        res.on('data', chunk => { resData += chunk; });
+        res.on('end', () => {
+          try {
+            const parsed = JSON.parse(resData);
+            if (res.statusCode >= 200 && res.statusCode < 300) {
+              resolve(parsed);
+            } else {
+              reject(new Error(`GitHub Merge API returned ${res.statusCode}: ${JSON.stringify(parsed)}`));
+            }
+          } catch (e) {
+            reject(new Error(`Failed to parse Merge response: ${resData}`));
+          }
+        });
+      }
+    );
+
+    req.on('error', reject);
+    req.write(postData);
+    req.end();
+  });
+}
+
 async function main() {
   const cmd = process.argv[2] || 'status';
   const arg1 = process.argv[3];
@@ -236,7 +281,11 @@ async function main() {
       console.log(`Creating Pull Request: "${details.title}" (${details.head} -> ${details.base || 'main'})...`);
       const pr = await createPullRequest(details);
       console.log(`Pull Request created successfully! URL: ${pr.html_url}`);
-      console.log(JSON.stringify(pr, null, 2));
+    } else if (cmd === 'merge-pr') {
+      const prNum = parseInt(arg1 || '1', 10);
+      console.log(`Merging Pull Request #${prNum}...`);
+      const res = await mergePullRequest(prNum);
+      console.log('PR merged successfully on GitHub!', JSON.stringify(res, null, 2));
     } else {
       console.log(`Unknown command: ${cmd}`);
     }
