@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { sound } from '../../utils/soundEffects.js';
 import { useReducedMotionPreference, springTransition } from '../../utils/motion.js';
@@ -6,23 +6,28 @@ import {
   getOnboardingState,
   setOnboardingStep,
   setOnboardingGrade,
+  setOnboardingInterests,
   setOnboardingGoal,
-  setOnboardingReligiousStream,
   recordPlacementResult,
   recordFirstLessonCompletion,
+  setParentContactInfo,
   mergeGuestProgressIntoProfile,
   markOnboardingCompleted,
   OnboardingStep
 } from '../../services/onboardingStorage.js';
+import {
+  ONBOARDING_STEPS_CONFIG,
+  INTEREST_SUBJECTS,
+  DAILY_GOAL_OPTIONS,
+  OnboardingStepId
+} from '../../config/onboardingConfig.js';
 import { getPlacementQuestionsForGrade } from '../../services/placementQuestions.js';
-import { evaluateAnswer, resolveCorrectAnswerText, hasUsableAnswerKey } from '../../utils/answerValidation.js';
-import { getShuffledOptions } from '../../utils/optionShuffler.js';
+import { trackEvent } from '../../services/analytics.js';
+import { evaluateAnswer } from '../../utils/answerValidation.js';
 import { Question, User, StudentProfile, LearningSessionResult } from '../../types/cbe.js';
 import { getRecommendedNextQuest } from '../../data/curriculum/index.js';
 import { DuolingoLessonModal } from '../session/DuolingoLessonModal.js';
 import { cbeApi } from '../../services/cbeApi.js';
-import { signUpWithEmail, isSupabaseConfigured } from '../../services/supabaseClient.js';
-import { LEGAL_VERSION } from '../../content/legal/constants.js';
 
 interface Props {
   onCompleteOnboarding: (user: User, studentProfile: StudentProfile) => void;
@@ -38,7 +43,8 @@ const GRADES = [
     ageRange: 'Age 8–9',
     levelGroup: 'Lower Primary',
     icon: '🌱',
-    desc: 'Foundational Math, Literacy & Environment'
+    descEn: 'Foundational Math, Literacy & Environment',
+    descSw: 'Hesabu za Msingi, Kusoma na Mazingira'
   },
   {
     id: 'grade-4',
@@ -46,7 +52,8 @@ const GRADES = [
     ageRange: 'Age 9–10',
     levelGroup: 'Upper Primary',
     icon: '🐆',
-    desc: 'Multiplication arrays, Science & Agriculture'
+    descEn: 'Multiplication arrays, Science & Agriculture',
+    descSw: 'Kuzidisha, Sayansi na Kilimo'
   },
   {
     id: 'grade-5',
@@ -54,7 +61,8 @@ const GRADES = [
     ageRange: 'Age 10–11',
     levelGroup: 'Upper Primary',
     icon: '🌾',
-    desc: 'Fractions, Decimals & Intermediate Tech'
+    descEn: 'Fractions, Decimals & Intermediate Tech',
+    descSw: 'Sehemu, Desimali na Teknolojia'
   },
   {
     id: 'grade-6',
@@ -62,34 +70,8 @@ const GRADES = [
     ageRange: 'Age 11–12',
     levelGroup: 'Upper Primary',
     icon: '🏆',
-    desc: 'Algebra, Geometry & CBC Assessment'
-  }
-];
-
-const GOALS = [
-  {
-    minutes: 5,
-    title: '5 min / day',
-    labelEn: 'Easy',
-    labelSw: 'Rahisi',
-    icon: '⚡',
-    desc: 'A quick, bite-sized daily habit'
-  },
-  {
-    minutes: 10,
-    title: '10 min / day',
-    labelEn: 'Regular',
-    labelSw: 'Kawaida',
-    icon: '🌟',
-    desc: 'Recommended for steady growth'
-  },
-  {
-    minutes: 15,
-    title: '15 min / day',
-    labelEn: 'Intense',
-    labelSw: 'Makini',
-    icon: '🔥',
-    desc: 'Master CBC strands faster'
+    descEn: 'Algebra, Geometry & CBC Assessment',
+    descSw: 'Aljebra, Jiometria na Maandalizi ya CBC'
   }
 ];
 
@@ -102,20 +84,26 @@ export const OnboardingFlow: React.FC<Props> = ({
   const reducedMotion = useReducedMotionPreference();
 
   // Load existing or resumed state
-  const [persistedState, setPersistedState] = useState(getOnboardingState);
-  const [currentStep, setCurrentStep] = useState<OnboardingStep>(() => {
+  const persistedState = useMemo(() => getOnboardingState(), []);
+  const [currentStep, setCurrentStep] = useState<OnboardingStepId>(() => {
     const s = persistedState.step;
-    if (s === 'GRADE' || s === 'GOAL' || s === 'PLACEMENT' || s === 'FIRST_LESSON' || s === 'SIGNUP') {
-      return s;
+    const validSteps: OnboardingStepId[] = [
+      'WELCOME', 'GRADE', 'INTERESTS', 'LEVEL_CHECK',
+      'FIRST_LESSON', 'DAILY_GOAL', 'SAVE_PROGRESS', 'PARENT_STEP', 'HOME'
+    ];
+    if (validSteps.includes(s as OnboardingStepId)) {
+      return s as OnboardingStepId;
     }
     return 'WELCOME';
   });
 
   const [selectedGradeId, setSelectedGradeId] = useState<string>(persistedState.gradeId || 'grade-4');
+  const [selectedInterests, setSelectedInterestsState] = useState<string[]>(
+    persistedState.selectedInterests?.length ? persistedState.selectedInterests : ['math', 'science']
+  );
   const [selectedGoal, setSelectedGoal] = useState<number>(persistedState.dailyGoalMinutes || 10);
-  const [selectedReligiousStream, setSelectedReligiousStream] = useState<'CRE' | 'IRE' | 'HRE'>(persistedState.religiousStream || 'CRE');
 
-  // Placement test state
+  // Level check diagnostic state
   const [placementQuestions, setPlacementQuestions] = useState<Question[]>([]);
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -123,71 +111,103 @@ export const OnboardingFlow: React.FC<Props> = ({
   const [isOptionCorrect, setIsOptionCorrect] = useState<boolean | null>(null);
   const [placementScore, setPlacementScore] = useState(0);
 
-  // Sign Up Form State (COPPA & Kenya Data Protection compliant)
-  const [learnerName, setLearnerName] = useState('');
-  const [parentEmail, setParentEmail] = useState('');
-  const [parentPassword, setParentPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  // Parent guardian handoff state
+  const [learnerName, setLearnerName] = useState(persistedState.guestProgress?.learnerName || '');
+  const [parentPhone, setParentPhone] = useState(persistedState.guestProgress?.parentPhone || '');
+  const [parentPin, setParentPin] = useState(persistedState.guestProgress?.parentPin || '');
   const [hasParentConsent, setHasParentConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [signUpError, setSignUpError] = useState<string | null>(null);
+  const [parentStepError, setParentStepError] = useState<string | null>(null);
+
+  // Track lesson duration
+  const lessonStartTimeRef = useRef<number>(Date.now());
+  const completedRef = useRef<boolean>(false);
+
+  // Top interest determines level check and first quest
+  const topInterest = selectedInterests[0] || 'math';
 
   // Determine real first curriculum quest for chosen grade
   const firstQuest = useMemo(() => {
     return getRecommendedNextQuest(selectedGradeId, []);
   }, [selectedGradeId]);
 
-  // Load placement questions whenever grade changes
+  // Load level check questions when grade or interest changes
   useEffect(() => {
-    const questions = getPlacementQuestionsForGrade(selectedGradeId);
+    const questions = getPlacementQuestionsForGrade(selectedGradeId, topInterest);
     setPlacementQuestions(questions);
     setCurrentQIndex(0);
     setSelectedOption(null);
     setIsAnswerChecked(false);
-  }, [selectedGradeId]);
+    setIsOptionCorrect(null);
+  }, [selectedGradeId, topInterest]);
 
-  // Screen 1 -> Screen 2
-  const handleStartOnboarding = () => {
+  // Track abandonment on unload if onboarding not completed
+  useEffect(() => {
+    const handleUnload = () => {
+      if (!completedRef.current && currentStep !== 'HOME') {
+        trackEvent('onboarding_abandoned', { step: currentStep, gradeId: selectedGradeId });
+      }
+    };
+    window.addEventListener('beforeunload', handleUnload);
+    return () => window.removeEventListener('beforeunload', handleUnload);
+  }, [currentStep, selectedGradeId]);
+
+  // Step progression helper
+  const goToStep = (nextStep: OnboardingStepId) => {
     sound.playClick();
-    setOnboardingStep('GRADE');
-    setCurrentStep('GRADE');
+    setCurrentStep(nextStep);
+    setOnboardingStep(nextStep);
   };
 
-  // Screen 2: Tap Grade -> Auto-advance to Screen 3
+  // Step 1: Start -> Grade Picker
+  const handleStart = () => {
+    trackEvent('onboarding_started');
+    goToStep('GRADE');
+  };
+
+  // Step 2: Choose Grade -> Interests
   const handleSelectGrade = (gradeId: string) => {
     sound.playClick();
     setSelectedGradeId(gradeId);
     setOnboardingGrade(gradeId);
-
-    setTimeout(() => {
-      setOnboardingStep('GOAL');
-      setCurrentStep('GOAL');
-    }, 200);
+    trackEvent('grade_selected', { gradeId });
+    goToStep('INTERESTS');
   };
 
-  // Screen 3: Tap Goal -> Auto-advance to Screen 4 (Placement)
-  const handleSelectGoal = (minutes: number) => {
+  // Step 3: Toggle Interests -> Level Check
+  const handleToggleInterest = (id: string) => {
     sound.playClick();
-    setSelectedGoal(minutes);
-    setOnboardingGoal(minutes);
-
-    setTimeout(() => {
-      setOnboardingStep('PLACEMENT');
-      setCurrentStep('PLACEMENT');
-    }, 200);
+    setSelectedInterestsState(prev => {
+      if (prev.includes(id)) {
+        if (prev.length === 1) return prev; // Keep at least one
+        return prev.filter(item => item !== id);
+      } else {
+        if (prev.length >= 3) return [...prev.slice(1), id]; // Max 3
+        return [...prev, id];
+      }
+    });
   };
 
-  // Screen 4: Check placement question answer
-  const handleCheckPlacementAnswer = () => {
+  const handleConfirmInterests = () => {
+    setOnboardingInterests(selectedInterests);
+    trackEvent('interests_selected', {
+      interests: selectedInterests,
+      topInterest: selectedInterests[0]
+    });
+    goToStep('LEVEL_CHECK');
+  };
+
+  // Step 4: Level Check Quiz
+  const handleSelectLevelOption = (optionId: string) => {
+    if (isAnswerChecked) return;
+    sound.playClick();
+    setSelectedOption(optionId);
+  };
+
+  const handleCheckLevelAnswer = () => {
     if (!selectedOption || isAnswerChecked) return;
     const currentQ = placementQuestions[currentQIndex];
     if (!currentQ) return;
-
-    if (!hasUsableAnswerKey(currentQ)) {
-      console.error(`[Grading Error] Diagnostic question ${currentQ.id} has no valid answer key! Skipping.`);
-      handleNextPlacementQuestion();
-      return;
-    }
 
     const isCorrect = evaluateAnswer(currentQ, selectedOption);
     setIsOptionCorrect(isCorrect);
@@ -201,8 +221,7 @@ export const OnboardingFlow: React.FC<Props> = ({
     }
   };
 
-  // Screen 4: Advance to next question or complete placement
-  const handleNextPlacementQuestion = () => {
+  const handleNextLevelQuestion = () => {
     sound.playClick();
     if (currentQIndex + 1 < placementQuestions.length) {
       setCurrentQIndex(prev => prev + 1);
@@ -210,202 +229,246 @@ export const OnboardingFlow: React.FC<Props> = ({
       setIsAnswerChecked(false);
       setIsOptionCorrect(null);
     } else {
-      finishPlacement(placementScore + (isOptionCorrect ? 1 : 0));
+      finishLevelCheck(placementScore + (isOptionCorrect ? 1 : 0), false);
     }
   };
 
-  // Finish placement and start Screen 5 (First Lesson)
-  const finishPlacement = (finalScore: number) => {
+  const finishLevelCheck = (finalScore: number, skipped: boolean) => {
     recordPlacementResult(finalScore);
-    setOnboardingStep('FIRST_LESSON');
-    setCurrentStep('FIRST_LESSON');
+    trackEvent('level_check_completed', {
+      score: finalScore,
+      total: placementQuestions.length,
+      skipped
+    });
+    lessonStartTimeRef.current = Date.now();
+    trackEvent('first_lesson_started', {
+      questId: firstQuest.id,
+      gradeId: selectedGradeId,
+      topInterest
+    });
+    goToStep('FIRST_LESSON');
   };
 
-  const handleSkipPlacement = () => {
+  const handleSkipLevelCheck = () => {
     sound.playClick();
-    finishPlacement(0);
+    finishLevelCheck(0, true);
   };
 
-  // Screen 5 -> Screen 6 (Celebration to Sign-Up)
+  // Step 5: First Lesson Modal Handlers
   const handleFirstLessonCompleted = (result: LearningSessionResult) => {
-    // Record rewards into anonymous state
+    const duration = Math.round((Date.now() - lessonStartTimeRef.current) / 1000);
     recordFirstLessonCompletion(firstQuest.id, result.xpEarned || 25, result.coinsEarned || 10);
+    trackEvent('first_lesson_completed', {
+      questId: firstQuest.id,
+      earnedXp: result.xpEarned || 25,
+      earnedCoins: result.coinsEarned || 10,
+      durationSeconds: duration
+    });
   };
 
-  const handleFirstLessonModalClose = () => {
-    // When learner clicks CONTINUE on the lesson celebration screen, advance to Sign-Up
-    setOnboardingStep('SIGNUP');
-    setCurrentStep('SIGNUP');
+  const handleFirstLessonClose = () => {
+    // Once child closes celebration modal, advance to Daily Goal
+    goToStep('DAILY_GOAL');
   };
 
-  // Screen 6: Submit Sign-Up Form (COPPA / Kenya DPA compliant)
-  const handleSaveProgress = async (e: React.FormEvent) => {
+  // Step 6: Daily Goal -> Save Progress Prompt
+  const handleSelectGoal = (minutes: number) => {
+    sound.playClick();
+    setSelectedGoal(minutes);
+    setOnboardingGoal(minutes);
+    trackEvent('daily_goal_set', { dailyGoalMinutes: minutes });
+    trackEvent('save_progress_shown');
+    goToStep('SAVE_PROGRESS');
+  };
+
+  // Step 7: Save Progress Prompt Choice
+  const handleAcceptSaveProgress = () => {
+    sound.playClick();
+    goToStep('PARENT_STEP');
+  };
+
+  const handleSkipSaveProgress = () => {
+    sound.playClick();
+    trackEvent('save_progress_skipped');
+    finishOnboardingAsGuest();
+  };
+
+  // Step 8: Parent Guardian Step Submission
+  const handleParentSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!learnerName.trim()) {
-      setSignUpError(language === 'sw' ? 'Tafadhali ingiza jina lako la kwanza' : 'Please enter your first name');
+      setParentStepError(language === 'sw' ? 'Tafadhali ingiza jina la mwanafunzi' : "Please enter the child's name or nickname");
       return;
     }
-    if (!parentEmail.trim() || !parentEmail.includes('@')) {
-      setSignUpError(language === 'sw' ? 'Tafadhali ingiza barua pepe sahihi ya mzazi/mlezi' : 'Please enter a valid parent or guardian email');
+
+    const cleanPhone = parentPhone.replace(/\s+/g, '');
+    if (!cleanPhone || cleanPhone.length < 9) {
+      setParentStepError(language === 'sw' ? 'Tafadhali ingiza nambari sahihi ya simu (mfano 0712...)' : 'Please enter a valid Kenyan phone number (e.g. 0712...)');
       return;
     }
+
+    if (!parentPin || parentPin.length < 4) {
+      setParentStepError(language === 'sw' ? 'Tafadhali chagua PIN ya tarakimu 4' : 'Please enter a 4-digit Parent PIN');
+      return;
+    }
+
     if (!hasParentConsent) {
-      setSignUpError(language === 'sw' ? 'Tafadhali thibitisha idhini ya mzazi/mlezi' : 'Please check parent/guardian permission');
+      setParentStepError(language === 'sw' ? 'Tafadhali kubali idhini ya mlezi kuhifadhi matokeo' : 'Please check the parent/guardian permission box');
       return;
     }
 
     setIsSubmitting(true);
-    setSignUpError(null);
+    setParentStepError(null);
 
     try {
-      sound.playClick();
-      const consentTime = new Date().toISOString();
+      setParentContactInfo(cleanPhone, parentPin, learnerName.trim());
 
-      // Create Supabase Auth credentials if configured
-      if (isSupabaseConfigured() && parentPassword.trim().length >= 6) {
-        try {
-          const { error: sbError } = await signUpWithEmail(parentEmail.trim(), parentPassword.trim(), {
-            fullName: learnerName.trim(),
-            role: 'STUDENT',
-            gradeId: selectedGradeId,
-            county: 'Nairobi',
-            schoolName: 'Primary School',
-            consentAgreedAt: consentTime,
-            consentVersion: LEGAL_VERSION
-          });
-          if (sbError) {
-            console.warn('[Onboarding] Supabase signUp info:', sbError.message);
-          }
-        } catch (err) {
-          console.warn('[Onboarding] Supabase signUp warning:', err);
-        }
-      }
-
-      const res = await cbeApi.register({
+      // Attempt registration with local CBE API
+      const fakeEmail = `${cleanPhone.replace(/[^0-9]/g, '')}@parent.jifuno.ke`;
+      const regRes = await cbeApi.register({
         name: learnerName.trim(),
-        email: parentEmail.trim(),
+        email: fakeEmail,
         role: 'STUDENT',
         gradeId: selectedGradeId,
-        county: 'Nairobi',
-        schoolName: 'Primary School',
-        consentAgreedAt: consentTime,
-        consentVersion: LEGAL_VERSION
+        consentAgreedAt: new Date().toISOString(),
+        consentVersion: '2026-v1-kenya-dpa'
       });
 
+      trackEvent('save_progress_completed', {
+        hasPhone: true,
+        hasPin: true
+      });
+
+      completedRef.current = true;
+      markOnboardingCompleted();
+
       const baseStudent: StudentProfile = {
-        id: res.user.studentProfileId || `student-${Date.now()}`,
-        userId: res.user.id,
+        id: `student-${Date.now()}`,
+        userId: regRes.user.id,
         fullName: learnerName.trim(),
         gradeId: selectedGradeId,
-        schoolName: 'Primary School',
+        schoolName: 'Simba Primary Academy',
         county: 'Nairobi',
         avatar: 'cheetah',
         level: 1,
-        xp: 0,
-        coins: 0,
+        xp: 25,
+        coins: 10,
         hearts: 5,
         maxHearts: 5,
         streakDays: 1,
         lastActiveDate: new Date().toISOString().split('T')[0],
         streakFrozen: false,
         unlockedWorldIds: ['world-math-kingdom'],
-        completedMissionIds: [],
-        badges: ['badge-first-lesson'],
-        equippedTitle: 'Savanna Explorer',
-        parentUserId: res.user.id,
-        religiousStream: selectedReligiousStream
+        completedMissionIds: [firstQuest.id],
+        badges: ['badge-seedling-starter'],
+        equippedTitle: 'CBC Explorer'
       };
 
       const mergedProfile = mergeGuestProgressIntoProfile(baseStudent);
-
-      // Link server-side anonymous progress (attempts, review items, mastery) to new student
-      cbeApi.mergeAnonymousProgress(persistedState.anonymousUserId, baseStudent.id).catch(err => {
-        console.warn('[Onboarding] Remote anonymous merge warning:', err);
-      });
-
-      onCompleteOnboarding(res.user, mergedProfile);
+      onCompleteOnboarding(regRes.user, mergedProfile);
     } catch (err: any) {
-      console.warn('[Onboarding] Registration error:', err);
-      // Fallback guest creation if offline
-      handleContinueAsGuest();
+      console.warn('[ParentSave] Fallback to guest progress merge:', err);
+      finishOnboardingAsGuest();
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Screen 6: Skip / Play as Guest
-  const handleContinueAsGuest = () => {
-    sound.playClick();
+  const finishOnboardingAsGuest = () => {
+    completedRef.current = true;
+    markOnboardingCompleted();
+
     const guestUser: User = {
-      id: `guest-${Date.now()}`,
-      name: learnerName.trim() || 'Learner',
-      email: parentEmail.trim() || 'guest@jifuno.ke',
+      id: `user-guest-${Date.now()}`,
+      name: learnerName.trim() || 'Safari Explorer',
+      email: 'guest@jifuno.ke',
       role: 'STUDENT',
       avatar: 'cheetah',
       createdAt: new Date().toISOString()
     };
 
-    const guestStudent: StudentProfile = {
+    const baseStudent: StudentProfile = {
       id: `student-guest-${Date.now()}`,
       userId: guestUser.id,
-      fullName: learnerName.trim() || 'Learner',
+      fullName: learnerName.trim() || 'Safari Explorer',
       gradeId: selectedGradeId,
-      schoolName: 'CBC Academy',
+      schoolName: 'Jifuno Learning Lab',
       county: 'Kenya',
       avatar: 'cheetah',
       level: 1,
-      xp: 0,
-      coins: 0,
+      xp: 25,
+      coins: 10,
       hearts: 5,
       maxHearts: 5,
       streakDays: 1,
       lastActiveDate: new Date().toISOString().split('T')[0],
       streakFrozen: false,
       unlockedWorldIds: ['world-math-kingdom'],
-      completedMissionIds: [],
-      badges: ['badge-first-lesson'],
-      equippedTitle: 'Savanna Explorer',
-      religiousStream: selectedReligiousStream
+      completedMissionIds: [firstQuest.id],
+      badges: ['badge-seedling-starter'],
+      equippedTitle: 'CBC Explorer'
     };
 
-    const mergedProfile = mergeGuestProgressIntoProfile(guestStudent);
-    onCompleteOnboarding(guestUser, mergedProfile);
+    const merged = mergeGuestProgressIntoProfile(baseStudent);
+    onCompleteOnboarding(guestUser, merged);
   };
 
-  // Back Navigation Helper
+  // Back button navigation
   const handleBack = () => {
     sound.playClick();
-    if (currentStep === 'GRADE') {
-      setOnboardingStep('WELCOME');
-      setCurrentStep('WELCOME');
-    } else if (currentStep === 'GOAL') {
-      setOnboardingStep('GRADE');
-      setCurrentStep('GRADE');
-    } else if (currentStep === 'PLACEMENT') {
-      setOnboardingStep('GOAL');
-      setCurrentStep('GOAL');
-    } else if (currentStep === 'SIGNUP') {
-      setOnboardingStep('PLACEMENT');
-      setCurrentStep('PLACEMENT');
+    switch (currentStep) {
+      case 'GRADE':
+        goToStep('WELCOME');
+        break;
+      case 'INTERESTS':
+        goToStep('GRADE');
+        break;
+      case 'LEVEL_CHECK':
+        goToStep('INTERESTS');
+        break;
+      case 'DAILY_GOAL':
+        goToStep('LEVEL_CHECK');
+        break;
+      case 'SAVE_PROGRESS':
+        goToStep('DAILY_GOAL');
+        break;
+      case 'PARENT_STEP':
+        goToStep('SAVE_PROGRESS');
+        break;
+      default:
+        break;
     }
   };
 
-  // Progress dot indicator (Steps 1 to 4)
-  const stepIndex = currentStep === 'WELCOME' ? 1 : currentStep === 'GRADE' ? 2 : currentStep === 'GOAL' ? 3 : 4;
+  // Calculate step progress percentage
+  const stepOrderMap: Record<OnboardingStepId, number> = {
+    WELCOME: 0,
+    GRADE: 1,
+    INTERESTS: 2,
+    LEVEL_CHECK: 3,
+    FIRST_LESSON: 4,
+    DAILY_GOAL: 5,
+    SAVE_PROGRESS: 6,
+    PARENT_STEP: 7,
+    HOME: 8
+  };
+  const currentStepNum = stepOrderMap[currentStep] || 0;
+  const progressPercent = Math.min(100, Math.round((currentStepNum / 7) * 100));
 
-  const currentQ = placementQuestions[currentQIndex];
+  // Current step config
+  const stepConfig = ONBOARDING_STEPS_CONFIG.find(s => s.id === currentStep);
 
-  // Screen 5: Full-Screen First Lesson Modal
+  // If in FIRST_LESSON step, render DuolingoLessonModal full screen
   if (currentStep === 'FIRST_LESSON') {
     return (
       <div className="fixed inset-0 z-50 bg-slate-950 flex flex-col justify-between">
         <DuolingoLessonModal
           isOpen={true}
           missionId={firstQuest.id}
-          studentId="guest-student"
+          studentId="guest-learner"
           studentName={learnerName || 'Learner'}
           initialHearts={5}
-          onClose={handleFirstLessonModalClose}
+          onClose={handleFirstLessonClose}
           onMissionCompleted={handleFirstLessonCompleted}
           language={language}
         />
@@ -415,270 +478,162 @@ export const OnboardingFlow: React.FC<Props> = ({
 
   return (
     <div className="w-full min-h-screen bg-slate-950 text-gray-100 flex flex-col justify-between p-4 sm:p-6 max-w-md mx-auto select-none safe-area-pt safe-area-pb">
-      {/* 1. Header: Back Button + Progress Dots */}
-      <header className="flex items-center justify-between gap-3 pt-2 pb-4">
-        {currentStep !== 'WELCOME' && currentStep !== 'SIGNUP' ? (
+      {/* 1. Header with Back Button and Progress Bar */}
+      <header className="flex items-center justify-between gap-3 pt-2 pb-3">
+        {stepConfig?.allowBack ? (
           <button
             type="button"
             onClick={handleBack}
-            className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-gray-300 hover:text-white flex items-center justify-center text-lg cursor-pointer transition-all active:scale-95 min-h-[44px]"
+            className="w-11 h-11 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-gray-300 hover:text-white flex items-center justify-center text-xl cursor-pointer transition-all active:scale-95 shadow-sm"
             aria-label="Back"
           >
             ←
           </button>
         ) : (
-          <div className="w-10" />
+          <div className="w-11 h-11" />
         )}
 
-        {/* Progress Dots Indicator */}
-        {currentStep !== 'SIGNUP' ? (
-          <div
-            className="flex items-center gap-2"
-            role="progressbar"
-            aria-valuenow={stepIndex}
-            aria-valuemin={1}
-            aria-valuemax={4}
-            aria-label={`Step ${stepIndex} of 4`}
-          >
-            {[1, 2, 3, 4].map(idx => (
-              <div
-                key={idx}
-                className={`h-2.5 rounded-full transition-all duration-300 ${
-                  idx === stepIndex
-                    ? 'w-8 bg-emerald-400 ring-2 ring-emerald-400/40 shadow-sm'
-                    : idx < stepIndex
-                    ? 'w-3 bg-emerald-600'
-                    : 'w-2.5 bg-slate-800'
-                }`}
+        {/* Progress Bar */}
+        {stepConfig?.showProgressBar ? (
+          <div className="flex-1 max-w-[220px] mx-2">
+            <div className="w-full bg-slate-800/80 h-3 rounded-full overflow-hidden p-0.5 border border-slate-700/60">
+              <motion.div
+                className="bg-gradient-to-r from-emerald-500 to-green-400 h-full rounded-full shadow-sm shadow-emerald-500/30"
+                initial={false}
+                animate={{ width: `${progressPercent}%` }}
+                transition={{ duration: 0.3 }}
               />
-            ))}
+            </div>
           </div>
         ) : (
-          <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-800">
-            <span>✨</span>
-            <span>Final Step: Save Progress</span>
-          </div>
+          <div className="flex-1" />
         )}
 
-        {/* Top Right Skip Link for Placement */}
-        {currentStep === 'PLACEMENT' ? (
+        {/* Top Right Skip Button (for skippable steps) */}
+        {stepConfig?.skippable ? (
           <button
             type="button"
-            onClick={handleSkipPlacement}
-            className="text-xs font-bold text-amber-400 hover:text-amber-300 hover:underline cursor-pointer py-1.5 px-2"
+            onClick={() => {
+              if (currentStep === 'LEVEL_CHECK') handleSkipLevelCheck();
+              else if (currentStep === 'SAVE_PROGRESS' || currentStep === 'PARENT_STEP') handleSkipSaveProgress();
+            }}
+            className="text-xs font-black tracking-wide text-amber-400 hover:text-amber-300 hover:underline cursor-pointer py-2 px-3 rounded-xl bg-amber-500/10 border border-amber-500/20 active:scale-95 transition-all"
           >
             {language === 'sw' ? 'Ruka' : 'Skip'}
           </button>
         ) : (
-          <div className="w-10" />
+          <div className="w-11 h-11" />
         )}
       </header>
 
-      {/* 2. Main Animated Screen Body */}
+      {/* 2. Main Step Screen Container */}
       <main className="flex-1 flex flex-col justify-center py-2">
         <AnimatePresence mode="wait">
-          {/* SCREEN 1: WELCOME */}
+          {/* STEP 1: WELCOME */}
           {currentStep === 'WELCOME' && (
             <motion.div
-              key="welcome-screen"
-              initial={{ opacity: 1, y: 0 }}
+              key="welcome-step"
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
               transition={springTransition}
               className="text-center space-y-6 max-w-sm mx-auto"
             >
-              <div className="relative w-32 h-32 mx-auto rounded-3xl bg-gradient-to-tr from-amber-500/20 via-yellow-400/20 to-emerald-500/20 border-2 border-amber-400/60 flex items-center justify-center text-7xl shadow-2xl shadow-amber-500/10">
+              <div className="relative w-36 h-36 mx-auto rounded-3xl bg-gradient-to-tr from-amber-500/25 via-emerald-500/20 to-teal-500/25 border-2 border-emerald-400/50 flex items-center justify-center text-7xl shadow-2xl shadow-emerald-500/10">
                 <span className="animate-bounce">🦉</span>
-                <span className="absolute -bottom-2.5 bg-slate-900 border border-amber-400 text-amber-300 text-[11px] font-black px-3 py-0.5 rounded-full shadow-md">
+                <span className="absolute -bottom-2.5 bg-slate-900 border-2 border-emerald-400 text-emerald-300 text-xs font-black px-3 py-0.5 rounded-full shadow-md">
                   Rafiki
                 </span>
               </div>
 
               <div className="space-y-2">
-                <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight">
+                <h1 className="text-3xl font-black text-white leading-tight">
                   {language === 'sw' ? 'Jambo! Mimi ni Rafiki.' : "Hi! I'm Rafiki."}
-                </h2>
-                <p className="text-base sm:text-lg font-bold text-emerald-400">
-                  {language === 'sw' ? 'Tujifunze pamoja kwenye Jifuno!' : "Let's learn together!"}
-                </p>
-                <p className="text-xs text-gray-400 max-w-xs mx-auto leading-relaxed pt-1">
+                </h1>
+                <p className="text-sm sm:text-base text-gray-300 font-medium leading-relaxed">
                   {language === 'sw'
-                    ? 'Programu rasmi ya kujifunzia ya CBC Kenya kwa darasa la 3 hadi 6.'
-                    : 'The authentic Kenyan CBC learning adventure for Grades 3 to 6.'}
+                    ? 'Jifunze masomo ya CBC ya Kenya kwa michezo na changamoto za kila siku!'
+                    : "Learn Kenya's CBC curriculum through fun games and daily quests!"}
                 </p>
               </div>
 
-              <div className="space-y-3 pt-6">
+              <div className="pt-4 space-y-3">
                 <button
                   type="button"
-                  onClick={handleStartOnboarding}
-                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-lg tracking-wide shadow-xl shadow-emerald-500/30 transition-all cursor-pointer active:scale-98 min-h-[56px] flex items-center justify-center gap-2"
+                  onClick={handleStart}
+                  className="w-full min-h-[58px] py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-slate-950 font-black text-lg tracking-wide uppercase shadow-lg shadow-emerald-500/25 transition-all transform active:scale-98 cursor-pointer flex items-center justify-center gap-2"
                 >
-                  <span>{language === 'sw' ? 'ANZA SASA' : 'GET STARTED'}</span>
-                  <span>➔</span>
+                  <span>{language === 'sw' ? 'Anza Safari' : 'Start Learning'}</span>
+                  <span className="text-xl">➔</span>
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    sound.playClick();
-                    onOpenLogin();
-                  }}
-                  className="w-full py-2.5 text-xs font-bold text-gray-400 hover:text-emerald-400 transition-colors cursor-pointer"
-                >
-                  {language === 'sw' ? 'Tayari nina akaunti • Ingia' : 'I already have an account'}
-                </button>
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={onOpenLogin}
+                    className="text-xs sm:text-sm font-bold text-gray-400 hover:text-emerald-400 transition-colors py-2 px-4 rounded-xl cursor-pointer"
+                  >
+                    {language === 'sw'
+                      ? 'Tayari una akaunti? Ingia hapa'
+                      : 'Already have an account? Log in'}
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
 
-          {/* SCREEN 2: CHOOSE GRADE */}
+          {/* STEP 2: GRADE PICKER */}
           {currentStep === 'GRADE' && (
             <motion.div
-              key="grade-screen"
-              initial={reducedMotion ? {} : { opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
+              key="grade-step"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
               transition={springTransition}
-              className="space-y-4 w-full"
+              className="space-y-4"
             >
               <div className="text-center space-y-1">
-                <h3 className="text-xl sm:text-2xl font-black text-white">
-                  {language === 'sw' ? 'Uko katika darasa gani?' : 'Which grade are you in?'}
-                </h3>
+                <h2 className="text-2xl font-black text-white">
+                  {language === 'sw' ? 'Uko gredi gani?' : 'Which grade are you in?'}
+                </h2>
                 <p className="text-xs text-gray-400">
-                  {language === 'sw' ? 'Gusa darasa lako ili kuendelea' : 'Tap your grade to continue'}
+                  {language === 'sw'
+                    ? 'Chagua gredi yako kulingana na mtaala wa CBC'
+                    : 'Choose your grade to get CBC curriculum quests'}
                 </p>
               </div>
 
               <div className="grid grid-cols-1 gap-3 pt-2">
                 {GRADES.map(g => {
                   const isSelected = selectedGradeId === g.id;
-
                   return (
                     <button
                       key={g.id}
                       type="button"
                       onClick={() => handleSelectGrade(g.id)}
-                      className={`w-full p-4 rounded-2xl border-2 flex items-center gap-4 text-left transition-all cursor-pointer min-h-[72px] active:scale-98 shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-400 ${
+                      className={`w-full min-h-[64px] p-4 rounded-2xl border-2 text-left transition-all active:scale-98 cursor-pointer flex items-center justify-between ${
                         isSelected
-                          ? 'border-emerald-400 bg-emerald-950/60 ring-2 ring-emerald-400/60 shadow-emerald-500/20'
-                          : 'border-slate-800 bg-slate-900/90 hover:border-slate-700'
+                          ? 'bg-emerald-950/60 border-emerald-400 shadow-md shadow-emerald-950/50'
+                          : 'bg-slate-900/90 border-slate-800 hover:border-slate-700 hover:bg-slate-800/80'
                       }`}
                     >
-                      <div className="w-12 h-12 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center text-2xl shrink-0">
-                        {g.icon}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-base font-black text-white">{g.name}</span>
-                          <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded-md border border-emerald-800">
-                            {g.ageRange}
-                          </span>
+                      <div className="flex items-center gap-3.5">
+                        <span className="text-3xl p-2 rounded-xl bg-slate-950/60 border border-slate-800">
+                          {g.icon}
+                        </span>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-black text-base text-white">{g.name}</span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-gray-300">
+                              {g.ageRange}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {language === 'sw' ? g.descSw : g.descEn}
+                          </p>
                         </div>
-                        <p className="text-xs text-gray-400 truncate mt-0.5">{g.desc}</p>
                       </div>
-
-                      <span className="text-gray-500 text-lg font-bold">➔</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Family Choice: Religious Education Track */}
-              <div className="pt-3 border-t border-slate-800/80 space-y-2">
-                <div className="flex items-center justify-between px-1">
-                  <span className="text-xs font-bold text-gray-300">
-                    {language === 'sw' ? 'Elimu ya Dini (Chaguo la Familia):' : 'Religious Education Track:'}
-                  </span>
-                  <span className="text-[10px] text-emerald-400 font-bold bg-emerald-950 px-2 py-0.5 rounded border border-emerald-850">
-                    {selectedReligiousStream}
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: 'CRE', label: 'Christian (CRE)', icon: '⛪' },
-                    { id: 'IRE', label: 'Islamic (IRE)', icon: '🌙' },
-                    { id: 'HRE', label: 'Hindu (HRE)', icon: '🕉️' }
-                  ].map(re => (
-                    <button
-                      key={re.id}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        sound.playClick();
-                        setSelectedReligiousStream(re.id as 'CRE' | 'IRE' | 'HRE');
-                        setOnboardingReligiousStream(re.id as 'CRE' | 'IRE' | 'HRE');
-                      }}
-                      className={`p-2 rounded-xl border text-center transition-all cursor-pointer min-h-[50px] flex flex-col items-center justify-center ${
-                        selectedReligiousStream === re.id
-                          ? 'border-emerald-400 bg-emerald-950/80 text-emerald-300 ring-2 ring-emerald-400/60'
-                          : 'border-slate-800 bg-slate-900 text-gray-400 hover:border-slate-700'
-                      }`}
-                    >
-                      <span className="text-lg">{re.icon}</span>
-                      <span className="text-[10px] font-black text-white mt-0.5">{re.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* SCREEN 3: DAILY GOAL */}
-          {currentStep === 'GOAL' && (
-            <motion.div
-              key="goal-screen"
-              initial={reducedMotion ? {} : { opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={springTransition}
-              className="space-y-4 w-full"
-            >
-              <div className="text-center space-y-1">
-                <h3 className="text-xl sm:text-2xl font-black text-white">
-                  {language === 'sw'
-                    ? 'Ungependa kujifunza kwa muda gani kila siku?'
-                    : 'What is your daily learning goal?'}
-                </h3>
-                <p className="text-xs text-gray-400">
-                  {language === 'sw'
-                    ? 'Dakika chache kila siku hujenga umilisi dhabiti'
-                    : 'A few focused minutes each day builds lasting skills'}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 pt-2">
-                {GOALS.map(goal => {
-                  const isSelected = selectedGoal === goal.minutes;
-
-                  return (
-                    <button
-                      key={goal.minutes}
-                      type="button"
-                      onClick={() => handleSelectGoal(goal.minutes)}
-                      className={`w-full p-4 rounded-2xl border-2 flex items-center gap-4 text-left transition-all cursor-pointer min-h-[76px] active:scale-98 shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-400 ${
-                        isSelected
-                          ? 'border-emerald-400 bg-emerald-950/60 ring-2 ring-emerald-400/60 shadow-emerald-500/20'
-                          : 'border-slate-800 bg-slate-900/90 hover:border-slate-700'
-                      }`}
-                    >
-                      <div className="w-12 h-12 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center text-2xl shrink-0">
-                        {goal.icon}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-base font-black text-white">{goal.title}</span>
-                          <span className="text-[10px] font-bold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded-md border border-amber-800/60">
-                            {language === 'sw' ? goal.labelSw : goal.labelEn}
-                          </span>
-                        </div>
-                        <p className="text-xs text-gray-400 mt-0.5">{goal.desc}</p>
-                      </div>
-
-                      <span className="text-gray-500 text-lg font-bold">➔</span>
+                      <span className="text-lg text-emerald-400 font-bold">➔</span>
                     </button>
                   );
                 })}
@@ -686,355 +641,434 @@ export const OnboardingFlow: React.FC<Props> = ({
             </motion.div>
           )}
 
-          {/* SCREEN 4: OPTIONAL PLACEMENT TEST */}
-          {currentStep === 'PLACEMENT' && currentQ && (
+          {/* STEP 3: INTEREST PICKER */}
+          {currentStep === 'INTERESTS' && (
             <motion.div
-              key={`placement-q-${currentQIndex}`}
-              initial={reducedMotion ? {} : { opacity: 0, x: 20 }}
+              key="interests-step"
+              initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={springTransition}
-              className="space-y-4 w-full"
+              className="space-y-4"
             >
-              <div className="flex items-center justify-between text-xs font-bold text-gray-400 px-1">
-                <span>
-                  Question {currentQIndex + 1} of {placementQuestions.length}
-                </span>
-                <span className="text-amber-300">🦉 Diagnostic Check</span>
+              <div className="text-center space-y-1">
+                <h2 className="text-2xl font-black text-white">
+                  {language === 'sw' ? 'Unapenda kujifunza nini?' : 'What do you love exploring?'}
+                </h2>
+                <p className="text-xs text-gray-400">
+                  {language === 'sw'
+                    ? 'Chagua masomo unayopenda zaidi (1 hadi 3)'
+                    : 'Pick 1 to 3 subjects you enjoy most'}
+                </p>
               </div>
 
-              <div className="p-5 rounded-3xl bg-slate-900 border-2 border-emerald-500/50 shadow-xl space-y-2 text-left">
-                <span className="text-[10px] font-black uppercase text-emerald-400 tracking-wider">
-                  CBC DIAGNOSTIC
-                </span>
-                <h4 className="text-lg sm:text-xl font-black text-white leading-snug">
-                  {currentQ.prompt}
-                </h4>
+              <div className="grid grid-cols-1 gap-2.5 pt-1">
+                {INTEREST_SUBJECTS.map(subj => {
+                  const isSelected = selectedInterests.includes(subj.id);
+                  return (
+                    <button
+                      key={subj.id}
+                      type="button"
+                      onClick={() => handleToggleInterest(subj.id)}
+                      className={`w-full min-h-[58px] p-3.5 rounded-2xl border-2 text-left transition-all active:scale-98 cursor-pointer flex items-center justify-between ${
+                        isSelected
+                          ? `${subj.bgClass} ${subj.borderClass} ring-1 ring-emerald-400/40`
+                          : 'bg-slate-900/80 border-slate-800 hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{subj.icon}</span>
+                        <div>
+                          <div className="font-black text-sm text-white">
+                            {language === 'sw' ? subj.nameSw : subj.nameEn}
+                          </div>
+                          <div className="text-[11px] text-gray-400">
+                            {language === 'sw' ? subj.taglineSw : subj.taglineEn}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center border ${
+                        isSelected
+                          ? 'bg-emerald-500 border-emerald-400 text-slate-950 text-xs font-black'
+                          : 'border-slate-700 bg-slate-950'
+                      }`}>
+                        {isSelected ? '✓' : ''}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
 
-              <div className="space-y-3 pt-2">
-                {currentQ.type === 'TRUE_FALSE' ? (
-                  <div className="grid grid-cols-2 gap-3">
-                    {['True', 'False'].map(tf => {
-                      const isSelected = selectedOption?.toLowerCase() === tf.toLowerCase();
+              <div className="pt-3">
+                <button
+                  type="button"
+                  onClick={handleConfirmInterests}
+                  disabled={selectedInterests.length === 0}
+                  className="w-full min-h-[56px] py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-500 text-slate-950 font-black text-base uppercase tracking-wider shadow-lg shadow-emerald-500/20 active:scale-98 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  <span>{language === 'sw' ? 'Endelea' : 'Continue'}</span>
+                  <span>➔</span>
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 4: QUICK LEVEL CHECK */}
+          {currentStep === 'LEVEL_CHECK' && (
+            <motion.div
+              key="level-check-step"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={springTransition}
+              className="space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">🦉</span>
+                  <span className="text-xs font-bold text-emerald-400">
+                    {language === 'sw'
+                      ? `Swali la ${currentQIndex + 1} kati ya ${placementQuestions.length}`
+                      : `Question ${currentQIndex + 1} of ${placementQuestions.length}`}
+                  </span>
+                </div>
+                <span className="text-xs font-black text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
+                  {language === 'sw' ? 'Uhakiki wa Haraka' : 'Quick Level Check'}
+                </span>
+              </div>
+
+              {placementQuestions[currentQIndex] ? (
+                <div className="space-y-4">
+                  {/* Question Box */}
+                  <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-left">
+                    <p className="text-base sm:text-lg font-bold text-white leading-snug">
+                      {language === 'sw' && placementQuestions[currentQIndex].swahiliPrompt
+                        ? placementQuestions[currentQIndex].swahiliPrompt
+                        : placementQuestions[currentQIndex].prompt}
+                    </p>
+                  </div>
+
+                  {/* Options */}
+                  <div className="space-y-2.5">
+                    {placementQuestions[currentQIndex].options?.map(opt => {
+                      const isSelected = selectedOption === opt.id;
+                      let btnStyle = 'bg-slate-900/90 border-slate-800 text-gray-200 hover:border-slate-700';
+
+                      if (isAnswerChecked) {
+                        const isThisCorrect = opt.id === placementQuestions[currentQIndex].correctOptionId;
+                        if (isThisCorrect) {
+                          btnStyle = 'bg-emerald-950/80 border-emerald-400 text-emerald-300 font-black';
+                        } else if (isSelected && !isThisCorrect) {
+                          btnStyle = 'bg-rose-950/80 border-rose-500 text-rose-300';
+                        }
+                      } else if (isSelected) {
+                        btnStyle = 'bg-emerald-950/60 border-emerald-400 text-emerald-300 font-bold';
+                      }
 
                       return (
                         <button
-                          key={tf}
+                          key={opt.id}
                           type="button"
-                          disabled={isAnswerChecked}
-                          onClick={() => {
-                            sound.playClick();
-                            setSelectedOption(tf);
-                          }}
-                          className={`p-4 rounded-2xl border-2 font-black text-lg sm:text-xl transition-all cursor-pointer min-h-[56px] active:scale-95 text-center ${
-                            isSelected
-                              ? 'border-emerald-400 bg-emerald-950/80 text-white ring-2 ring-emerald-400'
-                              : 'border-slate-800 bg-slate-900 text-gray-200 hover:border-slate-700'
-                          }`}
+                          onClick={() => handleSelectLevelOption(opt.id)}
+                          className={`w-full min-h-[56px] p-3.5 rounded-2xl border-2 text-left text-sm sm:text-base font-semibold transition-all active:scale-98 cursor-pointer flex items-center justify-between ${btnStyle}`}
                         >
-                          {tf}
+                          <span>{opt.text}</span>
+                          {isAnswerChecked && opt.id === placementQuestions[currentQIndex].correctOptionId && (
+                            <span className="text-emerald-400 font-black">✓</span>
+                          )}
                         </button>
                       );
                     })}
                   </div>
-                ) : (
-                  getShuffledOptions(
-                    currentQ.options || [],
-                    `onboarding_${currentQIndex}_${currentQ.id}`,
-                    currentQ
-                  ).map(opt => {
-                    const isSelected = selectedOption === opt.id || selectedOption === opt.text;
 
-                    return (
+                  {/* Action Bar */}
+                  <div className="pt-2">
+                    {!isAnswerChecked ? (
                       <button
-                        key={opt.id}
                         type="button"
-                        disabled={isAnswerChecked}
-                        onClick={() => {
-                          sound.playClick();
-                          setSelectedOption(opt.id);
-                        }}
-                        className={`w-full p-4 rounded-2xl border-2 text-left font-black text-base sm:text-lg transition-all cursor-pointer min-h-[56px] active:scale-98 flex items-center justify-between gap-3 ${
-                          isSelected
-                            ? 'border-emerald-400 bg-emerald-950/80 text-white ring-2 ring-emerald-400'
-                            : 'border-slate-800 bg-slate-900 text-gray-200 hover:border-slate-700'
-                        }`}
+                        onClick={handleCheckLevelAnswer}
+                        disabled={!selectedOption}
+                        className="w-full min-h-[56px] py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-500 text-slate-950 font-black text-base uppercase tracking-wider shadow-lg shadow-emerald-500/20 active:scale-98 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                       >
-                        <span className="leading-snug">{opt.text}</span>
-                        <span
-                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs shrink-0 ${
-                            isSelected ? 'border-emerald-400 bg-emerald-400 text-slate-950' : 'border-slate-700'
-                          }`}
-                        >
-                          {isSelected ? '✓' : ''}
-                        </span>
+                        {language === 'sw' ? 'Kagua Jibu' : 'Check Answer'}
                       </button>
-                    );
-                  })
-                )}
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleNextLevelQuestion}
+                        className="w-full min-h-[56px] py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-500 text-slate-950 font-black text-base uppercase tracking-wider shadow-lg shadow-emerald-500/20 active:scale-98 cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <span>{language === 'sw' ? 'Endelea' : 'Continue'}</span>
+                        <span>➔</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-400 text-sm">Loading diagnostic questions...</p>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* STEP 6: DAILY GOAL & STREAK START */}
+          {currentStep === 'DAILY_GOAL' && (
+            <motion.div
+              key="daily-goal-step"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={springTransition}
+              className="space-y-4"
+            >
+              {/* Celebration Banner from Lesson */}
+              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/20 via-emerald-500/20 to-teal-500/20 border border-emerald-500/30 text-center space-y-1">
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-2xl animate-bounce">🔥</span>
+                  <span className="text-base font-black text-amber-300">
+                    {language === 'sw' ? 'Mfululizo wa Siku 1 Umeanza!' : '1-Day Streak Started!'}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-300">
+                  {language === 'sw'
+                    ? 'Umepata +25 XP! Chagua lengo la kila siku ili kuendeleza ushindi.'
+                    : 'You earned +25 XP! Pick your daily goal to keep the flame alive.'}
+                </p>
               </div>
 
-              {/* Instant feedback drawer */}
-              {isAnswerChecked && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`p-4 rounded-2xl border-2 space-y-1.5 text-left shadow-lg ${
-                    isOptionCorrect
-                      ? 'bg-emerald-950/95 border-emerald-400 text-emerald-200'
-                      : 'bg-amber-950/95 border-amber-500 text-amber-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{isOptionCorrect ? '🎉' : '💡'}</span>
-                    <span className="font-black text-base text-white">
-                      {isOptionCorrect ? 'Hongera! Correct!' : language === 'sw' ? 'Sivyo kabisa. Sababu ni:' : "Not quite. Here's why:"}
-                    </span>
-                  </div>
-                  {!isOptionCorrect && (
-                    <p className="text-xs font-bold text-amber-300">
-                      Correct Answer: {resolveCorrectAnswerText(currentQ)}
-                    </p>
-                  )}
-                  {currentQ.explanation && (
-                    <p className="text-xs text-gray-300 leading-relaxed">
-                      {currentQ.explanation.split('.')[0]}.
-                    </p>
-                  )}
-                </motion.div>
-              )}
+              <div className="text-center space-y-1 pt-1">
+                <h2 className="text-xl sm:text-2xl font-black text-white">
+                  {language === 'sw' ? 'Chagua lengo lako la kila siku' : 'Pick your daily learning target'}
+                </h2>
+                <p className="text-xs text-gray-400">
+                  {language === 'sw'
+                    ? 'Unaweza kubadilisha lengo hili wakati wowote'
+                    : 'You can adjust this anytime in your profile'}
+                </p>
+              </div>
 
-              <div className="pt-3">
-                {!isAnswerChecked ? (
-                  <button
-                    type="button"
-                    disabled={!selectedOption}
-                    onClick={handleCheckPlacementAnswer}
-                    className={`w-full py-4 rounded-2xl font-black text-base transition-all min-h-[56px] shadow-lg ${
-                      selectedOption
-                        ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/25 cursor-pointer active:scale-98'
-                        : 'bg-slate-800 text-gray-500 cursor-not-allowed opacity-60'
-                    }`}
-                  >
-                    CHECK ANSWER
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleNextPlacementQuestion}
-                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-base transition-all min-h-[56px] shadow-xl cursor-pointer active:scale-98"
-                  >
-                    {currentQIndex + 1 < placementQuestions.length ? 'CONTINUE ➔' : 'START FIRST LESSON ➔'}
-                  </button>
-                )}
+              <div className="grid grid-cols-1 gap-2.5 pt-1">
+                {DAILY_GOAL_OPTIONS.map(g => {
+                  const isSelected = selectedGoal === g.minutes;
+                  return (
+                    <button
+                      key={g.minutes}
+                      type="button"
+                      onClick={() => handleSelectGoal(g.minutes)}
+                      className={`w-full min-h-[60px] p-4 rounded-2xl border-2 text-left transition-all active:scale-98 cursor-pointer flex items-center justify-between ${
+                        isSelected
+                          ? 'bg-emerald-950/70 border-emerald-400 shadow-md shadow-emerald-950/40 ring-1 ring-emerald-400/40'
+                          : 'bg-slate-900/90 border-slate-800 hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3.5">
+                        <span className="text-2xl">{g.icon}</span>
+                        <div>
+                          <div className="font-black text-sm sm:text-base text-white">
+                            {language === 'sw' ? g.labelSw : g.labelEn}
+                          </div>
+                          <div className="text-xs text-emerald-400 font-semibold">
+                            {language === 'sw' ? g.tierSw : g.tierEn} • {g.xpExpected} XP / day
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-emerald-400 font-black text-base">➔</span>
+                    </button>
+                  );
+                })}
               </div>
             </motion.div>
           )}
 
-          {/* SCREEN 6: CELEBRATION & CHILD-SAFE SIGN-UP */}
-          {currentStep === 'SIGNUP' && (
+          {/* STEP 7: SAVE PROGRESS PROMPT (DELAYED SIGN-UP) */}
+          {currentStep === 'SAVE_PROGRESS' && (
             <motion.div
-              key="signup-screen"
-              initial={reducedMotion ? {} : { opacity: 0, y: 15 }}
+              key="save-progress-step"
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
               transition={springTransition}
-              className="space-y-5 w-full text-left"
+              className="text-center space-y-6 max-w-sm mx-auto"
             >
-              {/* Rewards Celebration Header */}
-              <div className="p-4 rounded-3xl bg-slate-900 border-2 border-emerald-500/50 shadow-xl flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-amber-400/20 border-2 border-amber-400 flex items-center justify-center text-3xl shrink-0 shadow-lg animate-bounce">
-                  🏆
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-white">
-                    {language === 'sw' ? 'Hongera Sana!' : 'Lesson Complete!'}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-1 text-xs font-black">
-                    <span className="text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded-md border border-emerald-800">
-                      ⚡ +25 XP
-                    </span>
-                    <span className="text-yellow-400 bg-yellow-950 px-2 py-0.5 rounded-md border border-yellow-800">
-                      🪙 +10 Coins
-                    </span>
-                    <span className="text-amber-400">⭐⭐⭐</span>
-                  </div>
-                </div>
+              <div className="w-28 h-28 mx-auto rounded-3xl bg-gradient-to-tr from-amber-500/20 via-emerald-500/20 to-teal-500/20 border-2 border-emerald-400/60 flex items-center justify-center text-5xl shadow-2xl shadow-emerald-500/10">
+                <span>🛡️</span>
               </div>
 
-              {/* Rafiki Dialogue Bubble */}
-              <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-950 border border-amber-500/40 text-xs text-amber-200">
-                <span className="text-2xl shrink-0">🦉</span>
-                <p className="leading-relaxed">
+              <div className="space-y-2">
+                <h2 className="text-2xl sm:text-3xl font-black text-white">
+                  {language === 'sw' ? 'Hifadhi Maendeleo Yako!' : 'Save Your Progress!'}
+                </h2>
+                <p className="text-xs sm:text-sm text-gray-300 font-medium leading-relaxed">
                   {language === 'sw'
-                    ? '"Vizuri sana! Hifadhi maendeleo yako sasa ili usipoteze sarafu au mfululizo wako wa masomo."'
-                    : '"Awesome work! Save your progress now so you never lose your coins, stars, or learning streak."'}
+                    ? 'Umepata XP na kuanza mfululizo. Mwombe mzazi au mlezi akusaidie kuhifadhi ushindi wako ili usipotee.'
+                    : "You've earned XP and started your streak! Ask a parent or guardian to help save your progress so it's never lost."}
                 </p>
               </div>
 
-              {/* Child-Safe Sign Up Form (Under 13 COPPA & Kenya Data Protection Act) */}
-              <form onSubmit={handleSaveProgress} className="space-y-3.5 pt-1">
-                {signUpError && (
-                  <div className="p-3 rounded-xl bg-amber-950/80 border border-amber-500 text-amber-200 text-xs font-medium">
-                    ⚠️ {signUpError}
-                  </div>
-                )}
+              {/* Progress Summary Pill */}
+              <div className="flex items-center justify-center gap-4 p-3 rounded-2xl bg-slate-900 border border-slate-800 text-xs font-bold">
+                <span className="text-emerald-400">⚡ 25 XP</span>
+                <span className="text-amber-400">🪙 10 Shilingi</span>
+                <span className="text-rose-400">🔥 1-Day Streak</span>
+              </div>
 
-                {/* Field 1: Learner First Name */}
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-gray-300 block">
-                    {language === 'sw' ? 'Jina lako la Kwanza' : "Learner's First Name"}
+              <div className="pt-2 space-y-3">
+                <button
+                  type="button"
+                  onClick={handleAcceptSaveProgress}
+                  className="w-full min-h-[58px] py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-500 text-slate-950 font-black text-base uppercase tracking-wider shadow-lg shadow-emerald-500/20 active:scale-98 cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span>{language === 'sw' ? 'Hifadhi na Mzazi' : 'Save with Parent'}</span>
+                  <span>➔</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSkipSaveProgress}
+                  className="w-full py-3 text-xs sm:text-sm font-bold text-gray-400 hover:text-gray-200 transition-colors cursor-pointer"
+                >
+                  {language === 'sw' ? 'Baadaye (Gundua kama Mgeni)' : 'Later (Explore as Guest)'}
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 8: PARENT / GUARDIAN HANDOFF */}
+          {currentStep === 'PARENT_STEP' && (
+            <motion.div
+              key="parent-step"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={springTransition}
+              className="space-y-4"
+            >
+              <div className="text-center space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold mb-1">
+                  <span>👨‍👩‍👧</span>
+                  <span>{language === 'sw' ? 'Sehemu ya Mzazi / Mlezi' : 'Parent / Guardian Zone'}</span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-white">
+                  {language === 'sw' ? 'Hifadhi Akaunti ya Mwanafunzi' : 'Lock in Learner Progress'}
+                </h2>
+                <p className="text-xs text-gray-400">
+                  {language === 'sw'
+                    ? 'Weka nambari ya simu na PIN ya tarakimu 4 kulinda akaunti'
+                    : 'Enter your phone number & a 4-digit PIN to secure this account'}
+                </p>
+              </div>
+
+              {parentStepError && (
+                <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-500/60 text-rose-300 text-xs font-bold flex items-center gap-2">
+                  <span>⚠️</span>
+                  <span>{parentStepError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleParentSave} className="space-y-3 pt-1">
+                {/* Child Name / Nickname */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-300 mb-1">
+                    {language === 'sw' ? 'Jina la Kwanza la Mwanafunzi' : "Child's First Name or Nickname"}
                   </label>
                   <input
                     type="text"
-                    required
                     value={learnerName}
                     onChange={e => setLearnerName(e.target.value)}
-                    placeholder="e.g. Amina"
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-900 border-2 border-slate-800 focus:border-emerald-400 text-white font-medium text-base outline-none transition-all min-h-[50px]"
+                    placeholder={language === 'sw' ? 'Mfano: Amina' : 'e.g. Amina'}
+                    className="w-full min-h-[50px] px-4 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-emerald-400 transition-colors"
+                    maxLength={30}
+                    required
                   />
                 </div>
 
-                {/* Field 2: Parent / Guardian Email */}
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-gray-300">
-                      {language === 'sw' ? 'Barua Pepe ya Mzazi / Mlezi' : "Parent or Guardian's Email"}
-                    </label>
-                    <span className="text-[10px] text-emerald-400 font-medium">Age &lt; 13 Safe</span>
+                {/* Parent Phone */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-300 mb-1">
+                    {language === 'sw' ? 'Nambari ya Simu ya Mzazi (Kenya)' : 'Parent Phone Number (Kenya)'}
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">
+                      🇰🇪 +254
+                    </span>
+                    <input
+                      type="tel"
+                      value={parentPhone}
+                      onChange={e => setParentPhone(e.target.value)}
+                      placeholder="0712 345 678"
+                      className="w-full min-h-[50px] pl-20 pr-4 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-emerald-400 transition-colors"
+                      required
+                    />
                   </div>
+                </div>
+
+                {/* 4-digit PIN */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-300 mb-1">
+                    {language === 'sw' ? 'PIN Rahisi ya Mzazi (Tarakimu 4)' : 'Parent 4-Digit PIN'}
+                  </label>
                   <input
-                    type="email"
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={parentPin}
+                    onChange={e => setParentPin(e.target.value.replace(/[^0-9]/g, ''))}
+                    placeholder="1234"
+                    className="w-full min-h-[50px] px-4 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-gray-500 text-sm tracking-widest text-center font-mono focus:outline-none focus:border-emerald-400 transition-colors"
                     required
-                    value={parentEmail}
-                    onChange={e => setParentEmail(e.target.value)}
-                    placeholder="parent@example.com"
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-900 border-2 border-slate-800 focus:border-emerald-400 text-white font-medium text-base outline-none transition-all min-h-[50px]"
                   />
-                  <p className="text-[10px] text-gray-400 leading-tight">
+                  <p className="text-[11px] text-gray-500 mt-1">
                     {language === 'sw'
-                      ? 'Mzazi wako atapokea ripoti za maendeleo ya masomo yako ya CBC.'
-                      : 'Your parent or guardian will receive reports on your CBC learning progress.'}
+                      ? 'PIN hii itatumika kurejesha au kuingia kwenye simu nyingine'
+                      : 'Used to sign in or recover progress on other devices'}
                   </p>
                 </div>
 
-                {/* Field 3: Password / PIN */}
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-gray-300">
-                      {language === 'sw' ? 'Nenosiri / PIN ya Kuingia' : 'Password / PIN (min 6 characters)'}
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="text-[10px] text-emerald-400 hover:underline cursor-pointer"
-                    >
-                      {showPassword ? 'Hide' : 'Show'}
-                    </button>
-                  </div>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={parentPassword}
-                    onChange={e => setParentPassword(e.target.value)}
-                    placeholder={language === 'sw' ? 'Weka nenosiri au PIN ya nambari 6' : 'Create a password or 6-digit PIN'}
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-900 border-2 border-slate-800 focus:border-emerald-400 text-white font-medium text-base outline-none transition-all min-h-[50px]"
-                  />
+                {/* Child Safety & Consent Box */}
+                <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+                  <label className="flex items-start gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={hasParentConsent}
+                      onChange={e => setHasParentConsent(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 rounded border-slate-700 text-emerald-500 focus:ring-emerald-400 cursor-pointer"
+                    />
+                    <span className="text-xs text-gray-300 leading-tight">
+                      {language === 'sw'
+                        ? 'Mimi ni mzazi/mlezi na ninakubali kuhifadhi matokeo ya mwanafunzi kulingana na sheria ya Kenya DPA (2019).'
+                        : 'I am a parent or guardian and give permission to save learning progress under the Kenya Data Protection Act.'}
+                    </span>
+                  </label>
+                  <p className="text-[10px] text-emerald-400/80">
+                    🛡️ {language === 'sw' ? 'Hakuna matangazo au uuzaji wa data.' : 'Zero ads. Minimum data. Progress only.'}
+                  </p>
                 </div>
 
-                {/* Field 4: Consent Checkbox */}
-                <label className="flex items-start gap-3 p-3 rounded-2xl bg-slate-900/60 border border-slate-800 cursor-pointer text-xs text-gray-300 leading-relaxed hover:border-slate-700 transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={hasParentConsent}
-                    onChange={e => setHasParentConsent(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 rounded text-emerald-500 focus:ring-emerald-400 bg-slate-950 border-slate-700 cursor-pointer shrink-0"
-                  />
-                  <span>
-                    {language === 'sw' ? (
-                      <>
-                        Mimi ni mzazi au mlezi, au nina idhini kutoka kwa mzazi au mlezi wangu, na ninakubali{' '}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            if (onNavigateLegal) onNavigateLegal('terms');
-                            else window.open('/terms', '_blank');
-                          }}
-                          className="text-emerald-400 underline font-semibold hover:text-emerald-300"
-                        >
-                          Masharti ya Huduma
-                        </button>{' '}
-                        na{' '}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            if (onNavigateLegal) onNavigateLegal('privacy');
-                            else window.open('/privacy', '_blank');
-                          }}
-                          className="text-emerald-400 underline font-semibold hover:text-emerald-300"
-                        >
-                          Sera ya Faragha
-                        </button>
-                        .
-                      </>
-                    ) : (
-                      <>
-                        I am a parent or guardian, or I have my parent or guardian&apos;s permission, and I agree to the{' '}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            if (onNavigateLegal) onNavigateLegal('terms');
-                            else window.open('/terms', '_blank');
-                          }}
-                          className="text-emerald-400 underline font-semibold hover:text-emerald-300"
-                        >
-                          Terms of Service
-                        </button>{' '}
-                        and{' '}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            if (onNavigateLegal) onNavigateLegal('privacy');
-                            else window.open('/privacy', '_blank');
-                          }}
-                          className="text-emerald-400 underline font-semibold hover:text-emerald-300"
-                        >
-                          Privacy Policy
-                        </button>
-                        .
-                      </>
-                    )}
-                  </span>
-                </label>
-
-                {/* Action Buttons */}
-                <div className="space-y-2.5 pt-2">
+                {/* Submit Action */}
+                <div className="pt-2 space-y-2">
                   <button
                     type="submit"
-                    disabled={isSubmitting || !learnerName || !parentEmail || !hasParentConsent}
-                    className={`w-full py-4 rounded-2xl font-black text-base transition-all min-h-[56px] shadow-xl flex items-center justify-center gap-2 ${
-                      learnerName && parentEmail && hasParentConsent && !isSubmitting
-                        ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 shadow-emerald-500/30 cursor-pointer active:scale-98'
-                        : 'bg-slate-800 text-gray-500 cursor-not-allowed opacity-60'
-                    }`}
+                    disabled={isSubmitting}
+                    className="w-full min-h-[56px] py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-500 text-slate-950 font-black text-base uppercase tracking-wider shadow-lg shadow-emerald-500/20 active:scale-98 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    <span>{isSubmitting ? 'SAVING...' : 'SAVE MY PROGRESS ➔'}</span>
+                    {isSubmitting ? (
+                      <span>{language === 'sw' ? 'Inahifadhi...' : 'Saving...'}</span>
+                    ) : (
+                      <>
+                        <span>{language === 'sw' ? 'Hifadhi na Anza Masomo' : 'Save & Start Learning'}</span>
+                        <span>➔</span>
+                      </>
+                    )}
                   </button>
 
                   <button
                     type="button"
-                    onClick={handleContinueAsGuest}
-                    className="w-full py-2.5 text-xs font-bold text-gray-400 hover:text-white transition-colors cursor-pointer text-center"
+                    onClick={finishOnboardingAsGuest}
+                    className="w-full py-2 text-xs font-bold text-gray-400 hover:text-gray-200 transition-colors cursor-pointer"
                   >
-                    {language === 'sw' ? 'Cheza kama Mgeni kwa sasa' : 'Play as Guest for now'}
+                    {language === 'sw' ? 'Ruka kwa sasa (Endelea kama mgeni)' : 'Skip for now (Continue as guest)'}
                   </button>
                 </div>
               </form>
@@ -1042,6 +1076,33 @@ export const OnboardingFlow: React.FC<Props> = ({
           )}
         </AnimatePresence>
       </main>
+
+      {/* 3. Footer Privacy Note */}
+      <footer className="pt-3 text-center border-t border-slate-900/80">
+        <div className="flex items-center justify-center gap-3 text-[11px] text-gray-500 font-medium">
+          <span>Jifuno CBC © 2026</span>
+          {onNavigateLegal && (
+            <>
+              <span>•</span>
+              <button
+                type="button"
+                onClick={() => onNavigateLegal('privacy')}
+                className="hover:text-gray-300 underline cursor-pointer"
+              >
+                Privacy
+              </button>
+              <span>•</span>
+              <button
+                type="button"
+                onClick={() => onNavigateLegal('terms')}
+                className="hover:text-gray-300 underline cursor-pointer"
+              >
+                Terms
+              </button>
+            </>
+          )}
+        </div>
+      </footer>
     </div>
   );
 };
