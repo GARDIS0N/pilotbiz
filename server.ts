@@ -10,6 +10,7 @@ import dotenv from 'dotenv';
 import { apiRouter } from './server/apiRouter.js';
 import { getCorsMiddleware } from './server/corsMiddleware.js';
 import { securityHeadersMiddleware } from './server/securityHeaders.js';
+import { monitoringMiddleware } from './server/monitoring.js';
 import { checkRequiredServerEnv } from './server/envCheck.js';
 import {
   calculateSimilarity,
@@ -40,6 +41,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 const app = express();
+app.use(monitoringMiddleware);
 app.use(securityHeadersMiddleware);
 app.use(getCorsMiddleware());
 app.use(express.json({ limit: '25mb' }));

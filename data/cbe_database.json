@@ -1915,6 +1915,15 @@
       "avatar": "owl",
       "createdAt": "2026-10-16T21:31:48.364Z",
       "studentProfileId": "test-std-1792186308364"
+    },
+    {
+      "id": "test-usr-1792230080798",
+      "name": "Wanjiku Test Learner",
+      "email": "wanjiku.1792230080798@jifuno.ke",
+      "role": "STUDENT",
+      "avatar": "owl",
+      "createdAt": "2026-10-17T09:41:20.798Z",
+      "studentProfileId": "test-std-1792230080798"
     }
   ],
   "students": [
@@ -7972,6 +7981,35 @@
       "maxHearts": 5,
       "streakDays": 1,
       "lastActiveDate": "2026-10-16",
+      "streakFrozen": false,
+      "unlockedWorldIds": [
+        "world-math-kingdom",
+        "world-creative-studio",
+        "world-faith-values"
+      ],
+      "completedMissionIds": [
+        "mission-01-seedlings"
+      ],
+      "badges": [
+        "badge-seedling-starter"
+      ],
+      "equippedTitle": "Safari Scout"
+    },
+    {
+      "id": "test-std-1792230080798",
+      "userId": "test-usr-1792230080798",
+      "fullName": "Wanjiku Test Learner",
+      "gradeId": "grade-4",
+      "schoolName": "Moi Nyeri Academy",
+      "county": "Nyeri",
+      "avatar": "owl",
+      "level": 1,
+      "xp": 110,
+      "coins": 80,
+      "hearts": 5,
+      "maxHearts": 5,
+      "streakDays": 1,
+      "lastActiveDate": "2026-10-17",
       "streakFrozen": false,
       "unlockedWorldIds": [
         "world-math-kingdom",
@@ -343722,6 +343760,33 @@
       "kenyanCulturalContext": "Fifty shilling notes feature Kenyan wildlife.",
       "sourceType": "AI_PRACTICE",
       "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-test-admin-1792230083129",
+      "subStrandId": "substrand-currency",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "How many 50-shilling notes make 200 shillings?",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "2 notes"
+        },
+        {
+          "id": "opt-2",
+          "text": "4 notes"
+        },
+        {
+          "id": "opt-3",
+          "text": "5 notes"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "4 × 50 = 200 shillings.",
+      "socraticHint": "Count by fifties: 50, 100, 150...",
+      "kenyanCulturalContext": "Fifty shilling notes feature Kenyan wildlife.",
+      "sourceType": "AI_PRACTICE",
+      "contentStatus": "PUBLISHED"
     }
   ],
   "achievements": [
@@ -346355,6 +346420,18 @@
         "correctAttempts": 4,
         "status": "EXCEEDING",
         "lastPracticedDate": "2026-10-16"
+      }
+    ],
+    "test-std-1792230080798": [
+      {
+        "strandId": "strand-math-numbers",
+        "strandTitle": "Numbers & Operations",
+        "learningAreaName": "Mathematics",
+        "masteryPercentage": 100,
+        "totalAttempts": 4,
+        "correctAttempts": 4,
+        "status": "EXCEEDING",
+        "lastPracticedDate": "2026-10-17"
       }
     ]
   },
@@ -352001,6 +352078,33 @@
       "leveledUp": false,
       "newLevel": 1,
       "completedAt": "2026-10-16T21:31:52.762Z"
+    },
+    {
+      "sessionId": "sess-1792230082718-5dxsr",
+      "missionId": "mission-01-seedlings",
+      "studentId": "test-std-1792230080798",
+      "scorePercentage": 100,
+      "totalQuestions": 4,
+      "correctAnswersCount": 4,
+      "xpEarned": 60,
+      "coinsEarned": 30,
+      "heartsRemaining": 5,
+      "streakMaintained": true,
+      "unlockedAchievements": [
+        {
+          "id": "badge-seedling-starter",
+          "code": "SEEDLING_STARTER",
+          "title": "Green Thumb Sower",
+          "description": "Completed your first agricultural multiplication mission with Amina!",
+          "icon": "sprout",
+          "xpReward": 50,
+          "coinReward": 25,
+          "category": "EXPLORATION"
+        }
+      ],
+      "leveledUp": false,
+      "newLevel": 1,
+      "completedAt": "2026-10-17T09:41:22.718Z"
     }
   ],
   "analyticsEvents": [
@@ -354720,6 +354824,19 @@
         "stars": 3
       },
       "timestamp": "2026-10-16T21:31:53.425Z"
+    },
+    {
+      "id": "evt-1792230082919",
+      "studentId": "test-std-1792230080798",
+      "eventType": "mission_completed",
+      "metadata": {
+        "missionId": "mission-01-seedlings",
+        "scorePercentage": 100,
+        "xpEarned": 60,
+        "coinsEarned": 30,
+        "stars": 3
+      },
+      "timestamp": "2026-10-17T09:41:22.919Z"
     }
   ],
   "xpTransactions": [
@@ -356192,6 +356309,13 @@
       "amount": 60,
       "reason": "Completed mission: Help Amina Plant Seedlings (100%)",
       "timestamp": "2026-10-16T21:31:51.014Z"
+    },
+    {
+      "id": "xp-tx-1792230082062-fz42",
+      "studentId": "test-std-1792230080798",
+      "amount": 60,
+      "reason": "Completed mission: Help Amina Plant Seedlings (100%)",
+      "timestamp": "2026-10-17T09:41:22.062Z"
     }
   ],
   "coinTransactions": [
@@ -357664,6 +357788,13 @@
       "amount": 30,
       "reason": "Earned in mission: Help Amina Plant Seedlings",
       "timestamp": "2026-10-16T21:31:51.521Z"
+    },
+    {
+      "id": "coin-tx-1792230082270-5d4l",
+      "studentId": "test-std-1792230080798",
+      "amount": 30,
+      "reason": "Earned in mission: Help Amina Plant Seedlings",
+      "timestamp": "2026-10-17T09:41:22.270Z"
     }
   ]
 }

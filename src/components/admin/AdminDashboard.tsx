@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Question, ContentStatus, QuestionType, DifficultyLevel, User } from '../../types/cbe.js';
 import { cbeApi } from '../../services/cbeApi.js';
 import { sound } from '../../utils/soundEffects.js';
+import { AnalyticsDashboard } from './AnalyticsDashboard.js';
 
 interface Props {
   currentUser?: User | null;
 }
 
-export type AdminTab = 'REPORTS' | 'FAILURES' | 'COMPLETIONS' | 'DAILY_ACTIVE' | 'QUESTIONS';
+export type AdminTab = 'REPORTS' | 'FAILURES' | 'COMPLETIONS' | 'DAILY_ACTIVE' | 'QUESTIONS' | 'ANALYTICS';
 
 interface ProblemReportItem {
   report_id: string;
@@ -379,6 +380,21 @@ export const AdminDashboard: React.FC<Props> = ({ currentUser }) => {
           }`}
         >
           <span>📚 Question Bank ({questions.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            sound.playClick();
+            setActiveTab('ANALYTICS');
+          }}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
+            activeTab === 'ANALYTICS'
+              ? 'bg-purple-600 text-white shadow-md'
+              : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          <span>📈 Executive Analytics</span>
         </button>
       </div>
 
@@ -783,6 +799,11 @@ export const AdminDashboard: React.FC<Props> = ({ currentUser }) => {
             )}
           </div>
         </div>
+      )}
+
+      {/* VIEW 6: EXECUTIVE ANALYTICS DASHBOARD */}
+      {activeTab === 'ANALYTICS' && (
+        <AnalyticsDashboard />
       )}
 
       {/* Modal: Create Question */}

@@ -22,4 +22,5 @@ isair-jarvis*
 *.zip
 Desktop/
 supabase/.temp/
+backups/
 

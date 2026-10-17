@@ -643,6 +643,10 @@ class CbeApiService {
     return this.request('/api/admin/daily-active-learners');
   }
 
+  public async getAdminAnalyticsSummary(): Promise<any> {
+    return this.request('/api/admin/analytics-summary');
+  }
+
   // --- Answer Logging & Problem Reporting (Supabase) ---
   public async logAttempt(payload: {
     learnerId: string;

@@ -1659,6 +1659,10 @@ export class CbeDatabase {
     return this.data.sessionResults.filter(s => s.studentId === studentId);
   }
 
+  public getSessionResults(): LearningSessionResult[] {
+    return this.data.sessionResults || [];
+  }
+
   // --- Analytics & Telemetry ---
   public logAnalytics(event: LearningAnalyticsEvent) {
     this.data.analyticsEvents.push(event);
