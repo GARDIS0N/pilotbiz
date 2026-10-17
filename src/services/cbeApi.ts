@@ -936,6 +936,25 @@ class CbeApiService {
       return { success: true, hearts: safeHearts };
     }
   }
+
+  // --- Phase 3: Content Engine Bulk Import & Curation ---
+  public async getContentSchema(): Promise<any> {
+    return this.request('/api/admin/content/schema');
+  }
+
+  public async validateContentImport(format: 'json' | 'csv', content: string): Promise<any> {
+    return this.request('/api/admin/content/import-validate', {
+      method: 'POST',
+      body: JSON.stringify({ format, content })
+    });
+  }
+
+  public async publishContentBatch(format: 'json' | 'csv', content: string, status?: ContentStatus): Promise<any> {
+    return this.request('/api/admin/content/import-publish', {
+      method: 'POST',
+      body: JSON.stringify({ format, content, status })
+    });
+  }
 }
 
 export const cbeApi = new CbeApiService();

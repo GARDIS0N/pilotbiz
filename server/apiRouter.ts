@@ -5,12 +5,14 @@ import { tutorEngine } from './tutorEngine.js';
 import { User, StudentProfile, UserRole, Question, ContentStatus } from '../src/types/cbe.js';
 import { evaluateAnswer, resolveCorrectAnswerText } from '../src/utils/answerValidation.js';
 import { supabase, isSupabaseConfigured } from '../src/services/supabaseClient.js';
-import { recommendNextLesson, calculateNextReviewInterval } from '../src/utils/learningEngine.js';
+import { recommendNextLesson, calculateNextReviewInterval, getDueReviewItems } from '../src/utils/learningEngine.js';
 import { authMiddleware } from './authMiddleware.js';
 import { authRateLimiter, answerCheckLimiter, generalApiLimiter } from './rateLimiter.js';
 import { runAllScheduledJobs } from './cronJobs.js';
 import { monitoringService } from './monitoring.js';
 import { sendSystemAlert } from './alertWebhook.js';
+import { parseJsonContent, parseCsvContent, importContentBatch } from '../src/services/contentImportEngine.js';
+import { validateBulkContent } from '../src/services/contentQualityValidator.js';
 
 export const apiRouter = express.Router();
 
@@ -239,6 +241,15 @@ apiRouter.post('/game/submit-session', answerCheckLimiter, (req: Request, res: R
       );
     }
 
+    // Step 3: Automatically queue incorrect questions into spaced repetition review queue
+    if (studentId && Array.isArray(questionReviews)) {
+      questionReviews.forEach((qr: any) => {
+        if (!qr.isCorrect && qr.questionId) {
+          cbeDb.processReviewResult(studentId, qr.questionId, false);
+        }
+      });
+    }
+
     return res.json({
       success: true,
       result,
@@ -279,6 +290,11 @@ apiRouter.post('/check-answer', answerCheckLimiter, async (req: Request, res: Re
       } catch (logErr) {
         console.warn('[Attempts Logging Warning]:', logErr);
       }
+    }
+
+    // If incorrect, queue for spaced repetition review
+    if (!isCorrect && learnerId) {
+      cbeDb.processReviewResult(learnerId, questionId, false);
     }
 
     return res.json({
@@ -394,12 +410,13 @@ apiRouter.get('/learning/review-queue', async (req: Request, res: Response) => {
         .eq('status', 'PENDING')
         .lte('next_review_at', new Date().toISOString());
 
-      if (!error && Array.isArray(data)) {
+      if (!error && Array.isArray(data) && data.length > 0) {
         return res.json({ success: true, items: data });
       }
     }
 
-    return res.json({ success: true, items: [] });
+    const localDue = getDueReviewItems(cbeDb.getReviewQueue(learnerId));
+    return res.json({ success: true, items: localDue });
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
@@ -413,18 +430,21 @@ apiRouter.post('/learning/process-review', async (req: Request, res: Response) =
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
+    const localItem = cbeDb.processReviewResult(learnerId, questionId, isCorrect);
+
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabase.rpc('process_review_result', {
-        p_learner_id: learnerId,
-        p_question_id: questionId,
-        p_is_correct: isCorrect
-      });
-      if (!error && data) {
-        return res.json({ success: true, result: data });
+      try {
+        await supabase.rpc('process_review_result', {
+          p_learner_id: learnerId,
+          p_question_id: questionId,
+          p_is_correct: isCorrect
+        });
+      } catch (err) {
+        console.warn('[Supabase Review Process Warning]:', err);
       }
     }
 
-    return res.json({ success: true, updated: true });
+    return res.json({ success: true, updated: true, item: localItem });
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
@@ -708,6 +728,15 @@ apiRouter.post('/teacher/assign', (req: Request, res: Response) => {
 // -------------------------------------------------------------
 // Content Management & Admin
 // -------------------------------------------------------------
+function checkIsAdmin(): boolean;
+function checkIsAdmin(req: Request): boolean;
+function checkIsAdmin(req?: Request): boolean {
+  if (req?.user) {
+    return req.user.role === 'ADMIN';
+  }
+  return false;
+}
+
 apiRouter.get('/admin/questions', (_req: Request, res: Response) => {
   res.json({ questions: cbeDb.getAllQuestions() });
 });
@@ -728,6 +757,91 @@ apiRouter.put('/admin/questions/:id/status', (req: Request, res: Response) => {
   const updated = cbeDb.updateQuestion(req.params.id, { contentStatus: status });
   if (!updated) return res.status(404).json({ error: 'Question not found' });
   res.json({ success: true, question: updated });
+});
+
+// --- Phase 3: Content Engine Bulk Import & Schema ---
+apiRouter.get('/admin/content/schema', (req: Request, res: Response) => {
+  if (!checkIsAdmin(req)) {
+    return res.status(403).json({ error: 'Access denied: Admin role required.' });
+  }
+
+  res.json({
+    schemaVersion: '1.2.0',
+    curriculumVersion: 'CBC-KICD-2024',
+    supportedGrades: ['grade-3', 'grade-4', 'grade-5', 'grade-6'],
+    supportedDifficulties: ['EASY', 'MEDIUM', 'HARD'],
+    supportedQuestionTypes: ['MULTIPLE_CHOICE', 'TRUE_FALSE', 'FILL_IN_BLANK', 'NUMERIC'],
+    csvTemplate: 'id,grade,strand,sub_strand,learning_outcome,difficulty,question_type,prompt,prompt_sw,option_1,option_2,option_3,option_4,correct_option,explanation,explanation_sw,socratic_hint\n',
+    instructions: 'Upload JSON (StructuredContentPackage) or standard CSV with headers. Validation rejects missing fields, duplicate questions, and unbalanced answer keys.'
+  });
+});
+
+apiRouter.post('/admin/content/import-validate', (req: Request, res: Response) => {
+  if (!checkIsAdmin(req)) {
+    return res.status(403).json({ error: 'Access denied: Admin role required.' });
+  }
+
+  const { format = 'json', content } = req.body as { format?: 'json' | 'csv'; content?: string };
+  if (!content || typeof content !== 'string') {
+    return res.status(400).json({ error: 'Missing content payload string' });
+  }
+
+  try {
+    const questions = format === 'csv' ? parseCsvContent(content) : parseJsonContent(content);
+    const result = importContentBatch(questions, { dryRun: true, allowUpdates: true });
+
+    return res.json({
+      success: result.success,
+      questionsCount: questions.length,
+      validCount: result.validation.validCount,
+      errorCount: result.validation.invalidCount,
+      warningCount: result.validation.warningCount,
+      validationResults: result.validation.errors.map(err => ({
+        questionId: err.questionId || `item-${err.index}`,
+        valid: err.severity !== 'ERROR',
+        errors: err.severity === 'ERROR' ? [err.message] : [],
+        warnings: err.severity === 'WARNING' ? [err.message] : []
+      })),
+      validation: result.validation,
+      preview: questions.slice(0, 5)
+    });
+  } catch (err: any) {
+    return res.status(400).json({
+      success: false,
+      error: `Parse error: ${err.message}`
+    });
+  }
+});
+
+apiRouter.post('/admin/content/import-publish', (req: Request, res: Response) => {
+  if (!checkIsAdmin(req)) {
+    return res.status(403).json({ error: 'Access denied: Admin role required.' });
+  }
+
+  const { format = 'json', content } = req.body as {
+    format?: 'json' | 'csv';
+    content?: string;
+  };
+
+  if (!content || typeof content !== 'string') {
+    return res.status(400).json({ error: 'Missing content payload string' });
+  }
+
+  try {
+    const questions = format === 'csv' ? parseCsvContent(content) : parseJsonContent(content);
+    const result = importContentBatch(questions, { allowUpdates: true });
+
+    return res.json({
+      success: result.success,
+      batchResult: result,
+      totalDatabaseQuestions: cbeDb.getAllQuestions().length
+    });
+  } catch (err: any) {
+    return res.status(400).json({
+      success: false,
+      error: `Import failed: ${err.message}`
+    });
+  }
 });
 
 // -------------------------------------------------------------
@@ -759,15 +873,6 @@ const demoReports = [
     created_at: new Date(Date.now() - 3600000 * 26).toISOString()
   }
 ];
-
-function checkIsAdmin(): boolean;
-function checkIsAdmin(req: Request): boolean;
-function checkIsAdmin(req?: Request): boolean {
-  if (req?.user) {
-    return req.user.role === 'ADMIN';
-  }
-  return false;
-}
 
 // 1. Open Problem Reports View
 apiRouter.get('/admin/reports', async (req: Request, res: Response) => {

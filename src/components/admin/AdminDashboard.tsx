@@ -3,6 +3,7 @@ import { Question, ContentStatus, QuestionType, DifficultyLevel, User } from '..
 import { cbeApi } from '../../services/cbeApi.js';
 import { sound } from '../../utils/soundEffects.js';
 import { AnalyticsDashboard } from './AnalyticsDashboard.js';
+import { BulkContentImportModal } from './BulkContentImportModal.js';
 
 interface Props {
   currentUser?: User | null;
@@ -77,6 +78,7 @@ export const AdminDashboard: React.FC<Props> = ({ currentUser }) => {
 
   // New Question Modal
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [newPrompt, setNewPrompt] = useState('');
   const [newScenario, setNewScenario] = useState('');
   const [newType, setNewType] = useState<QuestionType>('MULTIPLE_CHOICE');
@@ -261,16 +263,29 @@ export const AdminDashboard: React.FC<Props> = ({ currentUser }) => {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            sound.playClick();
-            setIsCreateOpen(true);
-          }}
-          className="px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white font-black text-xs md:text-sm shadow-lg cursor-pointer whitespace-nowrap flex items-center gap-2"
-        >
-          <span>+ Add Curriculum Question</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              sound.playClick();
+              setIsImportOpen(true);
+            }}
+            className="px-4 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-purple-300 border border-purple-500/40 font-black text-xs md:text-sm shadow cursor-pointer whitespace-nowrap flex items-center gap-1.5 transition-all"
+          >
+            <span>📥 Bulk Import</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              sound.playClick();
+              setIsCreateOpen(true);
+            }}
+            className="px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white font-black text-xs md:text-sm shadow-lg cursor-pointer whitespace-nowrap flex items-center gap-2"
+          >
+            <span>+ Add Curriculum Question</span>
+          </button>
+        </div>
       </div>
 
       {/* 2. Key Administrative Metric Badges */}
@@ -941,6 +956,15 @@ export const AdminDashboard: React.FC<Props> = ({ currentUser }) => {
           </form>
         </div>
       )}
+
+      {/* Modal: Bulk Content Import */}
+      <BulkContentImportModal
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
+        onImportSuccess={() => {
+          loadQuestions();
+        }}
+      />
     </div>
   );
 };

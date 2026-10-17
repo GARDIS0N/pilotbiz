@@ -20,6 +20,7 @@ import {
   LearningAnalyticsEvent,
   LearningSessionResult
 } from '../src/types/cbe.js';
+import { ReviewQueueItem, calculateNextReviewInterval } from '../src/utils/learningEngine.js';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'cbe_database.json');
@@ -45,6 +46,7 @@ export interface CbeDatabaseSchema {
   analyticsEvents: LearningAnalyticsEvent[];
   xpTransactions: { id: string; studentId: string; amount: number; reason: string; timestamp: string }[];
   coinTransactions: { id: string; studentId: string; amount: number; reason: string; timestamp: string }[];
+  reviewQueue?: ReviewQueueItem[];
 }
 
 function ensureDirectory() {
@@ -1376,7 +1378,8 @@ function generateInitialDatabase(): CbeDatabaseSchema {
         reason: 'Initial savings & Mission 01 reward',
         timestamp: new Date().toISOString()
       }
-    ]
+    ],
+    reviewQueue: []
   };
 }
 
@@ -1574,6 +1577,19 @@ export class CbeDatabase {
     return question;
   }
 
+  public upsertQuestion(question: Question): Question {
+    const existingIndex = this.data.questions.findIndex(q => q.id === question.id);
+    if (existingIndex >= 0) {
+      this.data.questions[existingIndex] = { ...this.data.questions[existingIndex], ...question };
+      this.save();
+      return this.data.questions[existingIndex];
+    } else {
+      this.data.questions.push(question);
+      this.save();
+      return question;
+    }
+  }
+
   public updateQuestion(id: string, updates: Partial<Question>): Question | undefined {
     const q = this.data.questions.find(item => item.id === id);
     if (!q) return undefined;
@@ -1674,6 +1690,57 @@ export class CbeDatabase {
 
   public getAnalyticsEvents(limit = 100): LearningAnalyticsEvent[] {
     return this.data.analyticsEvents.slice(-limit);
+  }
+
+  // --- Spaced Repetition Review Queue ---
+  public getReviewQueue(learnerId?: string): ReviewQueueItem[] {
+    if (!this.data.reviewQueue) this.data.reviewQueue = [];
+    if (learnerId) {
+      return this.data.reviewQueue.filter(item => item.learner_id === learnerId);
+    }
+    return this.data.reviewQueue;
+  }
+
+  public upsertReviewQueueItem(item: ReviewQueueItem): ReviewQueueItem {
+    if (!this.data.reviewQueue) this.data.reviewQueue = [];
+    const index = this.data.reviewQueue.findIndex(
+      r => r.learner_id === item.learner_id && r.question_id === item.question_id
+    );
+    if (index >= 0) {
+      this.data.reviewQueue[index] = { ...this.data.reviewQueue[index], ...item };
+      this.save();
+      return this.data.reviewQueue[index];
+    } else {
+      const newItem = {
+        id: item.id || `rq-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        ...item
+      };
+      this.data.reviewQueue.push(newItem);
+      this.save();
+      return newItem;
+    }
+  }
+
+  public processReviewResult(learnerId: string, questionId: string, isCorrect: boolean): ReviewQueueItem {
+    if (!this.data.reviewQueue) this.data.reviewQueue = [];
+    const existing = this.data.reviewQueue.find(
+      r => r.learner_id === learnerId && r.question_id === questionId
+    );
+    const currentInterval = existing ? existing.interval_days : 1;
+    const { intervalDays, status, nextReviewAt } = calculateNextReviewInterval(currentInterval, isCorrect);
+
+    const updated: ReviewQueueItem = {
+      id: existing?.id || `rq-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      learner_id: learnerId,
+      question_id: questionId,
+      interval_days: intervalDays,
+      next_review_at: nextReviewAt,
+      times_reviewed: (existing?.times_reviewed || 0) + 1,
+      consecutive_correct: isCorrect ? (existing?.consecutive_correct || 0) + 1 : 0,
+      status
+    };
+
+    return this.upsertReviewQueueItem(updated);
   }
 }
 

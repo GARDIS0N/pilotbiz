@@ -1924,6 +1924,15 @@
       "avatar": "owl",
       "createdAt": "2026-10-17T09:41:20.798Z",
       "studentProfileId": "test-std-1792230080798"
+    },
+    {
+      "id": "test-usr-1792235200096",
+      "name": "Wanjiku Test Learner",
+      "email": "wanjiku.1792235200096@jifuno.ke",
+      "role": "STUDENT",
+      "avatar": "owl",
+      "createdAt": "2026-10-17T11:06:40.096Z",
+      "studentProfileId": "test-std-1792235200096"
     }
   ],
   "students": [
@@ -7998,6 +8007,35 @@
     {
       "id": "test-std-1792230080798",
       "userId": "test-usr-1792230080798",
+      "fullName": "Wanjiku Test Learner",
+      "gradeId": "grade-4",
+      "schoolName": "Moi Nyeri Academy",
+      "county": "Nyeri",
+      "avatar": "owl",
+      "level": 1,
+      "xp": 110,
+      "coins": 80,
+      "hearts": 5,
+      "maxHearts": 5,
+      "streakDays": 1,
+      "lastActiveDate": "2026-10-17",
+      "streakFrozen": false,
+      "unlockedWorldIds": [
+        "world-math-kingdom",
+        "world-creative-studio",
+        "world-faith-values"
+      ],
+      "completedMissionIds": [
+        "mission-01-seedlings"
+      ],
+      "badges": [
+        "badge-seedling-starter"
+      ],
+      "equippedTitle": "Safari Scout"
+    },
+    {
+      "id": "test-std-1792235200096",
+      "userId": "test-usr-1792235200096",
       "fullName": "Wanjiku Test Learner",
       "gradeId": "grade-4",
       "schoolName": "Moi Nyeri Academy",
@@ -343787,6 +343825,62 @@
       "kenyanCulturalContext": "Fifty shilling notes feature Kenyan wildlife.",
       "sourceType": "AI_PRACTICE",
       "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-engine-import-01",
+      "subStrandId": "National Heroes",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "Who among the following was a renowned Kapenguria Six leader in Kenya?",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "Jomo Kenyatta"
+        },
+        {
+          "id": "opt-2",
+          "text": "Dedan Kimathi"
+        },
+        {
+          "id": "opt-3",
+          "text": "Koitalel Arap Samoei"
+        },
+        {
+          "id": "opt-4",
+          "text": "Mekatilili wa Menza"
+        }
+      ],
+      "correctOptionId": "opt-1",
+      "explanation": "Jomo Kenyatta was one of the Kapenguria Six freedom icons.",
+      "socraticHint": "He later became Kenya's first president.",
+      "status": "PUBLISHED"
+    },
+    {
+      "id": "q-test-admin-1792235202149",
+      "subStrandId": "substrand-currency",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "How many 50-shilling notes make 200 shillings?",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "2 notes"
+        },
+        {
+          "id": "opt-2",
+          "text": "4 notes"
+        },
+        {
+          "id": "opt-3",
+          "text": "5 notes"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "4 × 50 = 200 shillings.",
+      "socraticHint": "Count by fifties: 50, 100, 150...",
+      "kenyanCulturalContext": "Fifty shilling notes feature Kenyan wildlife.",
+      "sourceType": "AI_PRACTICE",
+      "contentStatus": "PUBLISHED"
     }
   ],
   "achievements": [
@@ -346423,6 +346517,18 @@
       }
     ],
     "test-std-1792230080798": [
+      {
+        "strandId": "strand-math-numbers",
+        "strandTitle": "Numbers & Operations",
+        "learningAreaName": "Mathematics",
+        "masteryPercentage": 100,
+        "totalAttempts": 4,
+        "correctAttempts": 4,
+        "status": "EXCEEDING",
+        "lastPracticedDate": "2026-10-17"
+      }
+    ],
+    "test-std-1792235200096": [
       {
         "strandId": "strand-math-numbers",
         "strandTitle": "Numbers & Operations",
@@ -352105,6 +352211,33 @@
       "leveledUp": false,
       "newLevel": 1,
       "completedAt": "2026-10-17T09:41:22.718Z"
+    },
+    {
+      "sessionId": "sess-1792235201802-h43x0",
+      "missionId": "mission-01-seedlings",
+      "studentId": "test-std-1792235200096",
+      "scorePercentage": 100,
+      "totalQuestions": 4,
+      "correctAnswersCount": 4,
+      "xpEarned": 60,
+      "coinsEarned": 30,
+      "heartsRemaining": 5,
+      "streakMaintained": true,
+      "unlockedAchievements": [
+        {
+          "id": "badge-seedling-starter",
+          "code": "SEEDLING_STARTER",
+          "title": "Green Thumb Sower",
+          "description": "Completed your first agricultural multiplication mission with Amina!",
+          "icon": "sprout",
+          "xpReward": 50,
+          "coinReward": 25,
+          "category": "EXPLORATION"
+        }
+      ],
+      "leveledUp": false,
+      "newLevel": 1,
+      "completedAt": "2026-10-17T11:06:41.802Z"
     }
   ],
   "analyticsEvents": [
@@ -354837,6 +354970,19 @@
         "stars": 3
       },
       "timestamp": "2026-10-17T09:41:22.919Z"
+    },
+    {
+      "id": "evt-1792235201972",
+      "studentId": "test-std-1792235200096",
+      "eventType": "mission_completed",
+      "metadata": {
+        "missionId": "mission-01-seedlings",
+        "scorePercentage": 100,
+        "xpEarned": 60,
+        "coinsEarned": 30,
+        "stars": 3
+      },
+      "timestamp": "2026-10-17T11:06:41.972Z"
     }
   ],
   "xpTransactions": [
@@ -356316,6 +356462,13 @@
       "amount": 60,
       "reason": "Completed mission: Help Amina Plant Seedlings (100%)",
       "timestamp": "2026-10-17T09:41:22.062Z"
+    },
+    {
+      "id": "xp-tx-1792235201297-3cw7",
+      "studentId": "test-std-1792235200096",
+      "amount": 60,
+      "reason": "Completed mission: Help Amina Plant Seedlings (100%)",
+      "timestamp": "2026-10-17T11:06:41.298Z"
     }
   ],
   "coinTransactions": [
@@ -357795,6 +357948,25 @@
       "amount": 30,
       "reason": "Earned in mission: Help Amina Plant Seedlings",
       "timestamp": "2026-10-17T09:41:22.270Z"
+    },
+    {
+      "id": "coin-tx-1792235201471-acv0",
+      "studentId": "test-std-1792235200096",
+      "amount": 30,
+      "reason": "Earned in mission: Help Amina Plant Seedlings",
+      "timestamp": "2026-10-17T11:06:41.471Z"
+    }
+  ],
+  "reviewQueue": [
+    {
+      "id": "rq-1792234273536-lqfwg",
+      "learner_id": "test-learner-spaced-rep",
+      "question_id": "q-engine-import-01",
+      "interval_days": 3,
+      "next_review_at": "2026-10-20T11:06:19.583Z",
+      "times_reviewed": 4,
+      "consecutive_correct": 1,
+      "status": "PENDING"
     }
   ]
 }
