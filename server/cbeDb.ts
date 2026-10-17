@@ -21,6 +21,18 @@ import {
   LearningSessionResult
 } from '../src/types/cbe.js';
 import { ReviewQueueItem, calculateNextReviewInterval } from '../src/utils/learningEngine.js';
+import {
+  SubscriptionPlanId,
+  SubscriptionStatus,
+  SubscriptionRecord,
+  PaymentTransaction,
+  ReferralRecord,
+  DailyLessonUsage,
+  FreemiumAccessCheck,
+  SUBSCRIPTION_PLANS,
+  FREE_TIER_DAILY_LESSON_CAP,
+  FREE_TIER_ALLOWED_SUBJECTS
+} from '../src/types/subscription.js';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'cbe_database.json');
@@ -47,6 +59,10 @@ export interface CbeDatabaseSchema {
   xpTransactions: { id: string; studentId: string; amount: number; reason: string; timestamp: string }[];
   coinTransactions: { id: string; studentId: string; amount: number; reason: string; timestamp: string }[];
   reviewQueue?: ReviewQueueItem[];
+  subscriptions?: SubscriptionRecord[];
+  paymentTransactions?: PaymentTransaction[];
+  referralRecords?: ReferralRecord[];
+  dailyUsage?: Record<string, DailyLessonUsage>;
 }
 
 function ensureDirectory() {
@@ -1379,7 +1395,51 @@ function generateInitialDatabase(): CbeDatabaseSchema {
         timestamp: new Date().toISOString()
       }
     ],
-    reviewQueue: []
+    reviewQueue: [],
+    subscriptions: [
+      {
+        id: 'sub-demo-waweru-01',
+        userId: 'user-parent-waweru',
+        studentIds: ['student-amina-01'],
+        planId: 'MONTHLY',
+        status: 'ACTIVE',
+        startDate: new Date(Date.now() - 3600000 * 24 * 5).toISOString(),
+        expiryDate: new Date(Date.now() + 3600000 * 24 * 25).toISOString(),
+        gracePeriodExpiryDate: new Date(Date.now() + 3600000 * 24 * 27).toISOString(),
+        autoRenew: true,
+        createdAt: new Date(Date.now() - 3600000 * 24 * 5).toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ],
+    paymentTransactions: [
+      {
+        id: 'tx-seed-01',
+        checkoutRequestId: 'ws_CO_seed_01',
+        userId: 'user-parent-waweru',
+        studentId: 'student-amina-01',
+        planId: 'MONTHLY',
+        amountKes: 450,
+        phoneNumber: '254712345678',
+        mpesaReceiptNumber: 'SHK1849204',
+        status: 'SUCCESS',
+        paymentMethod: 'MPESA',
+        createdAt: new Date(Date.now() - 3600000 * 24 * 5).toISOString(),
+        completedAt: new Date(Date.now() - 3600000 * 24 * 5).toISOString()
+      }
+    ],
+    referralRecords: [
+      {
+        code: 'AMINA254',
+        ownerUserId: 'user-parent-waweru',
+        totalReferrals: 1,
+        bonusDaysEarned: 7,
+        redeemedBy: [
+          { userId: 'user-parent-kamau', redeemedAt: new Date().toISOString() }
+        ],
+        createdAt: new Date().toISOString()
+      }
+    ],
+    dailyUsage: {}
   };
 }
 
@@ -1741,6 +1801,232 @@ export class CbeDatabase {
     };
 
     return this.upsertReviewQueueItem(updated);
+  }
+
+  // --- Monetization & Subscriptions ---
+  public getSubscriptions(userId?: string): SubscriptionRecord[] {
+    if (!this.data.subscriptions) this.data.subscriptions = [];
+    if (userId) {
+      return this.data.subscriptions.filter(s => s.userId === userId || s.studentIds.includes(userId));
+    }
+    return this.data.subscriptions;
+  }
+
+  public getSubscriptionForUser(userId: string): SubscriptionRecord | undefined {
+    if (!this.data.subscriptions) this.data.subscriptions = [];
+    return this.data.subscriptions.find(
+      s => (s.userId === userId || s.studentIds.includes(userId)) &&
+           (s.status === 'ACTIVE' || s.status === 'GRACE_PERIOD')
+    );
+  }
+
+  public upsertSubscription(sub: SubscriptionRecord): SubscriptionRecord {
+    if (!this.data.subscriptions) this.data.subscriptions = [];
+    const index = this.data.subscriptions.findIndex(s => s.id === sub.id || s.userId === sub.userId);
+    if (index >= 0) {
+      this.data.subscriptions[index] = { ...this.data.subscriptions[index], ...sub, updatedAt: new Date().toISOString() };
+      this.save();
+      return this.data.subscriptions[index];
+    } else {
+      this.data.subscriptions.push(sub);
+      this.save();
+      return sub;
+    }
+  }
+
+  public activateSubscription(params: {
+    userId: string;
+    planId: SubscriptionPlanId;
+    studentIds: string[];
+    referralBonusDays?: number;
+    paymentId?: string;
+  }): SubscriptionRecord {
+    const plan = SUBSCRIPTION_PLANS[params.planId] || SUBSCRIPTION_PLANS.MONTHLY;
+    const now = new Date();
+    const durationDays = plan.durationDays + (params.referralBonusDays || 0);
+
+    const expiryDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+    const gracePeriodExpiryDate = new Date(expiryDate.getTime() + 48 * 60 * 60 * 1000);
+
+    const record: SubscriptionRecord = {
+      id: `sub-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      userId: params.userId,
+      studentIds: params.studentIds.length > 0 ? params.studentIds : ['student-amina-01'],
+      planId: params.planId,
+      status: 'ACTIVE',
+      startDate: now.toISOString(),
+      expiryDate: expiryDate.toISOString(),
+      gracePeriodExpiryDate: gracePeriodExpiryDate.toISOString(),
+      autoRenew: true,
+      lastPaymentId: params.paymentId,
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString()
+    };
+
+    return this.upsertSubscription(record);
+  }
+
+  // --- Payment Transactions ---
+  public getPaymentTransactions(userId?: string): PaymentTransaction[] {
+    if (!this.data.paymentTransactions) this.data.paymentTransactions = [];
+    if (userId) {
+      return this.data.paymentTransactions.filter(t => t.userId === userId);
+    }
+    return this.data.paymentTransactions;
+  }
+
+  public getTransactionByCheckoutId(checkoutRequestId: string): PaymentTransaction | undefined {
+    if (!this.data.paymentTransactions) this.data.paymentTransactions = [];
+    return this.data.paymentTransactions.find(t => t.checkoutRequestId === checkoutRequestId);
+  }
+
+  public recordPaymentTransaction(tx: PaymentTransaction): PaymentTransaction {
+    if (!this.data.paymentTransactions) this.data.paymentTransactions = [];
+    const index = this.data.paymentTransactions.findIndex(
+      t => t.id === tx.id || t.checkoutRequestId === tx.checkoutRequestId
+    );
+    if (index >= 0) {
+      this.data.paymentTransactions[index] = { ...this.data.paymentTransactions[index], ...tx };
+      this.save();
+      return this.data.paymentTransactions[index];
+    } else {
+      this.data.paymentTransactions.push(tx);
+      this.save();
+      return tx;
+    }
+  }
+
+  public updatePaymentTransaction(id: string, updates: Partial<PaymentTransaction>): PaymentTransaction | undefined {
+    if (!this.data.paymentTransactions) this.data.paymentTransactions = [];
+    const tx = this.data.paymentTransactions.find(t => t.id === id || t.checkoutRequestId === id);
+    if (!tx) return undefined;
+    Object.assign(tx, updates);
+    this.save();
+    return tx;
+  }
+
+  // --- Freemium Access Control ---
+  public checkFreemiumAccess(studentId: string, subjectId?: string): FreemiumAccessCheck {
+    const sub = this.getSubscriptionForUser(studentId);
+    const isPremium = !!sub && (sub.status === 'ACTIVE' || sub.status === 'GRACE_PERIOD');
+
+    if (isPremium) {
+      return {
+        allowed: true,
+        reason: 'ACTIVE_SUBSCRIPTION',
+        dailyLessonsRemaining: Infinity,
+        dailyLessonsUsed: 0,
+        dailyFreeLimit: FREE_TIER_DAILY_LESSON_CAP,
+        isPremium: true,
+        subscriptionStatus: sub.status,
+        expiryDate: sub.expiryDate
+      };
+    }
+
+    if (subjectId) {
+      const isAllowedSubject = FREE_TIER_ALLOWED_SUBJECTS.some(
+        allowed => subjectId.toLowerCase().includes(allowed.toLowerCase())
+      );
+      if (!isAllowedSubject) {
+        return {
+          allowed: false,
+          reason: 'SUBJECT_REQUIRES_PREMIUM',
+          dailyLessonsRemaining: 0,
+          dailyLessonsUsed: 0,
+          dailyFreeLimit: FREE_TIER_DAILY_LESSON_CAP,
+          isPremium: false,
+          subscriptionStatus: sub?.status || 'FREE'
+        };
+      }
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const usageKey = `${studentId}:${today}`;
+    if (!this.data.dailyUsage) this.data.dailyUsage = {};
+    const usage = this.data.dailyUsage[usageKey] || { date: today, lessonCount: 0, questionsAnswered: 0 };
+
+    const remaining = Math.max(0, FREE_TIER_DAILY_LESSON_CAP - usage.lessonCount);
+    const allowed = remaining > 0;
+
+    return {
+      allowed,
+      reason: allowed ? 'WITHIN_DAILY_FREE_LIMIT' : 'DAILY_LIMIT_EXCEEDED',
+      dailyLessonsRemaining: remaining,
+      dailyLessonsUsed: usage.lessonCount,
+      dailyFreeLimit: FREE_TIER_DAILY_LESSON_CAP,
+      isPremium: false,
+      subscriptionStatus: sub?.status || 'FREE'
+    };
+  }
+
+  public recordLessonAttemptForFreemium(studentId: string): void {
+    const today = new Date().toISOString().split('T')[0];
+    const usageKey = `${studentId}:${today}`;
+    if (!this.data.dailyUsage) this.data.dailyUsage = {};
+    if (!this.data.dailyUsage[usageKey]) {
+      this.data.dailyUsage[usageKey] = { date: today, lessonCount: 0, questionsAnswered: 0 };
+    }
+    this.data.dailyUsage[usageKey].lessonCount += 1;
+    this.save();
+  }
+
+  // --- Growth Loops & Referrals ---
+  public getReferralRecord(userId: string): ReferralRecord {
+    if (!this.data.referralRecords) this.data.referralRecords = [];
+    let rec = this.data.referralRecords.find(r => r.ownerUserId === userId);
+    if (!rec) {
+      const code = `JIFUNO${userId.replace(/[^a-zA-Z0-9]/g, '').slice(-4).toUpperCase()}${Math.floor(10 + Math.random() * 89)}`;
+      rec = {
+        code,
+        ownerUserId: userId,
+        totalReferrals: 0,
+        bonusDaysEarned: 0,
+        redeemedBy: [],
+        createdAt: new Date().toISOString()
+      };
+      this.data.referralRecords.push(rec);
+      this.save();
+    }
+    return rec;
+  }
+
+  public applyReferralCode(redeemingUserId: string, referralCode: string): { success: boolean; message: string; bonusDays: number } {
+    if (!this.data.referralRecords) this.data.referralRecords = [];
+    const normalizedCode = referralCode.trim().toUpperCase();
+    const rec = this.data.referralRecords.find(r => r.code === normalizedCode);
+
+    if (!rec) {
+      return { success: false, message: 'Referral code not found.', bonusDays: 0 };
+    }
+
+    if (rec.ownerUserId === redeemingUserId) {
+      return { success: false, message: 'You cannot redeem your own referral code.', bonusDays: 0 };
+    }
+
+    const alreadyRedeemed = rec.redeemedBy.some(r => r.userId === redeemingUserId);
+    if (alreadyRedeemed) {
+      return { success: false, message: 'You have already redeemed this referral code.', bonusDays: 0 };
+    }
+
+    rec.totalReferrals += 1;
+    rec.bonusDaysEarned += 7;
+    rec.redeemedBy.push({ userId: redeemingUserId, redeemedAt: new Date().toISOString() });
+
+    const inviterSub = this.getSubscriptionForUser(rec.ownerUserId);
+    if (inviterSub) {
+      const currentExp = new Date(inviterSub.expiryDate);
+      const newExp = new Date(currentExp.getTime() + 7 * 24 * 60 * 60 * 1000);
+      inviterSub.expiryDate = newExp.toISOString();
+      inviterSub.gracePeriodExpiryDate = new Date(newExp.getTime() + 48 * 60 * 60 * 1000).toISOString();
+      this.upsertSubscription(inviterSub);
+    }
+
+    this.save();
+    return {
+      success: true,
+      message: 'Referral code applied! You and your referrer both earned +7 free days of Jifuno Premium! 🎁',
+      bonusDays: 7
+    };
   }
 }
 

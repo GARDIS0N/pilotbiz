@@ -955,6 +955,74 @@ class CbeApiService {
       body: JSON.stringify({ format, content, status })
     });
   }
+
+  // --- Phase 4: Monetization, M-Pesa STK Push, Subscriptions & Referrals ---
+  public async getSubscriptionPlans(): Promise<{ plans: any[]; currency: string; dailyFreeLessonLimit: number }> {
+    return this.request('/api/subscriptions/plans');
+  }
+
+  public async getCurrentSubscription(targetId?: string): Promise<{
+    subscription: any;
+    isPremium: boolean;
+    status: string;
+    freemiumAccess: any;
+  }> {
+    const query = targetId ? `?userId=${encodeURIComponent(targetId)}` : '';
+    return this.request(`/api/subscriptions/current${query}`);
+  }
+
+  public async checkFreemiumStatus(studentId: string, subjectId?: string): Promise<any> {
+    const query = subjectId ? `?subjectId=${encodeURIComponent(subjectId)}` : '';
+    return this.request(`/api/subscriptions/freemium-status/${encodeURIComponent(studentId)}${query}`);
+  }
+
+  public async initiateMpesaStkPush(phoneNumber: string, planId: string, studentId?: string): Promise<{
+    success: boolean;
+    checkoutRequestId: string;
+    customerMessage: string;
+    amountKes: number;
+    planName: { en: string; sw: string };
+  }> {
+    return this.request('/api/payments/mpesa/stkpush', {
+      method: 'POST',
+      body: JSON.stringify({ phoneNumber, planId, studentId })
+    });
+  }
+
+  public async checkPaymentStatus(checkoutRequestId: string): Promise<{
+    status: 'PENDING' | 'SUCCESS' | 'FAILED';
+    checkoutRequestId: string;
+    amountKes: number;
+    mpesaReceiptNumber?: string;
+    failureReason?: string;
+    subscription?: any;
+  }> {
+    return this.request(`/api/payments/status/${encodeURIComponent(checkoutRequestId)}`);
+  }
+
+  public async getPaymentHistory(): Promise<{ transactions: any[] }> {
+    return this.request('/api/payments/history');
+  }
+
+  public async getMyReferralCode(): Promise<{
+    code: string;
+    totalReferrals: number;
+    bonusDaysEarned: number;
+    shareUrl: string;
+  }> {
+    return this.request('/api/referrals/my-code');
+  }
+
+  public async applyReferralCode(referralCode: string): Promise<{
+    success: boolean;
+    message: string;
+    bonusDays: number;
+  }> {
+    return this.request('/api/referrals/apply', {
+      method: 'POST',
+      body: JSON.stringify({ referralCode })
+    });
+  }
 }
 
 export const cbeApi = new CbeApiService();

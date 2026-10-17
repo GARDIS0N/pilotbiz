@@ -74,10 +74,33 @@ export async function runAllScheduledJobs(): Promise<ScheduledJobResult> {
   }
 
   // --- 3. Expired Subscriptions Handling (48h Grace Period) ---
-  // In Phase 4 subscriptions table is fully integrated; we model the state transition here
   let subEvaluated = 0;
   let enteredGrace = 0;
   let downgraded = 0;
+
+  const subscriptions = cbeDb.getSubscriptions();
+  for (const sub of subscriptions) {
+    subEvaluated++;
+    const nowMs = now.getTime();
+    const expiryMs = new Date(sub.expiryDate).getTime();
+    const graceExpiryMs = new Date(sub.gracePeriodExpiryDate).getTime();
+
+    if (sub.status === 'ACTIVE' && nowMs > expiryMs) {
+      if (nowMs <= graceExpiryMs) {
+        sub.status = 'GRACE_PERIOD';
+        enteredGrace++;
+        cbeDb.upsertSubscription(sub);
+      } else {
+        sub.status = 'EXPIRED';
+        downgraded++;
+        cbeDb.upsertSubscription(sub);
+      }
+    } else if (sub.status === 'GRACE_PERIOD' && nowMs > graceExpiryMs) {
+      sub.status = 'EXPIRED';
+      downgraded++;
+      cbeDb.upsertSubscription(sub);
+    }
+  }
 
   // --- 4. Stale Guest Cleanup (> 30 days old) ---
   const thirtyDaysAgo = new Date(now);

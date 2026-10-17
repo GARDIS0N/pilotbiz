@@ -13,6 +13,13 @@ import { monitoringService } from './monitoring.js';
 import { sendSystemAlert } from './alertWebhook.js';
 import { parseJsonContent, parseCsvContent, importContentBatch } from '../src/services/contentImportEngine.js';
 import { validateBulkContent } from '../src/services/contentQualityValidator.js';
+import { darajaService } from './darajaService.js';
+import {
+  SubscriptionPlanId,
+  SUBSCRIPTION_PLANS,
+  PaymentTransaction,
+  FREE_TIER_DAILY_LESSON_CAP
+} from '../src/types/subscription.js';
 
 export const apiRouter = express.Router();
 
@@ -220,12 +227,27 @@ apiRouter.post('/game/submit-session', answerCheckLimiter, (req: Request, res: R
       return res.status(400).json({ error: 'Invalid submission payload' });
     }
 
+    // Step 1: Freemium Access Gating
+    const mission = cbeDb.getMissionById(missionId);
+    const freemiumAccess = cbeDb.checkFreemiumAccess(studentId, (mission as any)?.subjectId);
+    if (!freemiumAccess.allowed) {
+      return res.status(403).json({
+        error: freemiumAccess.reason === 'SUBJECT_REQUIRES_PREMIUM'
+          ? 'This CBC subject requires a Jifuno Premium subscription.'
+          : 'Daily free lesson cap reached (3 lessons/day). Upgrade to Premium for unlimited learning!',
+        freemium: freemiumAccess
+      });
+    }
+
     const { result, student, questionReviews } = gameEngine.processSessionSubmission({
       studentId,
       missionId,
       answers,
       heartsRemaining
     });
+
+    // Record lesson usage for freemium counting
+    cbeDb.recordLessonAttemptForFreemium(studentId);
 
     // Step 2: Log attempts to Supabase attempts table if configured
     if (isSupabaseConfigured()) {
@@ -254,7 +276,8 @@ apiRouter.post('/game/submit-session', answerCheckLimiter, (req: Request, res: R
       success: true,
       result,
       student,
-      questionReviews
+      questionReviews,
+      freemium: cbeDb.checkFreemiumAccess(studentId)
     });
   } catch (error: any) {
     console.error('[Session Submission Error]:', error);
@@ -1294,6 +1317,212 @@ apiRouter.get('/parent/weekly-summary/:learnerId', async (req: Request, res: Res
 // -------------------------------------------------------------
 apiRouter.get('/analytics/events', (_req: Request, res: Response) => {
   res.json({ events: cbeDb.getAnalyticsEvents(50) });
+});
+
+// -------------------------------------------------------------
+// Phase 4: Monetization, Daraja M-Pesa STK Push, Subscriptions & Referrals
+// -------------------------------------------------------------
+
+// 1. Get available subscription plans
+apiRouter.get('/subscriptions/plans', (_req: Request, res: Response) => {
+  res.json({
+    plans: Object.values(SUBSCRIPTION_PLANS),
+    currency: 'KES',
+    dailyFreeLessonLimit: FREE_TIER_DAILY_LESSON_CAP
+  });
+});
+
+// 2. Get current subscription status for user or student
+apiRouter.get('/subscriptions/current', (req: Request, res: Response) => {
+  const user = resolveRequestUser(req);
+  const targetId = (req.query.userId as string) || (req.query.studentId as string) || user.id;
+  const subscription = cbeDb.getSubscriptionForUser(targetId);
+  const freemiumAccess = cbeDb.checkFreemiumAccess(targetId);
+
+  res.json({
+    subscription: subscription || null,
+    isPremium: freemiumAccess.isPremium,
+    status: subscription?.status || 'FREE',
+    freemiumAccess
+  });
+});
+
+// 3. Check freemium access for a learner
+apiRouter.get('/subscriptions/freemium-status/:studentId', (req: Request, res: Response) => {
+  const { studentId } = req.params;
+  const subjectId = req.query.subjectId as string | undefined;
+  const status = cbeDb.checkFreemiumAccess(studentId, subjectId);
+  res.json(status);
+});
+
+// 4. Initiate Safaricom Daraja M-Pesa STK Push
+apiRouter.post('/payments/mpesa/stkpush', authRateLimiter, async (req: Request, res: Response) => {
+  try {
+    const user = resolveRequestUser(req);
+    const { phoneNumber, planId, studentId } = req.body as {
+      phoneNumber: string;
+      planId: SubscriptionPlanId;
+      studentId?: string;
+    };
+
+    if (!phoneNumber || !planId) {
+      return res.status(400).json({ error: 'Phone number and plan ID are required' });
+    }
+
+    const plan = SUBSCRIPTION_PLANS[planId];
+    if (!plan) {
+      return res.status(400).json({ error: `Invalid subscription plan: ${planId}` });
+    }
+
+    const stkRes = await darajaService.initiateStkPush({
+      phoneNumber,
+      amount: plan.priceKes,
+      planId,
+      userId: user.id,
+      studentId,
+      accountReference: 'JifunoCBE',
+      transactionDesc: `${plan.name.en} Subscription`
+    });
+
+    if (!stkRes.success) {
+      return res.status(400).json({ error: stkRes.customerMessage || 'Failed to initiate M-Pesa STK Push' });
+    }
+
+    const transaction: PaymentTransaction = {
+      id: `tx-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      checkoutRequestId: stkRes.checkoutRequestId,
+      merchantRequestId: stkRes.merchantRequestId,
+      userId: user.id,
+      studentId: studentId || user.studentProfileId,
+      planId,
+      amountKes: plan.priceKes,
+      phoneNumber: darajaService.normalizePhoneNumber(phoneNumber),
+      status: 'PENDING',
+      paymentMethod: 'MPESA',
+      createdAt: new Date().toISOString()
+    };
+
+    cbeDb.recordPaymentTransaction(transaction);
+
+    return res.json({
+      success: true,
+      checkoutRequestId: stkRes.checkoutRequestId,
+      customerMessage: stkRes.customerMessage,
+      amountKes: plan.priceKes,
+      planName: plan.name
+    });
+  } catch (err: any) {
+    return res.status(400).json({ error: err.message || 'STK Push initiation failed' });
+  }
+});
+
+// 5. Public Safaricom Daraja STK Push Callback Webhook
+apiRouter.post('/payments/mpesa/callback', async (req: Request, res: Response) => {
+  try {
+    const callbackData = req.body;
+    const parsed = darajaService.parseCallback(callbackData);
+
+    if (parsed.isDuplicate) {
+      // Idempotent: acknowledge Safaricom without re-crediting
+      return res.json({ ResultCode: 0, ResultDesc: 'Accepted (Duplicate Notification)' });
+    }
+
+    const tx = cbeDb.getTransactionByCheckoutId(parsed.checkoutRequestId);
+
+    if (parsed.isSuccessful) {
+      if (tx) {
+        cbeDb.updatePaymentTransaction(tx.id, {
+          status: 'SUCCESS',
+          mpesaReceiptNumber: parsed.mpesaReceiptNumber,
+          completedAt: new Date().toISOString(),
+          rawCallback: callbackData
+        });
+
+        // Activate / Extend Subscription
+        cbeDb.activateSubscription({
+          userId: tx.userId,
+          planId: tx.planId,
+          studentIds: tx.studentId ? [tx.studentId] : [],
+          paymentId: tx.id
+        });
+      }
+
+      sendSystemAlert({
+        level: 'INFO',
+        title: 'M-Pesa Payment Received',
+        message: `M-Pesa payment of KES ${parsed.amount} received from ${parsed.phoneNumber}. Receipt: ${parsed.mpesaReceiptNumber}`,
+        dedupeKey: `mpesa-${parsed.mpesaReceiptNumber}`
+      });
+    } else {
+      if (tx) {
+        cbeDb.updatePaymentTransaction(tx.id, {
+          status: 'FAILED',
+          failureReason: parsed.resultDesc,
+          rawCallback: callbackData
+        });
+      }
+    }
+
+    return res.json({ ResultCode: 0, ResultDesc: 'Accepted' });
+  } catch (err: any) {
+    console.error('[Daraja Callback Error]:', err);
+    return res.status(200).json({ ResultCode: 0, ResultDesc: 'Accepted with error' });
+  }
+});
+
+// 6. Polling: Check transaction status (never trust client)
+apiRouter.get('/payments/status/:checkoutRequestId', (req: Request, res: Response) => {
+  const { checkoutRequestId } = req.params;
+  const tx = cbeDb.getTransactionByCheckoutId(checkoutRequestId);
+  if (!tx) {
+    return res.status(404).json({ error: 'Transaction not found' });
+  }
+
+  const sub = tx.status === 'SUCCESS' ? cbeDb.getSubscriptionForUser(tx.userId) : null;
+
+  return res.json({
+    status: tx.status,
+    checkoutRequestId: tx.checkoutRequestId,
+    amountKes: tx.amountKes,
+    mpesaReceiptNumber: tx.mpesaReceiptNumber,
+    failureReason: tx.failureReason,
+    subscription: sub
+  });
+});
+
+// 7. Payment History for user / parent
+apiRouter.get('/payments/history', (req: Request, res: Response) => {
+  const user = resolveRequestUser(req);
+  const transactions = cbeDb.getPaymentTransactions(user.id);
+  res.json({ transactions });
+});
+
+// 8. Growth Loops: Get User's Referral Code
+apiRouter.get('/referrals/my-code', (req: Request, res: Response) => {
+  const user = resolveRequestUser(req);
+  const referral = cbeDb.getReferralRecord(user.id);
+  res.json({
+    code: referral.code,
+    totalReferrals: referral.totalReferrals,
+    bonusDaysEarned: referral.bonusDaysEarned,
+    shareUrl: `https://jifuno.ke/?ref=${referral.code}`
+  });
+});
+
+// 9. Growth Loops: Apply Referral Code
+apiRouter.post('/referrals/apply', (req: Request, res: Response) => {
+  const user = resolveRequestUser(req);
+  const { referralCode } = req.body;
+  if (!referralCode || typeof referralCode !== 'string') {
+    return res.status(400).json({ error: 'Referral code is required' });
+  }
+
+  const result = cbeDb.applyReferralCode(user.id, referralCode);
+  if (!result.success) {
+    return res.status(400).json({ error: result.message });
+  }
+
+  return res.json(result);
 });
 
 // -------------------------------------------------------------

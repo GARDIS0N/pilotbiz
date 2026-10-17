@@ -3,6 +3,8 @@ import { ParentProfile, StudentProfile, StrandMastery, LearningSessionResult } f
 import { cbeApi } from '../../services/cbeApi.js';
 import { sound } from '../../utils/soundEffects.js';
 import { getAvatar } from '../../utils/avatars.js';
+import { ParentBillingSection } from './ParentBillingSection.js';
+import { ShareableAchievementCard } from './ShareableAchievementCard.js';
 
 export const ParentDashboard: React.FC = () => {
   const [parent, setParent] = useState<ParentProfile | null>(null);
@@ -16,6 +18,7 @@ export const ParentDashboard: React.FC = () => {
   const [nudgeSent, setNudgeSent] = useState(false);
   const [loading, setLoading] = useState(true);
   const [weeklySummary, setWeeklySummary] = useState<any>(null);
+  const [parentTab, setParentTab] = useState<'PROGRESS' | 'BILLING' | 'CERTIFICATE'>('PROGRESS');
 
   useEffect(() => {
     loadParentData();
@@ -97,8 +100,56 @@ export const ParentDashboard: React.FC = () => {
         </button>
       </div>
 
+      {/* Navigation Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 bg-slate-950/80 p-1.5 rounded-2xl border border-slate-800">
+        <button
+          type="button"
+          onClick={() => {
+            sound.playClick();
+            setParentTab('PROGRESS');
+          }}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
+            parentTab === 'PROGRESS'
+              ? 'bg-emerald-600 text-white shadow-md'
+              : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          <span>📊 Learner Progress & Mastery</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            sound.playClick();
+            setParentTab('BILLING');
+          }}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
+            parentTab === 'BILLING'
+              ? 'bg-emerald-600 text-white shadow-md'
+              : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          <span>💳 M-Pesa Subscription & Billing</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            sound.playClick();
+            setParentTab('CERTIFICATE');
+          }}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
+            parentTab === 'CERTIFICATE'
+              ? 'bg-emerald-600 text-white shadow-md'
+              : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          <span>🏆 Shareable Report Card</span>
+        </button>
+      </div>
+
       {/* Child Switcher & Summary Card */}
-      {currentChild && (
+      {parentTab === 'PROGRESS' && currentChild && (
         <div className="bg-slate-950/80 border border-emerald-900/60 rounded-3xl p-6 space-y-6 shadow-xl">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-emerald-900/60 pb-4">
             <div className="flex items-center gap-4">
@@ -272,6 +323,27 @@ export const ParentDashboard: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* BILLING TAB */}
+      {parentTab === 'BILLING' && (
+        <ParentBillingSection
+          parentUserId={parent?.id}
+          studentId={activeChild?.student?.id}
+          onSubscriptionUpdated={loadParentData}
+        />
+      )}
+
+      {/* CERTIFICATE / SHAREABLE MILESTONE TAB */}
+      {parentTab === 'CERTIFICATE' && (
+        <ShareableAchievementCard
+          studentName={activeChild?.student?.fullName || 'Amina Muthoni'}
+          gradeName="Grade 4"
+          strandTitle={proficientStrands[0]?.strandTitle || 'Numbers & Operations'}
+          accuracyPct={proficientStrands[0]?.masteryPercentage || 92}
+          starsCount={Math.min(5, Math.max(1, Math.round(activeChild?.student?.level || 3)))}
+          learningArea="Mathematics"
+        />
       )}
     </div>
   );

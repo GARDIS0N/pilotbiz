@@ -1933,6 +1933,15 @@
       "avatar": "owl",
       "createdAt": "2026-10-17T11:06:40.096Z",
       "studentProfileId": "test-std-1792235200096"
+    },
+    {
+      "id": "test-usr-1792239245967",
+      "name": "Wanjiku Test Learner",
+      "email": "wanjiku.1792239245967@jifuno.ke",
+      "role": "STUDENT",
+      "avatar": "owl",
+      "createdAt": "2026-10-17T12:14:05.967Z",
+      "studentProfileId": "test-std-1792239245967"
     }
   ],
   "students": [
@@ -1949,7 +1958,7 @@
       "coins": 185,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 5,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-08",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -1982,7 +1991,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-08",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2009,7 +2018,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-08",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2036,7 +2045,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-08",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2063,7 +2072,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-08",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2090,7 +2099,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-08",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2117,7 +2126,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-08",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2144,7 +2153,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-08",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2171,7 +2180,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-08",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2198,7 +2207,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-08",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2225,7 +2234,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-08",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2252,7 +2261,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-08",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2279,7 +2288,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-08",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2306,7 +2315,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-08",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2333,7 +2342,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2362,7 +2371,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2391,7 +2400,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2420,7 +2429,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2449,7 +2458,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2478,7 +2487,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2507,7 +2516,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2536,7 +2545,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2565,7 +2574,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2594,7 +2603,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2623,7 +2632,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2652,7 +2661,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2681,7 +2690,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2710,7 +2719,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2739,7 +2748,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2768,7 +2777,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2797,7 +2806,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2826,7 +2835,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2855,7 +2864,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2884,7 +2893,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2913,7 +2922,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2942,7 +2951,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -2971,7 +2980,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3000,7 +3009,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3029,7 +3038,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3058,7 +3067,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3087,7 +3096,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3116,7 +3125,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3145,7 +3154,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3174,7 +3183,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3203,7 +3212,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3232,7 +3241,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3261,7 +3270,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3290,7 +3299,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3319,7 +3328,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3348,7 +3357,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3377,7 +3386,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3406,7 +3415,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3435,7 +3444,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3464,7 +3473,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3493,7 +3502,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3522,7 +3531,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3551,7 +3560,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3580,7 +3589,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3609,7 +3618,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3638,7 +3647,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3667,7 +3676,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3696,7 +3705,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3725,7 +3734,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3754,7 +3763,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3783,7 +3792,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3812,7 +3821,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3841,7 +3850,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3870,7 +3879,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3899,7 +3908,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3928,7 +3937,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3957,7 +3966,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -3986,7 +3995,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4015,7 +4024,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4044,7 +4053,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4073,7 +4082,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4102,7 +4111,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4131,7 +4140,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4160,7 +4169,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4189,7 +4198,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4218,7 +4227,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4247,7 +4256,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4276,7 +4285,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4305,7 +4314,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4334,7 +4343,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4363,7 +4372,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4392,7 +4401,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4421,7 +4430,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4450,7 +4459,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4479,7 +4488,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4508,7 +4517,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4537,7 +4546,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4566,7 +4575,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4595,7 +4604,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4624,7 +4633,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4653,7 +4662,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4682,7 +4691,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4711,7 +4720,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4740,7 +4749,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4769,7 +4778,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4798,7 +4807,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4827,7 +4836,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4856,7 +4865,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4885,7 +4894,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4914,7 +4923,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4943,7 +4952,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -4972,7 +4981,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5001,7 +5010,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5030,7 +5039,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5059,7 +5068,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5088,7 +5097,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5117,7 +5126,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5146,7 +5155,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5175,7 +5184,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5204,7 +5213,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5233,7 +5242,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5262,7 +5271,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5291,7 +5300,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5320,7 +5329,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5349,7 +5358,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5378,7 +5387,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5407,7 +5416,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5436,7 +5445,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5465,7 +5474,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5494,7 +5503,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5523,7 +5532,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5552,7 +5561,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5581,7 +5590,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5610,7 +5619,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5639,7 +5648,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5668,7 +5677,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5697,7 +5706,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5726,7 +5735,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5755,7 +5764,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5784,7 +5793,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5813,7 +5822,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5842,7 +5851,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5871,7 +5880,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5900,7 +5909,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5929,7 +5938,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5958,7 +5967,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -5987,7 +5996,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6016,7 +6025,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6045,7 +6054,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6074,7 +6083,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6103,7 +6112,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6132,7 +6141,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6161,7 +6170,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6190,7 +6199,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6219,7 +6228,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6248,7 +6257,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-09",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6277,7 +6286,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6306,7 +6315,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6335,7 +6344,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6364,7 +6373,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6393,7 +6402,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6422,7 +6431,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6451,7 +6460,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6480,7 +6489,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6509,7 +6518,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6538,7 +6547,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6567,7 +6576,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6596,7 +6605,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6625,7 +6634,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6654,7 +6663,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6683,7 +6692,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6712,7 +6721,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6741,7 +6750,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6770,7 +6779,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6799,7 +6808,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6828,7 +6837,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6857,7 +6866,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6886,7 +6895,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6915,7 +6924,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6944,7 +6953,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -6973,7 +6982,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7002,7 +7011,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7031,7 +7040,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7060,7 +7069,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7089,7 +7098,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7118,7 +7127,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7147,7 +7156,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7176,7 +7185,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7205,7 +7214,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7234,7 +7243,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7263,7 +7272,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7292,7 +7301,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7321,7 +7330,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7350,7 +7359,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7379,7 +7388,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7408,7 +7417,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7437,7 +7446,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7466,7 +7475,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7495,7 +7504,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7524,7 +7533,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7553,7 +7562,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7582,7 +7591,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7611,7 +7620,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-10",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7640,7 +7649,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-11",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7669,7 +7678,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-11",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7698,7 +7707,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-11",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7727,7 +7736,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-11",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7756,7 +7765,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-11",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7785,7 +7794,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-11",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7814,7 +7823,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-12",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7843,7 +7852,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-12",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7872,7 +7881,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-12",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7901,7 +7910,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-12",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7930,7 +7939,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-12",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -7959,7 +7968,7 @@
       "coins": 80,
       "hearts": 5,
       "maxHearts": 5,
-      "streakDays": 1,
+      "streakDays": 0,
       "lastActiveDate": "2026-10-12",
       "streakFrozen": false,
       "unlockedWorldIds": [
@@ -8036,6 +8045,35 @@
     {
       "id": "test-std-1792235200096",
       "userId": "test-usr-1792235200096",
+      "fullName": "Wanjiku Test Learner",
+      "gradeId": "grade-4",
+      "schoolName": "Moi Nyeri Academy",
+      "county": "Nyeri",
+      "avatar": "owl",
+      "level": 1,
+      "xp": 110,
+      "coins": 80,
+      "hearts": 5,
+      "maxHearts": 5,
+      "streakDays": 1,
+      "lastActiveDate": "2026-10-17",
+      "streakFrozen": false,
+      "unlockedWorldIds": [
+        "world-math-kingdom",
+        "world-creative-studio",
+        "world-faith-values"
+      ],
+      "completedMissionIds": [
+        "mission-01-seedlings"
+      ],
+      "badges": [
+        "badge-seedling-starter"
+      ],
+      "equippedTitle": "Safari Scout"
+    },
+    {
+      "id": "test-std-1792239245967",
+      "userId": "test-usr-1792239245967",
       "fullName": "Wanjiku Test Learner",
       "gradeId": "grade-4",
       "schoolName": "Moi Nyeri Academy",
@@ -343881,6 +343919,33 @@
       "kenyanCulturalContext": "Fifty shilling notes feature Kenyan wildlife.",
       "sourceType": "AI_PRACTICE",
       "contentStatus": "PUBLISHED"
+    },
+    {
+      "id": "q-test-admin-1792239251322",
+      "subStrandId": "substrand-currency",
+      "type": "MULTIPLE_CHOICE",
+      "prompt": "How many 50-shilling notes make 200 shillings?",
+      "difficulty": "EASY",
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "2 notes"
+        },
+        {
+          "id": "opt-2",
+          "text": "4 notes"
+        },
+        {
+          "id": "opt-3",
+          "text": "5 notes"
+        }
+      ],
+      "correctOptionId": "opt-2",
+      "explanation": "4 × 50 = 200 shillings.",
+      "socraticHint": "Count by fifties: 50, 100, 150...",
+      "kenyanCulturalContext": "Fifty shilling notes feature Kenyan wildlife.",
+      "sourceType": "AI_PRACTICE",
+      "contentStatus": "PUBLISHED"
     }
   ],
   "achievements": [
@@ -346529,6 +346594,18 @@
       }
     ],
     "test-std-1792235200096": [
+      {
+        "strandId": "strand-math-numbers",
+        "strandTitle": "Numbers & Operations",
+        "learningAreaName": "Mathematics",
+        "masteryPercentage": 100,
+        "totalAttempts": 4,
+        "correctAttempts": 4,
+        "status": "EXCEEDING",
+        "lastPracticedDate": "2026-10-17"
+      }
+    ],
+    "test-std-1792239245967": [
       {
         "strandId": "strand-math-numbers",
         "strandTitle": "Numbers & Operations",
@@ -352238,6 +352315,33 @@
       "leveledUp": false,
       "newLevel": 1,
       "completedAt": "2026-10-17T11:06:41.802Z"
+    },
+    {
+      "sessionId": "sess-1792239250311-qgqhz",
+      "missionId": "mission-01-seedlings",
+      "studentId": "test-std-1792239245967",
+      "scorePercentage": 100,
+      "totalQuestions": 4,
+      "correctAnswersCount": 4,
+      "xpEarned": 60,
+      "coinsEarned": 30,
+      "heartsRemaining": 5,
+      "streakMaintained": true,
+      "unlockedAchievements": [
+        {
+          "id": "badge-seedling-starter",
+          "code": "SEEDLING_STARTER",
+          "title": "Green Thumb Sower",
+          "description": "Completed your first agricultural multiplication mission with Amina!",
+          "icon": "sprout",
+          "xpReward": 50,
+          "coinReward": 25,
+          "category": "EXPLORATION"
+        }
+      ],
+      "leveledUp": false,
+      "newLevel": 1,
+      "completedAt": "2026-10-17T12:14:10.311Z"
     }
   ],
   "analyticsEvents": [
@@ -354983,6 +355087,19 @@
         "stars": 3
       },
       "timestamp": "2026-10-17T11:06:41.972Z"
+    },
+    {
+      "id": "evt-1792239250711",
+      "studentId": "test-std-1792239245967",
+      "eventType": "mission_completed",
+      "metadata": {
+        "missionId": "mission-01-seedlings",
+        "scorePercentage": 100,
+        "xpEarned": 60,
+        "coinsEarned": 30,
+        "stars": 3
+      },
+      "timestamp": "2026-10-17T12:14:10.711Z"
     }
   ],
   "xpTransactions": [
@@ -356469,6 +356586,13 @@
       "amount": 60,
       "reason": "Completed mission: Help Amina Plant Seedlings (100%)",
       "timestamp": "2026-10-17T11:06:41.298Z"
+    },
+    {
+      "id": "xp-tx-1792239248893-nrba",
+      "studentId": "test-std-1792239245967",
+      "amount": 60,
+      "reason": "Completed mission: Help Amina Plant Seedlings (100%)",
+      "timestamp": "2026-10-17T12:14:08.893Z"
     }
   ],
   "coinTransactions": [
@@ -357955,6 +358079,13 @@
       "amount": 30,
       "reason": "Earned in mission: Help Amina Plant Seedlings",
       "timestamp": "2026-10-17T11:06:41.471Z"
+    },
+    {
+      "id": "coin-tx-1792239249343-uz90",
+      "studentId": "test-std-1792239245967",
+      "amount": 30,
+      "reason": "Earned in mission: Help Amina Plant Seedlings",
+      "timestamp": "2026-10-17T12:14:09.343Z"
     }
   ],
   "reviewQueue": [
@@ -357963,10 +358094,115 @@
       "learner_id": "test-learner-spaced-rep",
       "question_id": "q-engine-import-01",
       "interval_days": 3,
-      "next_review_at": "2026-10-20T11:06:19.583Z",
-      "times_reviewed": 4,
+      "next_review_at": "2026-10-20T12:13:37.923Z",
+      "times_reviewed": 8,
       "consecutive_correct": 1,
       "status": "PENDING"
+    }
+  ],
+  "subscriptions": [
+    {
+      "id": "sub-1792238751195-i5r0",
+      "userId": "user-test-parent-sub",
+      "studentIds": [
+        "student-test-01"
+      ],
+      "planId": "MONTHLY",
+      "status": "GRACE_PERIOD",
+      "startDate": "2026-10-17T12:05:51.195Z",
+      "expiryDate": "2026-10-17T10:05:51.574Z",
+      "gracePeriodExpiryDate": "2026-10-19T10:05:51.574Z",
+      "autoRenew": true,
+      "createdAt": "2026-10-17T12:05:51.195Z",
+      "updatedAt": "2026-10-17T12:05:52.033Z"
+    },
+    {
+      "id": "sub-1792239070620-g2uy",
+      "userId": "user-test-parent-sub-1792239070620",
+      "studentIds": [
+        "student-test-1792239070620"
+      ],
+      "planId": "MONTHLY",
+      "status": "GRACE_PERIOD",
+      "startDate": "2026-10-17T12:11:10.620Z",
+      "expiryDate": "2026-10-17T10:11:11.251Z",
+      "gracePeriodExpiryDate": "2026-10-19T10:11:11.251Z",
+      "autoRenew": true,
+      "createdAt": "2026-10-17T12:11:10.620Z",
+      "updatedAt": "2026-10-17T12:11:11.999Z"
+    },
+    {
+      "id": "sub-1792239220680-tcgt",
+      "userId": "user-test-parent-sub-1792239220680",
+      "studentIds": [
+        "student-test-1792239220680"
+      ],
+      "planId": "MONTHLY",
+      "status": "GRACE_PERIOD",
+      "startDate": "2026-10-17T12:13:40.680Z",
+      "expiryDate": "2026-10-17T10:13:41.034Z",
+      "gracePeriodExpiryDate": "2026-10-19T10:13:41.034Z",
+      "autoRenew": true,
+      "createdAt": "2026-10-17T12:13:40.680Z",
+      "updatedAt": "2026-10-17T12:13:41.428Z"
+    }
+  ],
+  "dailyUsage": {
+    "student-free-learner-99:2026-10-17": {
+      "date": "2026-10-17",
+      "lessonCount": 3,
+      "questionsAnswered": 0
+    },
+    "student-free-learner-1792239072501:2026-10-17": {
+      "date": "2026-10-17",
+      "lessonCount": 3,
+      "questionsAnswered": 0
+    },
+    "student-free-learner-1792239221862:2026-10-17": {
+      "date": "2026-10-17",
+      "lessonCount": 3,
+      "questionsAnswered": 0
+    }
+  },
+  "referralRecords": [
+    {
+      "code": "JIFUNOER0122",
+      "ownerUserId": "user-inviter-01",
+      "totalReferrals": 1,
+      "bonusDaysEarned": 7,
+      "redeemedBy": [
+        {
+          "userId": "user-invitee-01",
+          "redeemedAt": "2026-10-17T11:55:09.949Z"
+        }
+      ],
+      "createdAt": "2026-10-17T11:55:09.579Z"
+    },
+    {
+      "code": "JIFUNO531414",
+      "ownerUserId": "user-inviter-1792239075314",
+      "totalReferrals": 1,
+      "bonusDaysEarned": 7,
+      "redeemedBy": [
+        {
+          "userId": "user-invitee-1792239075314",
+          "redeemedAt": "2026-10-17T12:11:15.871Z"
+        }
+      ],
+      "createdAt": "2026-10-17T12:11:15.314Z"
+    },
+    {
+      "code": "JIFUNO328810",
+      "ownerUserId": "user-inviter-1792239223288",
+      "totalReferrals": 1,
+      "bonusDaysEarned": 7,
+      "redeemedBy": [
+        {
+          "userId": "user-invitee-1792239223288",
+          "redeemedAt": "2026-10-17T12:13:43.776Z"
+        }
+      ],
+      "createdAt": "2026-10-17T12:13:43.289Z"
     }
   ]
 }
