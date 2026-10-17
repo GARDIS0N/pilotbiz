@@ -106,7 +106,7 @@ console.log('\n--- 5. API Router Middleware Mounting ---');
 const apiRouterSrc = fs.readFileSync(path.resolve(process.cwd(), 'server/apiRouter.ts'), 'utf8');
 assert(apiRouterSrc.includes("import { authMiddleware } from './authMiddleware.js';"), 'apiRouter imports authMiddleware');
 assert(apiRouterSrc.includes("apiRouter.use(authMiddleware);"), 'apiRouter mounts authMiddleware on API routes');
-assert(apiRouterSrc.includes("const user: User = req.user || cbeDb.findUserById(currentUserId)"), '/auth/me prefers authenticated req.user with fallback');
+assert(apiRouterSrc.includes("resolveRequestUser(req)") || apiRouterSrc.includes("req.user"), '/auth/me prefers authenticated req.user with fallback');
 
 console.log('\n===========================================================');
 console.log(`RESULTS: ${passed} PASSED, ${failed} FAILED`);

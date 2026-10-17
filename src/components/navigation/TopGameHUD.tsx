@@ -110,48 +110,6 @@ export const TopGameHUD: React.FC<Props> = ({
               </span>
             </button>
 
-            {/* Sound Toggle */}
-            {onToggleMute && (
-              <button
-                type="button"
-                onClick={onToggleMute}
-                className="w-8 h-8 rounded-xl bg-slate-900 border border-emerald-900/60 hover:border-emerald-700 text-gray-300 flex items-center justify-center text-xs cursor-pointer transition-all active:scale-95"
-                title={isMuted ? 'Unmute Sound' : 'Mute Sound'}
-                aria-label={isMuted ? 'Unmute Sound' : 'Mute Sound'}
-              >
-                {isMuted ? '🔇' : '🔊'}
-              </button>
-            )}
-
-            {/* Guest Save Progress / Log In or Sign Out */}
-            {isGuestMode && onOpenLogin ? (
-              <button
-                type="button"
-                onClick={() => {
-                  sound.playClick();
-                  onOpenLogin();
-                }}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs cursor-pointer shadow-sm active:scale-95 transition-all"
-                title="Save Progress"
-              >
-                <span>🔑</span>
-                <span className="hidden xs:inline">Save</span>
-              </button>
-            ) : onLogout ? (
-              <button
-                type="button"
-                onClick={() => {
-                  sound.playClick();
-                  onLogout();
-                }}
-                className="w-8 h-8 rounded-xl bg-slate-900 border border-rose-900/40 hover:border-rose-600 text-rose-300 hover:text-white flex items-center justify-center text-xs cursor-pointer transition-all active:scale-95"
-                title="Sign Out"
-                aria-label="Sign Out"
-              >
-                🚪
-              </button>
-            ) : null}
-
             {/* Parent Area Button */}
             {onOpenParentArea && (
               <button
@@ -170,6 +128,23 @@ export const TopGameHUD: React.FC<Props> = ({
           </div>
         </div>
       </header>
+
+      {/* Guest Mode Banner below Top Bar */}
+      {isGuestMode && onOpenLogin && (
+        <div className="bg-emerald-950/80 border-b border-emerald-500/30 px-3 py-1.5 flex items-center justify-between text-xs text-emerald-200">
+          <span>Save your progress to never lose stars</span>
+          <button
+            type="button"
+            onClick={() => {
+              sound.playClick();
+              onOpenLogin();
+            }}
+            className="px-2.5 py-0.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black cursor-pointer"
+          >
+            Save Progress
+          </button>
+        </div>
+      )}
 
       {/* Explainer Bottom Sheet / Modal */}
       <AnimatePresence>

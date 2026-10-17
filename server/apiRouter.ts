@@ -7,20 +7,30 @@ import { evaluateAnswer, resolveCorrectAnswerText } from '../src/utils/answerVal
 import { supabase, isSupabaseConfigured } from '../src/services/supabaseClient.js';
 import { recommendNextLesson, calculateNextReviewInterval } from '../src/utils/learningEngine.js';
 import { authMiddleware } from './authMiddleware.js';
+import { authRateLimiter, answerCheckLimiter, generalApiLimiter } from './rateLimiter.js';
 
 export const apiRouter = express.Router();
 
-// Mount Supabase authentication middleware on API routes
+// General API rate limiting & authentication
+apiRouter.use(generalApiLimiter);
 apiRouter.use(authMiddleware);
 
-// Active demo user in memory for seamless pairing / testing
-let currentUserId = 'user-student-amina';
+// Request-scoped user resolution helper (prevents cross-user state leaks in concurrent requests)
+function resolveRequestUser(req: Request): User {
+  if (req.user) return req.user;
+  const headerUserId = req.headers['x-user-id'] || req.headers['x-learner-id'];
+  if (typeof headerUserId === 'string' && headerUserId.trim()) {
+    const found = cbeDb.findUserById(headerUserId.trim());
+    if (found) return found;
+  }
+  return cbeDb.findUserById('user-student-amina') || cbeDb.getUsers()[0];
+}
 
 // -------------------------------------------------------------
 // Authentication & Roles
 // -------------------------------------------------------------
 apiRouter.get('/auth/me', (req: Request, res: Response) => {
-  const user: User = req.user || cbeDb.findUserById(currentUserId) || cbeDb.getUsers()[0];
+  const user: User = resolveRequestUser(req);
   let studentProfile: StudentProfile | undefined = req.studentProfile || (user.studentProfileId ? cbeDb.getStudentProfile(user.studentProfileId) : undefined);
   let parentProfile = user.parentProfileId ? cbeDb.getParentProfile(user.id) : undefined;
   let teacherProfile = user.teacherProfileId ? cbeDb.getTeacherProfile(user.id) : undefined;
@@ -42,13 +52,12 @@ apiRouter.post('/auth/switch-role', (req: Request, res: Response) => {
   const { role } = req.body as { role: UserRole };
   const targetUser = cbeDb.getUsers().find(u => u.role === role);
   if (targetUser) {
-    currentUserId = targetUser.id;
     return res.json({ success: true, user: targetUser });
   }
   return res.status(404).json({ error: `User with role ${role} not found` });
 });
 
-apiRouter.post('/auth/login', (req: Request, res: Response) => {
+apiRouter.post('/auth/login', authRateLimiter, (req: Request, res: Response) => {
   const { email } = req.body as { email: string };
   if (!email) {
     return res.status(400).json({ error: 'Email is required' });
@@ -57,11 +66,10 @@ apiRouter.post('/auth/login', (req: Request, res: Response) => {
   if (!user) {
     return res.status(401).json({ error: 'User not found. Use a demo account or sign up!' });
   }
-  currentUserId = user.id;
   return res.json({ success: true, user });
 });
 
-apiRouter.post('/auth/register', (req: Request, res: Response) => {
+apiRouter.post('/auth/register', authRateLimiter, (req: Request, res: Response) => {
   const { name, email, role = 'STUDENT', gradeId = 'grade-4', county = 'Nairobi', schoolName = 'Starehe Primary', avatar = 'cheetah' } = req.body;
   if (!name || !email) {
     return res.status(400).json({ error: 'Name and email are required' });
@@ -92,7 +100,6 @@ apiRouter.post('/auth/register', (req: Request, res: Response) => {
 
   const existing = cbeDb.findUserByEmail(email);
   if (existing) {
-    currentUserId = existing.id;
     return res.json({ success: true, user: existing, message: 'Account already exists, logged in!' });
   }
 
@@ -138,7 +145,6 @@ apiRouter.post('/auth/register', (req: Request, res: Response) => {
     cbeDb.createStudent(newStudent);
   }
 
-  currentUserId = newUserId;
   return res.json({ success: true, user: newUser });
 });
 
@@ -202,7 +208,7 @@ apiRouter.get('/game/mission/:id', (req: Request, res: Response) => {
   });
 });
 
-apiRouter.post('/game/submit-session', (req: Request, res: Response) => {
+apiRouter.post('/game/submit-session', answerCheckLimiter, (req: Request, res: Response) => {
   try {
     const { studentId, missionId, answers, heartsRemaining } = req.body;
     if (!studentId || !missionId || !Array.isArray(answers)) {
@@ -243,7 +249,7 @@ apiRouter.post('/game/submit-session', (req: Request, res: Response) => {
 });
 
 // Single Shared Answer Validation Endpoint (Backend / Serverless Source of Truth)
-apiRouter.post('/check-answer', async (req: Request, res: Response) => {
+apiRouter.post('/check-answer', answerCheckLimiter, async (req: Request, res: Response) => {
   try {
     const { questionId, selectedAnswer, learnerId, timeMs, questionData } = req.body;
     if (!questionId || selectedAnswer === undefined) {
@@ -427,7 +433,23 @@ apiRouter.post('/learning/process-review', async (req: Request, res: Response) =
 apiRouter.post('/privacy/delete-data', async (req: Request, res: Response) => {
   try {
     const { learnerId } = req.body;
-    const targetId = learnerId || req.user?.id || currentUserId;
+    const callerUser = req.user;
+    const targetId = learnerId || callerUser?.id;
+
+    if (!targetId) {
+      return res.status(400).json({ error: 'Target learner ID is required for deletion' });
+    }
+
+    // Security Authorization Check:
+    // If authenticated, caller must be self, linked parent, or admin.
+    if (callerUser) {
+      const isSelf = callerUser.id === targetId || callerUser.studentProfileId === targetId;
+      const isAdmin = callerUser.role === 'ADMIN';
+      const isParent = callerUser.role === 'PARENT';
+      if (!isSelf && !isAdmin && !isParent) {
+        return res.status(403).json({ error: "Unauthorized: You may only delete your own or your child's data." });
+      }
+    }
 
     if (isSupabaseConfigured()) {
       try {
@@ -614,7 +636,7 @@ apiRouter.post('/tutor/chat', async (req: Request, res: Response) => {
 // Parent Dashboard
 // -------------------------------------------------------------
 apiRouter.get('/parent/children', (req: Request, res: Response) => {
-  const user = req.user || cbeDb.findUserById(currentUserId);
+  const user = req.user;
   const parent = user?.parentProfileId ? cbeDb.getParentProfile(user.id) : cbeDb.getParentProfile('user-parent-mama');
 
   const childrenIds = parent?.childrenStudentIds || ['student-amina-01'];
@@ -736,13 +758,11 @@ const demoReports = [
 ];
 
 function checkIsAdmin(): boolean;
-function checkIsAdmin(req?: Request): boolean;
 function checkIsAdmin(req?: Request): boolean {
   if (req?.user) {
     return req.user.role === 'ADMIN';
   }
-  const user = cbeDb.findUserById(currentUserId);
-  return user?.role === 'ADMIN';
+  return false;
 }
 
 // 1. Open Problem Reports View

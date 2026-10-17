@@ -1,24 +1,22 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const FALLBACK_SUPABASE_URL = 'https://gvddvgscydjzpqffwxrn.supabase.co';
-const FALLBACK_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd2ZGR2Z3NjeWRqenBxZmZ3eHJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0NjA2NzksImV4cCI6MjEwNzAzNjY3OX0.jJysY4dY-NFj1Iq1iNdsCkKedns9bULt6R9A0zPTOOE';
-
 const rawSupabaseUrl = 
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || 
   (typeof process !== 'undefined' ? (process.env?.VITE_SUPABASE_URL || process.env?.SUPABASE_URL) : '') ||
-  FALLBACK_SUPABASE_URL;
+  '';
 
 const rawSupabaseAnonKey = 
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) || 
   (typeof process !== 'undefined' ? (process.env?.VITE_SUPABASE_ANON_KEY || process.env?.SUPABASE_ANON_KEY) : '') ||
-  FALLBACK_SUPABASE_ANON_KEY;
+  '';
 
 export const isSupabaseConfigured = (): boolean => {
   return Boolean(
     rawSupabaseUrl && 
     rawSupabaseUrl.startsWith('https://') && 
     rawSupabaseAnonKey && 
-    !rawSupabaseAnonKey.includes('your-key')
+    !rawSupabaseAnonKey.includes('your-key') &&
+    rawSupabaseAnonKey.length > 20
   );
 };
 

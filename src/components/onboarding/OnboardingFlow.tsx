@@ -104,6 +104,7 @@ export const OnboardingFlow: React.FC<Props> = ({
   const [selectedInterests, setSelectedInterestsState] = useState<string[]>(
     persistedState.selectedInterests?.length ? persistedState.selectedInterests : ['math', 'science']
   );
+  const [religiousStream, setReligiousStream] = useState<'CRE' | 'IRE' | 'HRE'>('CRE');
   const [selectedGoal, setSelectedGoal] = useState<number>(persistedState.dailyGoalMinutes || 10);
 
   // Level check diagnostic state
@@ -443,7 +444,8 @@ export const OnboardingFlow: React.FC<Props> = ({
       unlockedWorldIds: ['world-math-kingdom'],
       completedMissionIds: [firstQuest.id],
       badges: ['badge-seedling-starter'],
-      equippedTitle: 'CBC Explorer'
+      equippedTitle: 'CBC Explorer',
+      religiousStream
     };
 
     const merged = mergeGuestProgressIntoProfile(baseStudent);
@@ -719,6 +721,57 @@ export const OnboardingFlow: React.FC<Props> = ({
                     </button>
                   );
                 })}
+              </div>
+
+              {/* Religious Education Track (Family Choice) */}
+              <div className="pt-2 space-y-2">
+                <div className="text-xs font-bold text-gray-300">
+                  {language === 'sw' ? 'Mwelekeo wa Dini (Chaguo la Familia):' : 'Religious Education Track:'}
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playClick();
+                      setReligiousStream('CRE');
+                    }}
+                    className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                      religiousStream === 'CRE'
+                        ? 'bg-blue-950/80 border-blue-400 text-blue-300'
+                        : 'bg-slate-900 border-slate-800 text-gray-400'
+                    }`}
+                  >
+                    Christian (CRE)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playClick();
+                      setReligiousStream('IRE');
+                    }}
+                    className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                      religiousStream === 'IRE'
+                        ? 'bg-emerald-950/80 border-emerald-400 text-emerald-300'
+                        : 'bg-slate-900 border-slate-800 text-gray-400'
+                    }`}
+                  >
+                    Islamic (IRE)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playClick();
+                      setReligiousStream('HRE');
+                    }}
+                    className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                      religiousStream === 'HRE'
+                        ? 'bg-amber-950/80 border-amber-400 text-amber-300'
+                        : 'bg-slate-900 border-slate-800 text-gray-400'
+                    }`}
+                  >
+                    Hindu (HRE)
+                  </button>
+                </div>
               </div>
 
               <div className="pt-3">
