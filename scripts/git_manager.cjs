@@ -33,8 +33,11 @@ function getPatToken() {
   throw new Error('GitHub Personal Access Token (starts with ghp_ or github_pat_) not found in GH_PAT, clipboard, or transcript!');
 }
 
+const IGNORE_PREFIXES = ['node_modules', 'dist', '.vercel', 'backups', 'isair-jarvis', '.git', 'scratch', 'Desktop'];
+const fileFilter = (f) => !IGNORE_PREFIXES.some(prefix => f === prefix || f.startsWith(prefix + '/') || f.startsWith(prefix + '\\'));
+
 async function status() {
-  const matrix = await git.statusMatrix({ fs, dir: '.' });
+  const matrix = await git.statusMatrix({ fs, dir: '.', filter: fileFilter });
   const changed = [];
   const blockedPatterns = [/\.env(\.|$)/i, /service-account/i, /credentials/i, /\.key$/i, /\.pem$/i, /\.pfx$/i];
 
@@ -58,7 +61,7 @@ async function status() {
 }
 
 async function stageAll() {
-  const matrix = await git.statusMatrix({ fs, dir: '.' });
+  const matrix = await git.statusMatrix({ fs, dir: '.', filter: fileFilter });
   const staged = [];
   const blockedPatterns = [/\.env(\.|$)/i, /service-account/i, /credentials/i, /\.key$/i, /\.pem$/i, /\.pfx$/i];
 
@@ -107,16 +110,16 @@ const customHttp = {
   }
 };
 
-async function push(branchName) {
+async function push(branchName, remoteTarget) {
   const token = getPatToken();
   const currentBranch = branchName || (await git.currentBranch({ fs, dir: '.' })) || 'main';
+  const remoteUrl = remoteTarget || 'origin';
 
-  console.log(`Pushing branch '${currentBranch}' to origin...`);
-  const response = await git.push({
+  console.log(`Pushing branch '${currentBranch}' to ${remoteUrl}...`);
+  const pushOptions = {
     fs,
     http: customHttp,
     dir: '.',
-    remote: 'origin',
     ref: currentBranch,
     force: false,
     onProgress: (evt) => {
@@ -130,8 +133,15 @@ async function push(branchName) {
       username: 'GARDIS0N',
       password: token
     })
-  });
+  };
 
+  if (remoteUrl.startsWith('http://') || remoteUrl.startsWith('https://')) {
+    pushOptions.url = remoteUrl;
+  } else {
+    pushOptions.remote = remoteUrl;
+  }
+
+  const response = await git.push(pushOptions);
   return response;
 }
 
@@ -263,7 +273,7 @@ async function main() {
       const sha = await commit(arg1);
       console.log(`Committed successfully: ${sha}`);
     } else if (cmd === 'push') {
-      const res = await push(arg1);
+      const res = await push(arg1, arg2);
       console.log('Push response:', JSON.stringify(res, null, 2));
     } else if (cmd === 'branch') {
       if (!arg1) throw new Error('Branch name required!');

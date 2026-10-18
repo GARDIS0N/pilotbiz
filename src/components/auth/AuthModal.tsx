@@ -1,592 +1,253 @@
 import React, { useState } from 'react';
-import { User, UserRole, Grade } from '../../types/cbe.js';
-import { cbeApi } from '../../services/cbeApi.js';
-import { sound } from '../../utils/soundEffects.js';
-import { AVATARS } from '../../utils/avatars.js';
-import { LEGAL_VERSION } from '../../content/legal/constants.js';
-import { signInWithEmail, signUpWithEmail, isSupabaseConfigured } from '../../services/supabaseClient.js';
+import { X, Mail, Lock, User, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '../../services/authContext.js';
+import { showToast } from '../common/Toast.js';
 
-interface Props {
+interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  currentUser: User | null;
-  grades: Grade[];
-  onAuthSuccess: (user: User) => void;
-  onOpenLoginPage?: () => void;
-  onLogout?: () => void;
-  onNavigateLegal?: (doc: 'privacy' | 'terms') => void;
+  onSuccess?: () => void;
 }
 
-const KENYAN_COUNTIES = [
-  'Nairobi', 'Nakuru', 'Mombasa', 'Kisumu', 'Uasin Gishu', 
-  'Machakos', 'Kiambu', 'Nyeri', 'Kilifi', 'Kakamega', 'Meru'
-];
-
-export const AuthModal: React.FC<Props> = ({
-  isOpen,
-  onClose,
-  currentUser,
-  grades,
-  onAuthSuccess,
-  onOpenLoginPage,
-  onLogout,
-  onNavigateLegal
-}) => {
-  const [mode, setMode] = useState<'QUICK_SWITCH' | 'REGISTER' | 'LOGIN'>('LOGIN');
-  const [role, setRole] = useState<UserRole>('STUDENT');
-  const [name, setName] = useState('');
+export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => {
+  const { login, register, resetPassword, switchToGuestMode } = useAuth();
+  const [tab, setTab] = useState<'login' | 'register' | 'forgot'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [gradeId, setGradeId] = useState(grades[1]?.id || 'grade-4');
-  const [county, setCounty] = useState('Nakuru');
-  const [schoolName, setSchoolName] = useState('Simba Primary Academy');
-  const [selectedAvatar, setSelectedAvatar] = useState('cheetah');
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [resetSent, setResetSent] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleQuickSwitch = async (targetRole: UserRole) => {
-    try {
-      sound.playClick();
-      setLoading(true);
-      setErrorMsg(null);
-      const res = await cbeApi.switchRole(targetRole);
-      sound.playCorrect();
-      onAuthSuccess(res.user);
-      onClose();
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to switch role');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim()) {
-      setErrorMsg('Please enter name and email');
-      return;
-    }
-    if (isSupabaseConfigured() && password.trim().length < 6) {
-      setErrorMsg('Password must be at least 6 characters long');
-      return;
-    }
-    if (!agreedToTerms) {
-      setErrorMsg('Please confirm parental consent and agree to the Terms of Service and Privacy Policy.');
-      return;
-    }
-    try {
-      sound.playClick();
-      setLoading(true);
-      setErrorMsg(null);
-      const consentTime = new Date().toISOString();
+    setErrorMsg(null);
+    setLoading(true);
 
-      if (isSupabaseConfigured()) {
-        const { data: sbData, error: sbError } = await signUpWithEmail(email.trim(), password.trim(), {
-          fullName: name.trim(),
-          role,
-          gradeId,
-          county,
-          schoolName: schoolName.trim(),
-          avatar: selectedAvatar,
-          consentAgreedAt: consentTime,
-          consentVersion: LEGAL_VERSION
-        });
-
-        if (sbError) {
-          setErrorMsg(sbError.message || 'Registration failed');
-          return;
-        }
-
-        const res = await cbeApi.register({
-          name: name.trim(),
-          email: email.trim(),
-          role,
-          gradeId,
-          county,
-          schoolName: schoolName.trim(),
-          avatar: selectedAvatar,
-          consentAgreedAt: consentTime,
-          consentVersion: LEGAL_VERSION
-        });
-        sound.playCorrect();
-        onAuthSuccess(res.user);
+    if (tab === 'login') {
+      const res = await login(email, password);
+      setLoading(false);
+      if (res.success) {
+        showToast('success', 'Welcome back!', 'Signed into your wardrobe.');
+        onSuccess?.();
         onClose();
+      } else {
+        setErrorMsg(res.error || 'Failed to sign in. Please verify your credentials.');
+      }
+    } else if (tab === 'register') {
+      if (!fullName.trim()) {
+        setErrorMsg('Please enter your name.');
+        setLoading(false);
         return;
       }
-
-      const res = await cbeApi.register({
-        name: name.trim(),
-        email: email.trim(),
-        role,
-        gradeId,
-        county,
-        schoolName: schoolName.trim(),
-        avatar: selectedAvatar,
-        consentAgreedAt: consentTime,
-        consentVersion: LEGAL_VERSION
-      });
-      sound.playCorrect();
-      onAuthSuccess(res.user);
-      onClose();
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Registration failed');
-    } finally {
+      const res = await register(email, password, fullName);
       setLoading(false);
+      if (res.success) {
+        showToast('success', 'Account created!', 'Welcome to MyCloset.');
+        onSuccess?.();
+        onClose();
+      } else {
+        setErrorMsg(res.error || 'Could not complete registration.');
+      }
+    } else if (tab === 'forgot') {
+      const res = await resetPassword(email);
+      setLoading(false);
+      if (res.success) {
+        setResetSent(true);
+        showToast('info', 'Check your email', 'Password reset instructions sent.');
+      } else {
+        setErrorMsg(res.error || 'Failed to send password reset email.');
+      }
     }
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim()) {
-      setErrorMsg('Please enter account email');
-      return;
-    }
-    try {
-      sound.playClick();
-      setLoading(true);
-      setErrorMsg(null);
-
-      if (isSupabaseConfigured() && password.trim().length >= 6) {
-        const { data: sbData, error: sbError } = await signInWithEmail(email.trim(), password.trim());
-        if (sbError) {
-          setErrorMsg(sbError.message || 'Login failed. Please verify credentials.');
-          return;
-        }
-
-        if (sbData?.user) {
-          const authMe = await cbeApi.getMe();
-          sound.playCorrect();
-          onAuthSuccess(authMe.user);
-          onClose();
-          return;
-        }
-      }
-
-      const res = await cbeApi.login(email.trim());
-      sound.playCorrect();
-      onAuthSuccess(res.user);
-      onClose();
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Login failed');
-    } finally {
-      setLoading(false);
-    }
+  const handleGuestAccess = async () => {
+    await switchToGuestMode();
+    showToast('success', 'Guest Mode Activated', 'Exploring with full offline/local storage.');
+    onSuccess?.();
+    onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
-      <div className="bg-slate-900 border-2 border-emerald-500/50 rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-5 my-6">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-emerald-900/60 pb-3">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🦁</span>
-            <div>
-              <h3 className="text-lg font-black text-white">Welcome to Jifuno</h3>
-              <p className="text-xs text-emerald-400">Start your Jifuno journey • Learn. Play. Level Up.</p>
-            </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm animate-in fade-in">
+      <div className="bg-[#FAF7F2] border border-[#E8E2D8] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative space-y-6 animate-in zoom-in-95">
+        <button
+          onClick={onClose}
+          className="absolute top-5 right-5 p-2 text-stone-400 hover:text-stone-700 rounded-full hover:bg-stone-200/50 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Modal Header */}
+        <div className="text-center space-y-1.5 pt-2">
+          <div className="w-12 h-12 rounded-2xl bg-[#1E392A] text-white flex items-center justify-center mx-auto mb-3 shadow-md">
+            <Sparkles className="w-6 h-6 text-[#C2A674]" />
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              sound.playClick();
-              onClose();
-            }}
-            className="text-gray-400 hover:text-white font-bold"
-          >
-            ✕
-          </button>
+          <h2 className="font-editorial text-2xl font-bold text-[#1C1917]">
+            {tab === 'login' ? 'Welcome to MyCloset' : tab === 'register' ? 'Create Your Wardrobe' : 'Reset Password'}
+          </h2>
+          <p className="text-xs text-stone-600 max-w-xs mx-auto">
+            {tab === 'login'
+              ? 'Access your clothes, saved outfits, and personalized styling recommendations.'
+              : tab === 'register'
+              ? 'Your private digital wardrobe and personal AI stylist.'
+              : 'Enter your account email to receive recovery instructions.'}
+          </p>
         </div>
 
-        {/* Tab switch */}
-        <div className="flex items-center gap-2 p-1 bg-slate-950 rounded-2xl border border-emerald-950">
-          <button
-            type="button"
-            onClick={() => setMode('LOGIN')}
-            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
-              mode === 'LOGIN' ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            Log In
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode('REGISTER')}
-            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
-              mode === 'REGISTER' ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            New Student Sign Up
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode('QUICK_SWITCH')}
-            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
-              mode === 'QUICK_SWITCH' ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            Demo Accounts
-          </button>
-        </div>
+        {/* Tab Switcher */}
+        {tab !== 'forgot' && (
+          <div className="flex p-1 bg-stone-200/60 rounded-2xl text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => { setTab('login'); setErrorMsg(null); }}
+              className={`flex-1 py-2 rounded-xl transition-all cursor-pointer ${
+                tab === 'login' ? 'bg-white text-[#1C1917] shadow-2xs' : 'text-stone-600 hover:text-stone-900'
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => { setTab('register'); setErrorMsg(null); }}
+              className={`flex-1 py-2 rounded-xl transition-all cursor-pointer ${
+                tab === 'register' ? 'bg-white text-[#1C1917] shadow-2xs' : 'text-stone-600 hover:text-stone-900'
+              }`}
+            >
+              Register
+            </button>
+          </div>
+        )}
 
+        {/* Error message */}
         {errorMsg && (
-          <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-500 text-rose-200 text-xs text-center font-bold">
+          <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs">
             {errorMsg}
           </div>
         )}
 
-        {/* Mode 1: Quick Role Switcher for Test / Demo */}
-        {mode === 'QUICK_SWITCH' && (
-          <div className="space-y-3">
-            <p className="text-xs text-gray-400">
-              Select any pre-configured Kenyan CBE demo persona to test that role's complete experience:
+        {/* Password Reset Confirmation */}
+        {resetSent ? (
+          <div className="text-center py-6 space-y-3">
+            <CheckCircle2 className="w-12 h-12 text-[#1E392A] mx-auto" />
+            <p className="text-sm font-medium text-stone-800">
+              Recovery instructions sent to {email}.
             </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => handleQuickSwitch('STUDENT')}
-                className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer flex items-center gap-3 ${
-                  currentUser?.role === 'STUDENT'
-                    ? 'border-emerald-400 bg-emerald-950/80 ring-2 ring-emerald-400/40'
-                    : 'border-slate-800 bg-slate-950/60 hover:border-emerald-700'
-                }`}
-              >
-                <span className="text-3xl">🐆</span>
-                <div>
-                  <h4 className="text-xs font-black text-white">Amina Kiprono</h4>
-                  <span className="text-[10px] text-emerald-400 font-bold block">STUDENT • Grade 4</span>
-                  <span className="text-[10px] text-gray-400">Simba Academy, Nakuru</span>
+            <button
+              type="button"
+              onClick={() => { setTab('login'); setResetSent(false); }}
+              className="text-xs font-semibold text-[#1E392A] underline cursor-pointer"
+            >
+              Return to Sign In
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {tab === 'register' && (
+              <div>
+                <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                  Full Name
+                </label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-stone-400 absolute left-3.5 top-3" />
+                  <input
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="e.g. Alex Morgan"
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#E8E2D8] rounded-xl text-sm focus:outline-none focus:border-[#1E392A] transition-colors"
+                  />
                 </div>
-              </button>
-
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => handleQuickSwitch('PARENT')}
-                className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer flex items-center gap-3 ${
-                  currentUser?.role === 'PARENT'
-                    ? 'border-teal-400 bg-teal-950/80 ring-2 ring-teal-400/40'
-                    : 'border-slate-800 bg-slate-950/60 hover:border-teal-700'
-                }`}
-              >
-                <span className="text-3xl">🦉</span>
-                <div>
-                  <h4 className="text-xs font-black text-white">Mama Amina</h4>
-                  <span className="text-[10px] text-teal-400 font-bold block">PARENT PORTAL</span>
-                  <span className="text-[10px] text-gray-400">Home coaching & progress</span>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => handleQuickSwitch('TEACHER')}
-                className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer flex items-center gap-3 ${
-                  currentUser?.role === 'TEACHER'
-                    ? 'border-blue-400 bg-blue-950/80 ring-2 ring-blue-400/40'
-                    : 'border-slate-800 bg-slate-950/60 hover:border-blue-700'
-                }`}
-              >
-                <span className="text-3xl">🦁</span>
-                <div>
-                  <h4 className="text-xs font-black text-white">Mwalimu Ochieng</h4>
-                  <span className="text-[10px] text-blue-400 font-bold block">TEACHER PORTAL</span>
-                  <span className="text-[10px] text-gray-400">Grade 4 Simba Champions</span>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => handleQuickSwitch('ADMIN')}
-                className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer flex items-center gap-3 ${
-                  currentUser?.role === 'ADMIN'
-                    ? 'border-purple-400 bg-purple-950/80 ring-2 ring-purple-400/40'
-                    : 'border-slate-800 bg-slate-950/60 hover:border-purple-700'
-                }`}
-              >
-                <span className="text-3xl">🦅</span>
-                <div>
-                  <h4 className="text-xs font-black text-white">CBE Admin Wanjala</h4>
-                  <span className="text-[10px] text-purple-400 font-bold block">CONTENT ADMIN</span>
-                  <span className="text-[10px] text-gray-400">Curriculum approval pipeline</span>
-                </div>
-              </button>
-            </div>
-
-            {currentUser && onLogout && (
-              <div className="pt-3 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => {
-                    sound.playClick();
-                    onLogout();
-                    onClose();
-                  }}
-                  className="w-full py-2.5 rounded-xl border border-rose-500/40 hover:bg-rose-950/40 text-rose-300 font-bold text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <span>🚪</span>
-                  <span>Log Out to Welcome Screen / Ondoka</span>
-                </button>
               </div>
             )}
-          </div>
-        )}
-
-        {/* Mode 2: Register New Student */}
-        {mode === 'REGISTER' && (
-          <form onSubmit={handleRegister} className="space-y-3.5">
-            <div>
-              <label className="text-xs text-gray-300 font-bold block mb-1">Student Full Name</label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Juma Mwangi"
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:outline-none focus:border-emerald-400"
-              />
-            </div>
 
             <div>
-              <label className="text-xs text-gray-300 font-bold block mb-1">Email / Parent Contact</label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="e.g. juma@jifuno.ke"
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:outline-none focus:border-emerald-400"
-              />
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-xs text-gray-300 font-bold">Password / PIN (min 6 characters)</label>
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="text-[10px] text-emerald-400 hover:underline cursor-pointer"
-                >
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
-              </div>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required={isSupabaseConfigured()}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Create a password or 6-digit PIN"
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:outline-none focus:border-emerald-400"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-gray-300 font-bold block mb-1">Select Grade</label>
-                <select
-                  value={gradeId}
-                  onChange={(e) => setGradeId(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white text-xs"
-                >
-                  {grades.map(g => (
-                    <option key={g.id} value={g.id}>{g.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs text-gray-300 font-bold block mb-1">Kenyan County</label>
-                <select
-                  value={county}
-                  onChange={(e) => setCounty(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white text-xs"
-                >
-                  {KENYAN_COUNTIES.map(c => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs text-gray-300 font-bold block mb-1">School Name</label>
-              <input
-                type="text"
-                value={schoolName}
-                onChange={(e) => setSchoolName(e.target.value)}
-                placeholder="e.g. Nairobi Primary School"
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white text-xs"
-              />
-            </div>
-
-            {/* Choose Avatar */}
-            <div>
-              <label className="text-xs text-gray-300 font-bold block mb-1.5">Choose Your Mascot Avatar</label>
-              <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                {Object.values(AVATARS).map(av => (
-                  <button
-                    key={av.id}
-                    type="button"
-                    onClick={() => setSelectedAvatar(av.id)}
-                    className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 transition-all ${
-                      selectedAvatar === av.id
-                        ? 'border-2 border-amber-400 bg-amber-500/20 scale-110 shadow-md'
-                        : 'border border-slate-700 bg-slate-950 opacity-60 hover:opacity-100'
-                    }`}
-                  >
-                    {av.emoji}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Legal & Parental Consent Checkbox (Kenya Data Protection Act, 2019) */}
-            <div className="pt-1">
-              <label className="flex items-start gap-2.5 cursor-pointer text-left select-none">
-                <input
-                  type="checkbox"
-                  required
-                  checked={agreedToTerms}
-                  onChange={e => setAgreedToTerms(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded border-emerald-800 bg-slate-950 text-emerald-500 focus:ring-emerald-400 focus:ring-offset-slate-900 cursor-pointer accent-emerald-500 shrink-0"
-                />
-                <span className="text-[11px] leading-relaxed text-gray-300">
-                  I am a parent or guardian, or I have my parent or guardian&apos;s permission, and I agree to the{' '}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      sound.playClick();
-                      onClose();
-                      if (onNavigateLegal) onNavigateLegal('terms');
-                      else window.location.href = '/terms';
-                    }}
-                    className="text-emerald-400 hover:text-emerald-300 underline font-semibold cursor-pointer inline"
-                  >
-                    Terms of Service
-                  </button>{' '}
-                  and{' '}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      sound.playClick();
-                      onClose();
-                      if (onNavigateLegal) onNavigateLegal('privacy');
-                      else window.location.href = '/privacy';
-                    }}
-                    className="text-emerald-400 hover:text-emerald-300 underline font-semibold cursor-pointer inline"
-                  >
-                    Privacy Policy
-                  </button>.
-                </span>
+              <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                Email Address
               </label>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading || !agreedToTerms}
-              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm shadow-xl transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              START YOUR JIFUNO JOURNEY 🚀
-            </button>
-          </form>
-        )}
-
-        {/* Mode 3: Log In */}
-        {mode === 'LOGIN' && (
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="text-xs text-gray-300 font-bold block mb-1">Account Email</label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="e.g. amina@jifuno.ke"
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-emerald-400"
-              />
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-xs text-gray-300 font-bold">Password / PIN</label>
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="text-[10px] text-emerald-400 hover:underline cursor-pointer"
-                >
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-stone-400 absolute left-3.5 top-3" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#E8E2D8] rounded-xl text-sm focus:outline-none focus:border-[#1E392A] transition-colors"
+                />
               </div>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password or PIN"
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-emerald-400"
-              />
             </div>
+
+            {tab !== 'forgot' && (
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-stone-700">
+                    Password
+                  </label>
+                  {tab === 'login' && (
+                    <button
+                      type="button"
+                      onClick={() => setTab('forgot')}
+                      className="text-[11px] text-[#1E392A] hover:underline cursor-pointer"
+                    >
+                      Forgot?
+                    </button>
+                  )}
+                </div>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-stone-400 absolute left-3.5 top-3" />
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#E8E2D8] rounded-xl text-sm focus:outline-none focus:border-[#1E392A] transition-colors"
+                  />
+                </div>
+              </div>
+            )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm shadow-xl transition-all cursor-pointer"
+              className="w-full py-3 bg-[#1E392A] hover:bg-[#15291E] disabled:opacity-60 text-white rounded-xl text-sm font-semibold transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer shadow-sm mt-2"
             >
-              LOG IN TO JIFUNO ➔
+              {loading ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <span>{tab === 'login' ? 'Sign In' : tab === 'register' ? 'Create Account' : 'Send Reset Link'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
           </form>
         )}
 
-        {onOpenLoginPage && (
-          <div className="pt-2 border-t border-slate-800 text-center space-y-2">
+        {/* Guest Demo Mode Option */}
+        <div className="pt-2 border-t border-[#E8E2D8] text-center space-y-2">
+          <button
+            type="button"
+            onClick={handleGuestAccess}
+            className="w-full py-2 px-3 border border-stone-300 hover:border-stone-400 bg-white/70 hover:bg-white text-stone-700 text-xs font-medium rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#C2A674]" />
+            <span>Continue as Guest (Instant Local Demo)</span>
+          </button>
+          {tab === 'forgot' && (
             <button
               type="button"
-              onClick={() => {
-                onClose();
-                onOpenLoginPage();
-              }}
-              className="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center justify-center gap-1.5 mx-auto cursor-pointer hover:underline"
+              onClick={() => { setTab('login'); setErrorMsg(null); }}
+              className="text-xs text-stone-500 hover:text-stone-800 underline cursor-pointer"
             >
-              <span>🔑</span>
-              <span>Open Dedicated Log In Page ➔</span>
+              Back to Sign In
             </button>
-          </div>
-        )}
-
-        {/* Legal links footer */}
-        <div className="flex items-center justify-center gap-3 text-[11px] text-gray-400 pt-1 border-t border-slate-800/80">
-          <button
-            type="button"
-            onClick={() => {
-              sound.playClick();
-              onClose();
-              if (onNavigateLegal) onNavigateLegal('privacy');
-              else window.location.href = '/privacy';
-            }}
-            className="hover:text-emerald-400 underline cursor-pointer"
-          >
-            Privacy Policy
-          </button>
-          <span>•</span>
-          <button
-            type="button"
-            onClick={() => {
-              sound.playClick();
-              onClose();
-              if (onNavigateLegal) onNavigateLegal('terms');
-              else window.location.href = '/terms';
-            }}
-            className="hover:text-emerald-400 underline cursor-pointer"
-          >
-            Terms of Service
-          </button>
+          )}
         </div>
       </div>
     </div>

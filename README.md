@@ -1,204 +1,125 @@
-# Jifuno 🇰🇪
-### Learn. Play. Level Up.
-#### Gamified Kenyan Competency-Based Education (CBE / CBC) Learning Platform
+# MyCloset — Intelligent Digital Wardrobe & AI Stylist
 
-Jifuno is a gamified educational learning platform designed for Kenyan primary learners (Grades 3–6) and the Kenyan Competency-Based Education (CBE) curriculum, combining Duolingo-style game mechanics with authentic Kenyan real-world context and Socratic AI tutoring.
+**MyCloset** is a modern, responsive digital wardrobe and AI styling application built with React 19, TypeScript, Vite, Tailwind CSS, and Supabase. It allows users to digitize their actual clothing pieces, curate custom looks on an interactive flatlay canvas, schedule outfits onto a calendar, and receive intelligent daily styling recommendations based on weather, color harmony, and occasion.
 
 ---
 
-## Phase 1 Components & Game-UX Architecture
+## 🌟 Key Features
 
-### 1. New Components & Props
+### 1. Curated Fashion Design & UX
+- **Luxury Aesthetic**: Clean off-white/cream palette (`#FAF7F2`), rich charcoal typography (`#1C1917`), subtle forest-green accents (`#1E392A`), and gold highlights (`#C2A674`).
+- **Responsive Layout**: Dedicated bottom navigation bar on mobile phones and structured sidebar on desktop.
+- **Micro-Interactions**: Skeleton loaders, smooth modals, confirmation before deletions, and toast alerts.
 
-| Component | Path | Key Props | Description |
-| :--- | :--- | :--- | :--- |
-| `AnimatedCounter` | `src/components/common/AnimatedCounter.tsx` | `value: number`, `prefix?: string`, `suffix?: string`, `badgeColor?: string` | Smooth GPU-accelerated count-up animation for XP, coins, and levels, with ascending floating `+delta` pill animation. Instant fallback when reduced motion is enabled. |
-| `HeartHUD` | `src/components/common/HeartHUD.tsx` | `hearts: number`, `maxHearts?: number`, `onOpenOutOfHearts?: () => void`, `onQuickPractice?: () => void` | Heart indicator with cracked shake animation on loss, refill countdown timer (`+1 in 14:59`), and popover quick-practice shortcut. |
-| `OutOfHeartsModal` | `src/components/common/OutOfHeartsModal.tsx` | `isOpen: boolean`, `onClose: () => void`, `onQuickPractice: () => void`, `onOpenShop: () => void`, `coins: number` | Warm, child-friendly modal without shaming. Offers free practice to earn a heart back, Dukani coin refill, or a short rest. |
-| `StreakFlame` | `src/components/common/StreakFlame.tsx` | `streakDays: number`, `streakFrozen?: boolean` | GPU-animated flicker flame with visual tiers (Tier 1: 1–2d, Tier 2: 3–6d, Tier 3: 7–29d, Tier 4: 30–99d, Tier 5: 100+d) and interactive 7-day week calendar popover. |
-| `CelebrationModal` | `src/components/common/CelebrationModal.tsx` | `isOpen: boolean`, `onClose: () => void`, `xpEarned: number`, `coinsEarned: number`, `currentXp: number`, `nextLevelXp?: number`, `currentLevel: number`, `leveledUp?: boolean` | Celebratory modal triggered on quest completion and level-up. Emits canvas confetti in Kenyan colors (green, gold, red), breaks down rewards, and displays the next level goal progress bar. |
-| `HeroQuestCard` | `src/components/student/HeroQuestCard.tsx` | `mission: Mission`, `onStartMission: (id) => void`, `currentStep?: number`, `totalSteps?: number` | Illustrated Kenyan open-air market scene (canopy stalls, mango/sukuma baskets, Mount Kenya skyline), stepped progress bar (`Step 3 of 5 • 60% Complete`), estimated time badge (`⏱️ About 5 min`), and pulsating shimmer CTA. |
-| `DashboardSkeleton` | `src/components/common/SkeletonLoader.tsx` | *None* | Subtle shimmering skeleton placeholder for fast perceived loading states. |
+### 2. User Accounts & Onboarding
+- **Authentication**: Sign up, login, logout, password recovery, and secure sessions via Supabase Auth.
+- **Local Persistent Mode**: Operates seamlessly in guest/demo mode without requiring third-party credentials or paid APIs; all data persists in browser IndexedDB.
+- **5-Step Onboarding**: Guides new users through name setup, aesthetic styles, frequent occasions, color preferences, and optional starter capsule pre-load.
+- **Private Wardrobes**: Full isolation so users only access their own private clothes.
 
-### 2. Motion Preferences & Accessibility Utility
+### 3. Digital Wardrobe Management
+- **Photography & Uploads**: Upload clothing photos from mobile cameras or desktop files. Uses canvas-based client-side compression for instant loading.
+- **Rich Metadata**: Name, category, color, secondary color, brand, size, seasons, occasions, availability status (`clean`, `in_laundry`, `unavailable`), and styling notes.
+- **Categorization**: 10 standard fashion categories + support for custom user-created categories.
+- **Search & Filtering**: Real-time search, category pill tabs with item count badges, status filter, season filter, sort options (newest, most worn, name), and favorites toggle.
+- **Wear Tracking**: Tracks wear counts and last worn dates whenever an outfit is logged.
 
-- **Path**: `src/utils/motion.ts`
-- **Functions**:
-  - `useReducedMotionPreference()`: React hook checking system `prefers-reduced-motion` and in-app override.
-  - `setReducedMotionPreference(boolean)`: In-app toggle persisted to `localStorage ('jifuno_reduce_motion')`.
-  - `springTransition`: Typed GPU spring animation configuration that gracefully collapses to `{ duration: 0 }` when reduced motion is active.
+### 4. Interactive Outfit Creator
+- **Flatlay Canvas**: Assemble looks by slotting Tops, Bottoms, Footwear, Outerwear, and Accessories.
+- **Real Wardrobe Garments**: Outfits use exclusively real photographed garments from the user's closet.
+- **Outfit Metadata**: Name, description, occasion, style, season, and favorite heart toggle.
 
-### 3. Dependencies Added
+### 5. Intelligent Outfit Recommendation Engine
+- **Algorithmic Styling**: Heuristic engine evaluating color coordination (complementary pairs, neutral anchors, monochrome harmony), silhouette balance, formality level, and weather suitability.
+- **Weather Awareness**: Adapts dynamically to conditions (Warm & Sunny, Mild & Breezy, Cool & Crisp, Cold & Rainy, Freezing & Snow). Disallows shorts in winter and mandates outerwear for cold rain.
+- **Clean Garment Integrity**: Exclusively selects garments marked `clean` (never recommends laundry items).
+- **Custom Filters**: User can specify "Must Wear" pieces or items to avoid.
+- **1-Click Actions**: "Wear Today" (schedules into calendar) or "Save as Outfit".
 
-- `canvas-confetti` + `@types/canvas-confetti`: Ultra-lightweight canvas particle library (~6 KB gzipped) used for zero-asset confetti celebration bursts without heavy video or image files.
+### 6. Outfit Calendar & Schedule
+- **Calendar Views**: Interactive month, week, and day views.
+- **Schedule Outfits**: Assign any saved outfit to a date with daily agenda notes.
+- **Duplicate Prevention**: Detects if an outfit is already assigned to a date and confirms before duplicates.
+- **Wear Tracking**: Mark outfits as worn today to update garment wear statistics.
+- **Look History**: Archives past looks with date badges.
 
-### 4. Performance & Bundle Size Impact
-
-- **Production JS Chunk**: ~140 KB gzipped total.
-- **Production CSS Chunk**: ~17 KB gzipped total.
-- **Audio Assets**: 0 KB (100% generated via native Web Audio API synthesis in `src/utils/soundEffects.ts`).
-- **GPU Friendliness**: All animations strictly bound to `transform` and `opacity` with hardware acceleration.
-
-### 5. How to Swap in Final Lottie / Rive / Sound Assets
-
-- **Lottie / Rive Mascot Art**: In Phase 2, placeholder SVG/CSS animated avatars in `src/utils/avatars.ts` and `src/components/mascot/Rafiki.tsx` can be swapped by replacing the render block with `@lottiefiles/react-lottie-player` or `@rive-app/react-canvas` referencing `.json` or `.riv` assets in `public/assets/`.
-- **Sound Effects**: In `src/utils/soundEffects.ts`, each method (`playCorrect`, `playIncorrect`, `playLevelUp`, `playCoin`, `playClick`) can either retain the synthesized Web Audio oscillators or load custom lightweight `.mp3`/`.ogg` audio clips via `new Audio('/assets/sounds/correct.mp3').play()`.
-
----
-
-## Quick Start (Local)
-
-1. **Install Dependencies**:
-   ```bash
-   npm install
-   ```
-2. **Run E2E Automated Tests**:
-   ```bash
-   npm test
-   ```
-3. **Start Development / Production Server**:
-   ```bash
-   npm start
-   ```
-4. Access Jifuno at `http://localhost:3000`.
+### 7. Personalized Dashboard
+- **Contextual Greeting**: Time-aware greeting (`Good morning`, `Good afternoon`, `Good evening`).
+- **Live Wardrobe Stats**: Total garments, clean pieces, laundry count, and saved looks.
+- **Today's Look Card**: Instant view of today's scheduled outfit with 1-click worn logging.
+- **Featured Recommendation**: Prominent daily recommendation tailored to the user's preferred style.
+- **Recent Additions & Favorites**: Quick carousel previews.
 
 ---
 
-## Duolingo-Style Onboarding Architecture
+## 🛠️ Tech Stack
 
-Jifuno implements a **value first, commitment second, account last** onboarding flow designed specifically for Kenyan children aged 8–12 on shared or entry-level Android smartphones with patchy connectivity. A child enters an interactive CBC lesson within ~60 seconds of opening the application, without encountering an upfront email or password wall.
+- **Frontend**: React 19, TypeScript
+- **Bundler & Build**: Vite 8, Rolldown
+- **Styling**: Tailwind CSS 4, Google Fonts (*Playfair Display* & *Plus Jakarta Sans*)
+- **Icons**: Lucide React
+- **Database & Storage**:
+  - **Cloud Mode**: Supabase (PostgreSQL, Row Level Security, Supabase Storage)
+  - **Local Mode**: IndexedDB (`idb`) persistent storage adapter with client-side image compression
+- **Deployment**: Vercel ready (`vercel.json`)
 
-### The 9-Step Sequence
+---
 
-```
-[1. Welcome] ➔ [2. Grade] ➔ [3. Interests] ➔ [4. Level Check] ➔ [5. First Lesson] ➔ [6. Daily Goal] ➔ [7. Save Progress] ➔ [8. Parent Step] ➔ [9. Home Path]
+## 🚀 Quick Start & Local Development
+
+### 1. Install Dependencies
+```bash
+npm install
 ```
 
-1. **Welcome (`WELCOME`)**:
-   - Mascot greeting from **Rafiki the Owl** (`🦉`).
-   - Value statement: *"Learn Kenya's CBC curriculum through fun games and daily quests!"* (*"Jifunze masomo ya CBC ya Kenya kwa michezo na changamoto!"*).
-   - Single large green action: `[ START LEARNING / ANZA SAFARI ➔ ]` (min 56px touch target).
-   - Zero upfront sign-in wall. Secondary link for returning learners: *"Already have an account? Log in"*.
-2. **Grade Picker (`GRADE`)**:
-   - Large tappable cards for **Grade 3**, **Grade 4**, **Grade 5**, and **Grade 6** with age ranges and KICD strand previews.
-   - Tap selects grade, persists to local storage, and advances immediately.
-3. **Interest Picker (`INTERESTS`)**:
-   - Child-friendly subject options (select 1–3):
-     - 🔢 **Numbers & Puzzles** (*Hesabu na Mafumbo* / Mathematics)
-     - 📖 **Stories & Words** (*Hadithi na Maneno* / English)
-     - 🇰🇪 **Kiswahili Fasaha** (*Lugha yetu ya Kiswahili*)
-     - 🔬 **Science & Discovery** (*Sayansi na Ugunduzi* / Science & Tech)
-     - 🌍 **Our Community** (*Jamii Yetu* / Social Studies & Agriculture)
-   - The top interest personalizes the Level Check and First Lesson.
-4. **Quick Level Check (`LEVEL_CHECK`)**:
-   - 3–4 foundational questions from the learner's chosen grade and top subject.
-   - Questions prioritized for high confidence (*"nearly impossible to fail"*) to deliver an instant "I can do this!" feeling.
-   - Prominent skip link: *"Skip level check / Ruka"*.
-5. **First Lesson (`FIRST_LESSON`)**:
-   - Short, real CBC curriculum lesson (5 questions) corresponding to the chosen grade & top interest.
-   - Immediate feedback, sound effects via native Web Audio API synthesis, and celebration modal.
-   - Awards XP (⚡ +25) and Coins (🪙 +10), creating the memorable "aha" moment.
-6. **Daily Goal & Streak Start (`DAILY_GOAL`)**:
-   - Child selects their daily commitment:
-     - 🟢 **Easy (Rahisi)** — 5 min / day (25 XP)
-     - 🟡 **Regular (Kawaida)** — 10 min / day (50 XP)
-     - 🔴 **Serious (Makini)** — 15 min / day (80 XP)
-   - Introduces the **Streak Flame 🔥** concept and starts the streak at Day 1 immediately after the lesson.
-7. **Save Progress Prompt (`SAVE_PROGRESS`)**:
-   - Delayed sign-up prompt shown only after real value has been experienced:
-     - *"You earned 25 XP and started a 1-day streak! Ask a parent or guardian to help save your account."*
-   - Fully skippable:
-     - Primary: `[ SAVE WITH PARENT ➔ ]`
-     - Secondary: `[ Later (Explore as Guest) / Baadaye ]`
-8. **Parent / Guardian Step (`PARENT_STEP`)**:
-   - Single clean screen with transparent, honest wording (COPPA & Kenya Data Protection Act 2019 compliant):
-     - Child's First Name / Nickname (no full personal names requested from the child).
-     - Parent Kenyan Phone Number (`07xx`, `01xx`, or `+254...`).
-     - Simple 4-digit Parent PIN (convenient for shared family mobile devices).
-     - Parent consent checkbox.
-     - Clear privacy statement: *"Zero ads. Minimum data. Progress only."*
-   - Seamlessly merges all guest XP, coins, streak, and completed quests into the profile with zero data loss.
-9. **Home (`HOME`)**:
-   - Lands on the student learning path (`LearningPathView`) with the next quest highlighted.
+### 2. Environment Configuration
+Copy `.env.example` to `.env.local`:
+```bash
+cp .env.example .env.local
+```
+
+If you do not have Supabase credentials yet, **MyCloset will run automatically in Local Persistent Mode using IndexedDB**. All uploaded photos, garments, outfits, and calendar schedules will persist across browser reloads!
+
+### 3. Start Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+### 4. Build for Production
+```bash
+npm run build
+```
+
+### 5. Run Test Suite
+```bash
+npm test
+```
 
 ---
 
-## Configuration & Experimentation (`src/config/`)
+## 🗄️ Supabase Cloud Database Setup
 
-### 1. Step Order & Copy Configuration (`src/config/onboardingConfig.ts`)
-The entire flow is powered by an experiment-ready configuration array:
-- `id`: Step identifier (`WELCOME`, `GRADE`, `INTERESTS`, `LEVEL_CHECK`, `FIRST_LESSON`, `DAILY_GOAL`, `SAVE_PROGRESS`, `PARENT_STEP`, `HOME`).
-- `enabled`: Toggle step on/off for A/B testing.
-- `skippable`: Whether the step displays a skip link.
-- `allowBack`: Enables top back arrow `←`.
-- `title` & `subtitle`: Dual English and Swahili copy.
+To enable Supabase Cloud synchronization:
 
-To test placing the Daily Goal before the First Lesson, simply change the array ordering in `src/config/onboardingConfig.ts` without modifying React components.
-
-### 2. Progressive Feature Disclosure (`src/config/progressiveUnlock.ts`)
-To prevent sensory overload for young learners on Day 1, non-essential features are progressively unlocked:
-- **Day 1**: Only **Learn** (`LEARN`) and **Profile** (`ME`) are unlocked.
-- **Day 2+ or 2 Quests Completed**: **Practice Hub** (`PRACTICE`) unlocks.
-- **Day 2+ or 3 Quests Completed**: **Dukani Shop** (`SHOP`) unlocks.
-- **Day 3+ or 5 Quests Completed**: **Leaderboards** unlock.
-- Locked tabs display a subtle lock badge (`🔒`) and show a friendly requirement notice when tapped.
+1. Create a project at [supabase.com](https://supabase.com).
+2. Go to the **SQL Editor** in your Supabase dashboard.
+3. Paste the contents of `supabase/migrations/20261018000000_mycloset_schema.sql` and run it.
+4. Go to **Project Settings > API** and copy your `Project URL` and `anon public` key.
+5. Add them to `.env.local`:
+   ```env
+   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-key
+   ```
+6. Reload the app. The bottom indicator in the sidebar/settings will confirm **Supabase Cloud Synchronized**!
 
 ---
 
-## Analytics Telemetry & Derived Metrics (`src/services/analytics.ts`)
+## ☁️ Deploying to Vercel
 
-The analytics dispatcher is offline-first, persisting events into `localStorage ('jifuno_analytics_events')` and streaming to `/api/analytics` when an internet connection is present.
-
-### Instrumented Events
-
-| Event Name | Trigger Point | Payload Properties |
-| :--- | :--- | :--- |
-| `onboarding_started` | Child taps "Start Learning" on Welcome screen | `anonymousUserId` |
-| `grade_selected` | Child selects Grade 3, 4, 5, or 6 | `gradeId` |
-| `interests_selected` | Child confirms 1–3 subject interests | `interests: string[]`, `topInterest: string` |
-| `level_check_completed` | Child completes or skips level check | `score: number`, `total: number`, `skipped: boolean` |
-| `first_lesson_started` | Lesson modal opens for the first quest | `questId`, `gradeId`, `topInterest` |
-| `first_lesson_completed` | Child completes the 5-question lesson | `questId`, `earnedXp`, `earnedCoins`, `durationSeconds` |
-| `daily_goal_set` | Child selects 5, 10, or 15 minutes/day | `dailyGoalMinutes: number` |
-| `save_progress_shown` | Delayed sign-up prompt is displayed | `streakDays`, `xp` |
-| `save_progress_completed` | Parent registers phone & 4-digit PIN | `hasPhone: boolean`, `hasPin: boolean` |
-| `save_progress_skipped` | Child taps "Later / Explore as Guest" | `step: 'SAVE_PROGRESS'` |
-| `onboarding_abandoned` | User closes window/tab before completing flow | `step: string`, `gradeId: string` |
-
-### Derived Metrics (Computed via `deriveOnboardingMetrics()`)
-- **Time to First Completed Lesson**: Computed from `first_lesson_completed.epochMs - onboarding_started.epochMs` in seconds. Target: `< 180s`.
-- **Onboarding Completion Rate**: `(completedOnboarding / totalStarted) * 100`.
-- **Drop-Off per Step**: Histogram of drop-off counts by step name (`dropOffCounts[stepName]`).
-- **Day-1 Return Rate**: Derivable by comparing returning user timestamps against `guestProgress.startedAt`.
-
----
-
-## QA Test Checklist
-
-Use this checklist to verify the onboarding experience across different device and network conditions:
-
-- [ ] **1. Fresh Install / First Launch**:
-  - Open app with clean storage (`localStorage.clear()`, `sessionStorage.clear()`).
-  - Verify app immediately loads the **Welcome** screen with Rafiki mascot (`🦉`) and no sign-in gate.
-  - Verify tapping *"Start Learning"* navigates to Grade Picker.
-- [ ] **2. Quit Mid-Flow and Resume**:
-  - Progress to the **Interest Picker** or **Level Check** step.
-  - Refresh or close and reopen the browser.
-  - Verify app resumes at the exact step without asking previously saved answers.
-- [ ] **3. Skip Sign-Up Prompt (Guest Mode)**:
-  - Complete the first lesson and reach the **Save Your Progress** screen.
-  - Tap *"Later (Explore as Guest)"*.
-  - Verify learner lands on the **Home Path** with the first quest marked completed, streak set to 1, and 25 XP awarded.
-- [ ] **4. Guest-to-Account Merge**:
-  - In the parent step, enter a child nickname (e.g. *"Amina"*), Kenyan phone number (`0712345678`), and 4-digit PIN (`1234`).
-  - Submit the form.
-  - Verify the newly created profile retains all 25 XP, 10 coins, and 1-day streak.
-  - Verify subsequent visits bypass onboarding directly to the student dashboard.
-- [ ] **5. Offline Start**:
-  - Disable network (Chrome DevTools: *Offline* mode).
-  - Open the application.
-  - Verify all 9 steps, curriculum questions, and audio sound effects function smoothly without network latency.
-- [ ] **6. Progressive Disclosure**:
-  - On Day 1 with 1 completed lesson, verify only **Learn** and **Me** tabs are active.
-  - Verify tapping **Dukani** or **Practice** displays the locked milestone notice (*"Complete 2 quests to unlock!"*).
-
+1. Push your repository to GitHub / GitLab / Bitbucket.
+2. In Vercel, click **Add New Project** and select this repository.
+3. In **Environment Variables**, add:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+4. Click **Deploy**. Vercel will build using `vite build` and serve from `dist/` with full SPA rewrite routing handled by `vercel.json`.

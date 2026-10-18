@@ -1,835 +1,226 @@
-import React, { useState, useEffect } from 'react';
-import { User, StudentProfile, Grade } from './types/cbe.js';
-import { cbeApi } from './services/cbeApi.js';
-import { supabase, isSupabaseConfigured, signOut, getSession } from './services/supabaseClient.js';
-import { sound } from './utils/soundEffects.js';
-import { StudentDashboard } from './components/student/StudentDashboard.js';
+import React, { useState, useEffect, useCallback } from 'react';
+import { AuthProvider, useAuth } from './services/authContext.js';
+import { NavTab, Sidebar } from './components/navigation/Sidebar.js';
+import { BottomNav } from './components/navigation/BottomNav.js';
+import { TopHeader } from './components/navigation/TopHeader.js';
+import { DashboardView } from './components/dashboard/DashboardView.js';
+import { ClosetView } from './components/closet/ClosetView.js';
+import { OutfitsView } from './components/outfits/OutfitsView.js';
+import { StylistView } from './components/stylist/StylistView.js';
+import { CalendarView } from './components/calendar/CalendarView.js';
+import { ProfileView } from './components/profile/ProfileView.js';
+import { AddEditClothingModal } from './components/closet/AddEditClothingModal.js';
+import { OutfitCreator } from './components/outfits/OutfitCreator.js';
 import { AuthModal } from './components/auth/AuthModal.js';
-import { AITutorModal } from './components/tutor/AITutorModal.js';
-import { LoginPage } from './components/auth/LoginPage.js';
-import { OnboardingFlow } from './components/onboarding/OnboardingFlow.js';
-import { LegalPage } from './components/legal/LegalPage.js';
+import { OnboardingModal } from './components/onboarding/OnboardingModal.js';
+import { ToastContainer } from './components/common/Toast.js';
+import { closetService } from './services/closetService.js';
+import { ClothingItem, SavedOutfit, CalendarEntry } from './types/closet.js';
 
-const ParentDashboard = React.lazy(() =>
-  import('./components/parent/ParentDashboard.js').then(m => ({ default: m.ParentDashboard }))
-);
-const TeacherDashboard = React.lazy(() =>
-  import('./components/teacher/TeacherDashboard.js').then(m => ({ default: m.TeacherDashboard }))
-);
-const AdminDashboard = React.lazy(() =>
-  import('./components/admin/AdminDashboard.js').then(m => ({ default: m.AdminDashboard }))
-);
-const DuolingoLessonModal = React.lazy(() =>
-  import('./components/session/DuolingoLessonModal.js').then(m => ({ default: m.DuolingoLessonModal }))
-);
+const ClosetAppContent: React.FC = () => {
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
-const DashboardLoadingFallback: React.FC = () => (
-  <div className="w-full min-h-[300px] flex flex-col items-center justify-center p-8 space-y-3 text-emerald-400">
-    <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-    <span className="text-xs text-gray-400 font-medium">Loading...</span>
-  </div>
-);
-import {
-  isReturningUser,
-  getPersistedUserProfile,
-  savePersistedUserProfile,
-  clearPersistedUserProfile,
-  markOnboardingCompleted
-} from './services/onboardingStorage.js';
+  const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
+  const [wardrobe, setWardrobe] = useState<ClothingItem[]>([]);
+  const [outfits, setOutfits] = useState<SavedOutfit[]>([]);
+  const [calendarEntries, setCalendarEntries] = useState<CalendarEntry[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
 
-function getInitialLegalDoc(): 'privacy' | 'terms' | null {
-  if (typeof window === 'undefined') return null;
-  const path = window.location.pathname.toLowerCase();
-  if (path === '/privacy' || path.startsWith('/privacy/')) return 'privacy';
-  if (path === '/terms' || path.startsWith('/terms/')) return 'terms';
-  return null;
-}
+  // Global modals
+  const [isAddItemOpen, setIsAddItemOpen] = useState(false);
+  const [isOutfitCreatorOpen, setIsOutfitCreatorOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
-const getPersistedHearts = (fallback = 5): number => {
-  try {
-    const val = localStorage.getItem('jifuno_hearts');
-    if (val !== null) {
-      const parsed = parseInt(val, 10);
-      if (!isNaN(parsed) && parsed >= 0 && parsed <= 5) return parsed;
+  // Fetch all wardrobe, outfit, and calendar data for current user
+  const loadClosetData = useCallback(async () => {
+    if (!user) {
+      setWardrobe([]);
+      setOutfits([]);
+      setCalendarEntries([]);
+      setDataLoading(false);
+      return;
     }
-  } catch (e) {}
-  return fallback;
-};
 
-const DEFAULT_STUDENT_USER: User = {
-  id: 'user-student-amina',
-  name: 'Amina Kiprono',
-  email: 'amina@jifuno.ke',
-  role: 'STUDENT',
-  avatar: 'cheetah',
-  createdAt: '2026-09-01T08:00:00Z',
-  studentProfileId: 'student-amina-01'
-};
-
-const DEFAULT_STUDENT_PROFILE: StudentProfile = {
-  id: 'student-amina-01',
-  userId: 'user-student-amina',
-  fullName: 'Amina Kiprono',
-  gradeId: 'grade-4',
-  schoolName: 'Simba Primary Academy',
-  county: 'Nakuru',
-  avatar: 'cheetah',
-  level: 3,
-  xp: 420,
-  coins: 185,
-  hearts: getPersistedHearts(5),
-  maxHearts: 5,
-  streakDays: 5,
-  lastActiveDate: new Date().toISOString().split('T')[0],
-  streakFrozen: false,
-  unlockedWorldIds: ['world-math-kingdom', 'world-science-lab', 'world-word-quest'],
-  completedMissionIds: ['mission-01-seedlings'],
-  badges: ['badge-seedling-starter'],
-  equippedTitle: 'Savanna Explorer',
-  parentUserId: 'user-parent-mama',
-  classId: 'class-g4-simba'
-};
-
-const DEFAULT_GRADES: Grade[] = [
-  { id: 'grade-3', code: 'G3', name: 'Grade 3', levelGroup: 'LOWER_PRIMARY', description: 'Foundational literacy, numeracy and environmental awareness.' },
-  { id: 'grade-4', code: 'G4', name: 'Grade 4', levelGroup: 'UPPER_PRIMARY', description: 'Upper primary transition focusing on core CBE competencies and practical inquiry.' },
-  { id: 'grade-5', code: 'G5', name: 'Grade 5', levelGroup: 'UPPER_PRIMARY', description: 'Intermediate problem-solving, science, technology, agriculture, and languages.' },
-  { id: 'grade-6', code: 'G6', name: 'Grade 6', levelGroup: 'UPPER_PRIMARY', description: 'Preparation for Junior School assessment with advanced competency mastery.' }
-];
-
-export function App() {
-  const [isGuestMode, setIsGuestMode] = useState<boolean>(() => {
+    setDataLoading(true);
     try {
-      return sessionStorage.getItem('jifuno_guest_mode') === 'true';
-    } catch {
-      return false;
-    }
-  });
-
-  const [currentView, setCurrentView] = useState<'DASHBOARD' | 'LOGIN' | 'ONBOARDING'>(() => {
-    try {
-      if (sessionStorage.getItem('jifuno_guest_mode') === 'true') {
-        return 'DASHBOARD';
-      }
-      if (isReturningUser()) {
-        const persisted = getPersistedUserProfile();
-        if (persisted.user) return 'DASHBOARD';
-        return 'LOGIN';
-      }
-    } catch {}
-    // First-time visitor: Duolingo onboarding flow (Value first, commitment second, account last)
-    return 'ONBOARDING';
-  });
-
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    try {
-      if (sessionStorage.getItem('jifuno_guest_mode') === 'true') {
-        const persisted = getPersistedUserProfile();
-        return persisted.user || DEFAULT_STUDENT_USER;
-      }
-    } catch {}
-    return null;
-  });
-
-  const [studentProfile, setStudentProfile] = useState<StudentProfile | null>(() => {
-    try {
-      if (sessionStorage.getItem('jifuno_guest_mode') === 'true') {
-        const persisted = getPersistedUserProfile();
-        return persisted.studentProfile || DEFAULT_STUDENT_PROFILE;
-      }
-    } catch {}
-    return null;
-  });
-
-  const [grades, setGrades] = useState<Grade[]>(DEFAULT_GRADES);
-  const [selectedGradeId, setSelectedGradeId] = useState<string>(() => {
-    if (isReturningUser()) {
-      const persisted = getPersistedUserProfile();
-      return persisted.studentProfile?.gradeId || 'grade-4';
-    }
-    return 'grade-4';
-  });
-  const [loading, setLoading] = useState(false);
-
-  // Sound mute state
-  const [isMuted, setIsMuted] = useState(false);
-
-  // Persistent Interface Language state (Default: 'en' English)
-  const [uiLanguage, setUiLanguage] = useState<'en' | 'sw'>(() => {
-    try {
-      const stored = localStorage.getItem('jifuno_ui_lang');
-      if (stored === 'en' || stored === 'sw') return stored;
-    } catch {}
-    return 'en';
-  });
-
-  const handleToggleLanguage = () => {
-    const next = uiLanguage === 'en' ? 'sw' : 'en';
-    setUiLanguage(next);
-    try {
-      localStorage.setItem('jifuno_ui_lang', next);
-    } catch {}
-  };
-
-  // Active Mission Session Modal
-  const [activeMissionId, setActiveMissionId] = useState<string | null>(null);
-
-  // Auth / Role modal
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-
-  // Global AI Tutor Modal
-  const [isGlobalTutorOpen, setIsGlobalTutorOpen] = useState(false);
-
-  // Legal Document Route (/privacy, /terms)
-  const [legalDoc, setLegalDoc] = useState<'privacy' | 'terms' | null>(() => getInitialLegalDoc());
-
-  useEffect(() => {
-    const handlePopState = () => {
-      setLegalDoc(getInitialLegalDoc());
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
-  const navigateToLegal = (target: 'privacy' | 'terms' | 'app') => {
-    if (target === 'app') {
-      setLegalDoc(null);
-      if (window.location.pathname === '/privacy' || window.location.pathname === '/terms') {
-        window.history.pushState({}, '', '/');
-      }
-    } else {
-      setLegalDoc(target);
-      const newPath = target === 'privacy' ? '/privacy' : '/terms';
-      if (window.location.pathname !== newPath) {
-        window.history.pushState({}, '', newPath);
-      }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  useEffect(() => {
-    initApp();
-
-    if (!isSupabaseConfigured()) return;
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-        if (session?.user) {
-          try {
-            const authRes = await cbeApi.getMe();
-            if (authRes.user) {
-              setCurrentUser(authRes.user);
-              if (authRes.studentProfile) {
-                const hearts = getPersistedHearts(authRes.studentProfile.hearts ?? 5);
-                const fullStudent = { ...authRes.studentProfile, hearts };
-                setStudentProfile(fullStudent);
-                setSelectedGradeId(fullStudent.gradeId);
-                savePersistedUserProfile(authRes.user, fullStudent);
-              } else {
-                savePersistedUserProfile(authRes.user);
-              }
-              markOnboardingCompleted();
-            }
-          } catch (err) {
-            console.warn('[Supabase Auth onAuthStateChange Error]:', err);
-          }
-        }
-      } else if (event === 'SIGNED_OUT') {
-        clearPersistedUserProfile();
-        setCurrentUser(null);
-        setStudentProfile(null);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const initApp = async () => {
-    try {
-      setLoading(true);
-      const [gRes, session] = await Promise.all([
-        cbeApi.getGrades(),
-        isSupabaseConfigured() ? getSession() : Promise.resolve(null)
+      const [itemsData, outfitsData, calData] = await Promise.all([
+        closetService.getItems(user.id),
+        closetService.getOutfits(user.id),
+        closetService.getCalendarEntries(user.id),
       ]);
-
-      setGrades(gRes.grades);
-
-      // Check active Supabase authenticated session
-      if (session?.user) {
-        try {
-          const authRes = await cbeApi.getMe();
-          if (authRes.user) {
-            setCurrentUser(authRes.user);
-            setIsGuestMode(false);
-            try {
-              sessionStorage.removeItem('jifuno_guest_mode');
-            } catch {}
-            if (authRes.studentProfile) {
-              const hearts = getPersistedHearts(authRes.studentProfile.hearts ?? 5);
-              const fullStudent = { ...authRes.studentProfile, hearts };
-              setStudentProfile(fullStudent);
-              setSelectedGradeId(fullStudent.gradeId);
-              savePersistedUserProfile(authRes.user, fullStudent);
-            } else {
-              savePersistedUserProfile(authRes.user);
-            }
-            markOnboardingCompleted();
-            setCurrentView('DASHBOARD');
-            return;
-          }
-        } catch (authErr) {
-          console.warn('[initApp] Failed to load authenticated user profile:', authErr);
-        }
-      }
-
-      // Check if user previously chosen Guest / Demo mode in this session
-      let guestApproved = false;
-      try {
-        guestApproved = sessionStorage.getItem('jifuno_guest_mode') === 'true';
-      } catch {}
-
-      if (guestApproved) {
-        const persisted = getPersistedUserProfile();
-        const activeUser = persisted.user || DEFAULT_STUDENT_USER;
-        const activeStudent = persisted.studentProfile || DEFAULT_STUDENT_PROFILE;
-        setCurrentUser(activeUser);
-        setIsGuestMode(true);
-        if (activeStudent) {
-          const hearts = getPersistedHearts(activeStudent.hearts ?? 5);
-          const fullStudent = { ...activeStudent, hearts };
-          setStudentProfile(fullStudent);
-          setSelectedGradeId(fullStudent.gradeId);
-        }
-        setCurrentView('DASHBOARD');
-        return;
-      }
-
-      // Check if user is returning who previously completed onboarding or has stored profile
-      if (isReturningUser()) {
-        const persisted = getPersistedUserProfile();
-        if (persisted.user) {
-          setCurrentUser(persisted.user);
-          if (persisted.studentProfile) {
-            const hearts = getPersistedHearts(persisted.studentProfile.hearts ?? 5);
-            const fullStudent = { ...persisted.studentProfile, hearts };
-            setStudentProfile(fullStudent);
-            setSelectedGradeId(fullStudent.gradeId);
-          }
-          setCurrentView('DASHBOARD');
-          return;
-        }
-
-        // Returning user without active local profile -> show LOGIN
-        setCurrentUser(null);
-        setStudentProfile(null);
-        setIsGuestMode(false);
-        setCurrentView('LOGIN');
-        return;
-      }
-
-      // First-time visitor: Duolingo onboarding flow (Value first, commitment second, account last)
-      setCurrentUser(null);
-      setStudentProfile(null);
-      setIsGuestMode(false);
-      setCurrentView('ONBOARDING');
+      setWardrobe(itemsData);
+      setOutfits(outfitsData);
+      setCalendarEntries(calData);
     } catch (err) {
-      console.error('Failed to initialize Jifuno app:', err);
-      setCurrentView('ONBOARDING');
+      console.error('Failed to load closet data:', err);
     } finally {
-      setLoading(false);
+      setDataLoading(false);
     }
-  };
+  }, [user]);
 
-  const handleLogout = async () => {
-    sound.playClick();
-    if (isSupabaseConfigured()) {
-      try {
-        await signOut();
-      } catch (err) {
-        console.warn('[Supabase SignOut Warning]:', err);
-      }
+  useEffect(() => {
+    loadClosetData();
+  }, [loadClosetData]);
+
+  // Check onboarding status
+  useEffect(() => {
+    if (user && !user.onboarding_completed) {
+      setIsOnboardingOpen(true);
+    } else {
+      setIsOnboardingOpen(false);
     }
-    try {
-      sessionStorage.removeItem('jifuno_guest_mode');
-    } catch {}
-    clearPersistedUserProfile();
-    setCurrentUser(null);
-    setStudentProfile(null);
-    setIsGuestMode(false);
-    setCurrentView('LOGIN');
-  };
+  }, [user]);
 
-  const handleToggleMute = () => {
-    const next = !isMuted;
-    setIsMuted(next);
-    sound.setMuted(next);
-    if (!next) sound.playClick();
-  };
-
-  const handleGradeChange = (newGradeId: string) => {
-    sound.playClick();
-    setSelectedGradeId(newGradeId);
-    if (studentProfile) {
-      const updated = { ...studentProfile, gradeId: newGradeId };
-      setStudentProfile(updated);
-      if (currentUser) {
-        savePersistedUserProfile(currentUser, updated);
-      }
-    }
-  };
-
-  const handleCompleteOnboarding = (user: User, profile: StudentProfile) => {
-    setCurrentUser(user);
-    setStudentProfile(profile);
-    setSelectedGradeId(profile.gradeId);
-    savePersistedUserProfile(user, profile);
-    markOnboardingCompleted();
-    setCurrentView('DASHBOARD');
-  };
-
-  const handleMissionCompleted = (result?: any) => {
-    if (studentProfile) {
-      const missionId = result?.missionId || activeMissionId;
-      const completedIds = studentProfile.completedMissionIds || [];
-      const updatedMissions = missionId && !completedIds.includes(missionId)
-        ? [...completedIds, missionId]
-        : completedIds;
-
-      const updatedStudent: StudentProfile = {
-        ...studentProfile,
-        xp: (studentProfile.xp || 0) + (result?.xpEarned || 25),
-        coins: (studentProfile.coins || 0) + (result?.coinsEarned || 10),
-        completedMissionIds: updatedMissions
-      };
-
-      setStudentProfile(updatedStudent);
-      if (currentUser) {
-        savePersistedUserProfile(currentUser, updatedStudent);
-      }
-
-      // Sync with API if possible
-      cbeApi.getStudentStats(studentProfile.id).then(res => {
-        if (res.student) {
-          const hearts = getPersistedHearts(res.student.hearts ?? updatedStudent.hearts ?? 5);
-          const syncedMissions = Array.from(new Set([...(res.student.completedMissionIds || []), ...updatedMissions]));
-          const synced = { ...res.student, completedMissionIds: syncedMissions, hearts };
-          setStudentProfile(synced);
-          if (currentUser) {
-            savePersistedUserProfile(currentUser, synced);
-          }
-        }
-      }).catch(() => {});
-    }
-  };
-
-  // 0. Public Legal Pages (/privacy, /terms) - readable without logging in
-  if (legalDoc) {
+  if (authLoading) {
     return (
-      <LegalPage
-        documentType={legalDoc}
-        onNavigate={navigateToLegal}
-      />
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center space-y-4 text-emerald-400">
-        <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-        <div className="text-center">
-          <h1 className="text-xl font-black text-white">Jifuno</h1>
-          <p className="text-xs text-emerald-300">Learn. Play. Level Up.</p>
+      <div className="min-h-screen bg-[#FAF7F2] flex flex-col items-center justify-center p-6 text-stone-700">
+        <div className="w-12 h-12 rounded-2xl bg-[#1E392A] text-white flex items-center justify-center shadow-lg animate-pulse mb-3">
+          <span className="font-editorial text-2xl font-bold text-[#C2A674]">M</span>
         </div>
-      </div>
-    );
-  }
-
-  // 1. Full-screen Duolingo onboarding flow for new visitors or midway resumers
-  if (currentView === 'ONBOARDING') {
-    return (
-      <OnboardingFlow
-        onCompleteOnboarding={handleCompleteOnboarding}
-        onOpenLogin={() => setCurrentView('LOGIN')}
-        language={uiLanguage}
-        onNavigateLegal={(doc) => navigateToLegal(doc)}
-      />
-    );
-  }
-
-  // 2. Full-screen login page
-  if (currentView === 'LOGIN') {
-    return (
-      <LoginPage
-        currentUser={currentUser}
-        grades={grades}
-        onLoginSuccess={(user) => {
-          setIsGuestMode(false);
-          try {
-            sessionStorage.removeItem('jifuno_guest_mode');
-          } catch {}
-          setCurrentUser(user);
-          markOnboardingCompleted();
-          if (user.studentProfileId) {
-            cbeApi.getStudentStats(user.studentProfileId).then(res => {
-              if (res.student) {
-                setStudentProfile(res.student);
-                setSelectedGradeId(res.student.gradeId);
-                savePersistedUserProfile(user, res.student);
-              }
-            }).catch(() => {});
-          }
-          setCurrentView('DASHBOARD');
-        }}
-        onCancel={() => {
-          setIsGuestMode(true);
-          try {
-            sessionStorage.setItem('jifuno_guest_mode', 'true');
-          } catch {}
-          const persisted = getPersistedUserProfile();
-          const demoUser = persisted.user || DEFAULT_STUDENT_USER;
-          const demoProfile = persisted.studentProfile || DEFAULT_STUDENT_PROFILE;
-          setCurrentUser(demoUser);
-          setStudentProfile(demoProfile);
-          setSelectedGradeId(demoProfile.gradeId);
-          setCurrentView('DASHBOARD');
-        }}
-        onNavigateLegal={(doc) => navigateToLegal(doc)}
-      />
-    );
-  }
-
-  const currentGrade = grades.find(g => g.id === selectedGradeId) || grades[1] || grades[0];
-
-  // 3. Dedicated Learner View: Full-Screen Pure Game HUD + Path / Practice / Shop / Profile (Zero header duplication)
-  if (currentUser?.role === 'STUDENT' && studentProfile) {
-    return (
-      <div className="min-h-screen bg-slate-950 text-gray-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-black">
-        <StudentDashboard
-          student={studentProfile}
-          currentUser={currentUser}
-          grades={grades}
-          onStartMission={(mId) => {
-            setActiveMissionId(mId);
-          }}
-          onStudentUpdated={(st) => {
-            setStudentProfile(st);
-            if (currentUser) {
-              savePersistedUserProfile(currentUser, st);
-            }
-          }}
-          isMuted={isMuted}
-          onToggleMute={handleToggleMute}
-          onGradeChange={handleGradeChange}
-          onLogout={handleLogout}
-          onOpenAuthModal={() => setIsAuthModalOpen(true)}
-          onOpenTutor={() => setIsGlobalTutorOpen(true)}
-          language={uiLanguage}
-          onToggleLanguage={handleToggleLanguage}
-          onNavigateLegal={(doc) => navigateToLegal(doc)}
-          isGuestMode={isGuestMode}
-          onOpenLogin={() => setCurrentView('LOGIN')}
-        />
-
-        {/* Duolingo Gamified CBE Lesson Modal */}
-        <React.Suspense fallback={<DashboardLoadingFallback />}>
-          {activeMissionId && studentProfile && (
-            <DuolingoLessonModal
-              isOpen={Boolean(activeMissionId)}
-              missionId={activeMissionId}
-              studentId={studentProfile.id}
-              studentName={studentProfile.fullName}
-              initialHearts={studentProfile.hearts ?? 5}
-              onHeartsChange={(newHearts) => {
-                setStudentProfile(prev => prev ? { ...prev, hearts: newHearts } : null);
-              }}
-              onClose={() => setActiveMissionId(null)}
-              onMissionCompleted={handleMissionCompleted}
-              language={uiLanguage}
-            />
-          )}
-        </React.Suspense>
-
-        {/* Auth / Role Switcher Modal */}
-        <AuthModal
-          isOpen={isAuthModalOpen}
-          onClose={() => setIsAuthModalOpen(false)}
-          currentUser={currentUser}
-          grades={grades}
-          onAuthSuccess={(user) => {
-            setCurrentUser(user);
-            markOnboardingCompleted();
-            initApp();
-          }}
-          onOpenLoginPage={() => {
-            setIsAuthModalOpen(false);
-            setCurrentView('LOGIN');
-          }}
-          onLogout={handleLogout}
-          onNavigateLegal={(doc) => {
-            setIsAuthModalOpen(false);
-            navigateToLegal(doc);
-          }}
-        />
-
-        {/* Global Socratic AI Tutor Modal */}
-        <AITutorModal
-          isOpen={isGlobalTutorOpen}
-          onClose={() => setIsGlobalTutorOpen(false)}
-          studentName={studentProfile?.fullName || 'Learner'}
-          gradeName={currentGrade?.name}
-        />
+        <p className="font-editorial text-xl font-bold text-stone-900">MyCloset</p>
+        <span className="text-xs text-stone-500 mt-1">Preparing your wardrobe...</span>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-gray-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-black">
-      {/* Top Main Navigation Bar */}
-      <header className="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-emerald-900/60 px-4 md:px-8 py-3.5 flex items-center justify-between gap-4">
-        {/* Brand */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-2xl shadow-lg shadow-emerald-950/60">
-            🇰🇪
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-base md:text-lg font-black tracking-tight text-white">
-                Jifuno
-              </h1>
-              <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
-                CBC
-              </span>
-            </div>
-            <p className="text-[10px] text-emerald-400 font-medium hidden sm:block">
-              Learn. Play. Level Up.
-            </p>
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#FAF7F2] text-[#1C1917] flex flex-col md:flex-row antialiased selection:bg-[#1E392A] selection:text-[#FAF7F2]">
+      {/* Desktop Sidebar */}
+      <Sidebar
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        onOpenAddItem={() => setIsAddItemOpen(true)}
+        onOpenAuth={() => setIsAuthOpen(true)}
+      />
 
-        {/* Center: Grade Selector (ONLY shown for adults managing multiple grades) */}
-        {currentUser?.role !== 'STUDENT' && (
-          <div className="hidden md:flex items-center gap-1.5 bg-slate-900 border border-emerald-900/60 p-1 rounded-2xl">
-            {grades.map(g => (
-              <button
-                key={g.id}
-                type="button"
-                onClick={() => handleGradeChange(g.id)}
-                className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  g.id === selectedGradeId
-                    ? 'bg-emerald-500 text-slate-950 shadow-sm'
-                    : 'text-gray-400 hover:text-white hover:bg-emerald-950/40'
-                }`}
-              >
-                {g.name}
-              </button>
-            ))}
-          </div>
-        )}
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Mobile Top Header */}
+        <TopHeader
+          activeTab={activeTab}
+          onOpenAddItem={() => setIsAddItemOpen(true)}
+          onSelectTab={setActiveTab}
+        />
 
-        {/* Right Controls */}
-        <div className="flex items-center gap-2.5">
-          {/* Sound Toggle */}
-          <button
-            type="button"
-            onClick={handleToggleMute}
-            className="w-9 h-9 rounded-xl bg-slate-900 border border-emerald-900/60 hover:border-emerald-700 text-gray-300 flex items-center justify-center text-sm cursor-pointer"
-            title={isMuted ? 'Unmute Sound' : 'Mute Sound'}
-          >
-            {isMuted ? '🔇' : '🔊'}
-          </button>
-
-          {/* Socratic Tutor Floating Companion Trigger */}
-          <button
-            type="button"
-            onClick={() => {
-              sound.playClick();
-              setIsGlobalTutorOpen(true);
-            }}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/50 hover:bg-amber-500/30 text-amber-300 font-bold text-xs cursor-pointer"
-          >
-            <span>🦉</span>
-            <span>Rafiki AI</span>
-          </button>
-
-          {/* Role Access: Learner views show Log In if in guest mode, or Exit if authenticated */}
-          {currentUser?.role === 'STUDENT' ? (
-            <div className="flex items-center gap-2">
-              {isGuestMode ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    sound.playClick();
-                    setCurrentView('LOGIN');
-                  }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs cursor-pointer shadow-md shadow-emerald-500/20 transition-all"
-                  title="Log In / Sign Up to save progress"
-                >
-                  <span>🔑</span>
-                  <span>Log In</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-rose-900/40 hover:border-rose-600 text-rose-300 hover:text-white font-bold text-xs cursor-pointer shadow-sm transition-all"
-                  title="Sign Out / Ondoka"
-                >
-                  <span>🚪</span>
-                  <span className="hidden sm:inline">Exit</span>
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={() => {
-                  sound.playClick();
-                  setIsAuthModalOpen(true);
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-emerald-900/60 hover:border-emerald-600 text-gray-300 hover:text-white font-bold text-xs cursor-pointer shadow-sm transition-all"
-                title="Parent & Teacher Area"
-              >
-                <span>👨‍👩‍👧</span>
-                <span className="hidden sm:inline">Parent Area</span>
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              {/* Log Out / Exit Button */}
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-rose-900/40 hover:border-rose-600 text-rose-300 hover:text-white font-bold text-xs cursor-pointer shadow-sm transition-all"
-                title="Sign Out to Login Screen"
-              >
-                <span>🚪</span>
-                <span className="hidden sm:inline">Exit</span>
-              </button>
-
-              {/* Adult Role Pill Switcher */}
-              <button
-                type="button"
-                onClick={() => {
-                  sound.playClick();
-                  setIsAuthModalOpen(true);
-                }}
-                className="flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-gradient-to-r from-emerald-900/70 to-slate-900 border border-emerald-500/50 hover:border-emerald-400 text-white font-bold text-xs cursor-pointer shadow-sm transition-all"
-              >
-                <span>
-                  {currentUser?.role === 'PARENT'
-                    ? '👨‍👩‍👧'
-                    : currentUser?.role === 'TEACHER'
-                    ? '👨‍🏫'
-                    : '⚙️'}
-                </span>
-                <span className="hidden xs:inline">
-                  {currentUser?.role === 'PARENT'
-                    ? 'Parent'
-                    : currentUser?.role === 'TEACHER'
-                    ? 'Teacher'
-                    : 'Admin'}
-                </span>
-                <span className="text-[10px] text-emerald-400">▼</span>
-              </button>
-            </div>
+        {/* Scrollable View Container */}
+        <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-8 py-6 md:py-8 overflow-y-auto">
+          {activeTab === 'dashboard' && (
+            <DashboardView
+              user={user}
+              wardrobe={wardrobe}
+              outfits={outfits}
+              calendarEntries={calendarEntries}
+              isLoading={dataLoading}
+              onNavigate={setActiveTab}
+              onOpenAddItem={() => setIsAddItemOpen(true)}
+              onOpenOutfitCreator={() => setIsOutfitCreatorOpen(true)}
+              onRefresh={loadClosetData}
+            />
           )}
-        </div>
-      </header>
 
-      {/* Main View Router based on active adult role */}
-      <main className="flex-1 px-4 md:px-8 py-6 max-w-7xl mx-auto w-full">
-        <React.Suspense fallback={<DashboardLoadingFallback />}>
-          {currentUser?.role === 'PARENT' ? (
-            <ParentDashboard />
-          ) : currentUser?.role === 'TEACHER' ? (
-            <TeacherDashboard />
-          ) : currentUser?.role === 'ADMIN' ? (
-            <AdminDashboard currentUser={currentUser} />
-          ) : (
-            <div className="text-center py-20">
-              <p className="text-gray-400 text-sm">Please log in or select a demo account.</p>
-            </div>
+          {activeTab === 'closet' && (
+            <ClosetView
+              userId={user?.id || 'demo'}
+              items={wardrobe}
+              isLoading={dataLoading}
+              onRefresh={loadClosetData}
+              onOpenAddItem={() => setIsAddItemOpen(true)}
+            />
           )}
-        </React.Suspense>
-      </main>
 
-      {/* Bottom Footer */}
-      <footer className="border-t border-emerald-950 bg-slate-950/80 px-4 py-4 text-center text-xs text-gray-500 space-y-2">
-        <p>
-          🇰🇪 <strong className="text-gray-400">Jifuno</strong> • Learn. Play. Level Up. • Designed for Kenyan Competency-Based Education (CBE / CBC).
-        </p>
-        <p className="text-[11px] text-gray-600">
-          Curriculum-aligned practice for Mathematics, Science & Tech, Kiswahili, and English. Content is strictly designed for educational practice and child safety.
-        </p>
-        <div className="flex items-center justify-center gap-4 text-[11px] pt-1">
-          <button
-            type="button"
-            onClick={() => navigateToLegal('privacy')}
-            className="text-gray-400 hover:text-emerald-400 transition-colors underline cursor-pointer"
-          >
-            Privacy Policy
-          </button>
-          <span className="text-gray-700">•</span>
-          <button
-            type="button"
-            onClick={() => navigateToLegal('terms')}
-            className="text-gray-400 hover:text-emerald-400 transition-colors underline cursor-pointer"
-          >
-            Terms of Service
-          </button>
-        </div>
-      </footer>
+          {activeTab === 'outfits' && (
+            <OutfitsView
+              userId={user?.id || 'demo'}
+              outfits={outfits}
+              wardrobe={wardrobe}
+              isLoading={dataLoading}
+              onRefresh={loadClosetData}
+              onNavigateToCalendar={() => setActiveTab('calendar')}
+            />
+          )}
 
-      {/* Duolingo Gamified CBE Lesson Modal */}
-      <React.Suspense fallback={<DashboardLoadingFallback />}>
-        {activeMissionId && studentProfile && (
-          <DuolingoLessonModal
-            isOpen={Boolean(activeMissionId)}
-            missionId={activeMissionId}
-            studentId={studentProfile.id}
-            studentName={studentProfile.fullName}
-            initialHearts={studentProfile.hearts ?? 5}
-            onHeartsChange={(newHearts) => {
-              setStudentProfile(prev => prev ? { ...prev, hearts: newHearts } : null);
-            }}
-            onClose={() => setActiveMissionId(null)}
-            onMissionCompleted={handleMissionCompleted}
-            language={uiLanguage}
-          />
-        )}
-      </React.Suspense>
+          {activeTab === 'stylist' && (
+            <StylistView
+              userId={user?.id || 'demo'}
+              wardrobe={wardrobe}
+              onNavigateToCalendar={() => setActiveTab('calendar')}
+              onRefresh={loadClosetData}
+            />
+          )}
 
-      {/* Auth / Role Switcher Modal */}
+          {activeTab === 'calendar' && (
+            <CalendarView
+              userId={user?.id || 'demo'}
+              entries={calendarEntries}
+              outfits={outfits}
+              wardrobe={wardrobe}
+              isLoading={dataLoading}
+              onRefresh={loadClosetData}
+              onOpenOutfitCreator={() => setIsOutfitCreatorOpen(true)}
+            />
+          )}
+
+          {activeTab === 'profile' && (
+            <ProfileView
+              wardrobe={wardrobe}
+              outfits={outfits}
+              onRefresh={loadClosetData}
+              onOpenAuth={() => setIsAuthOpen(true)}
+            />
+          )}
+        </main>
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <BottomNav activeTab={activeTab} onSelectTab={setActiveTab} />
+
+      {/* Global Modals */}
+      <AddEditClothingModal
+        isOpen={isAddItemOpen}
+        userId={user?.id || 'demo'}
+        onClose={() => setIsAddItemOpen(false)}
+        onSaved={() => {
+          loadClosetData();
+        }}
+      />
+
+      <OutfitCreator
+        isOpen={isOutfitCreatorOpen}
+        userId={user?.id || 'demo'}
+        wardrobe={wardrobe}
+        onClose={() => setIsOutfitCreatorOpen(false)}
+        onSaved={() => {
+          loadClosetData();
+        }}
+      />
+
       <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        currentUser={currentUser}
-        grades={grades}
-        onAuthSuccess={(user) => {
-          setCurrentUser(user);
-          markOnboardingCompleted();
-          initApp();
-        }}
-        onOpenLoginPage={() => {
-          setIsAuthModalOpen(false);
-          setCurrentView('LOGIN');
-        }}
-        onLogout={handleLogout}
-        onNavigateLegal={(doc) => {
-          setIsAuthModalOpen(false);
-          navigateToLegal(doc);
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onSuccess={() => {
+          loadClosetData();
         }}
       />
 
-      {/* Global Socratic AI Tutor Modal */}
-      <AITutorModal
-        isOpen={isGlobalTutorOpen}
-        onClose={() => setIsGlobalTutorOpen(false)}
-        studentName={studentProfile?.fullName || 'Learner'}
-        gradeName={currentGrade?.name}
+      <OnboardingModal
+        isOpen={isOnboardingOpen}
+        onFinish={() => {
+          setIsOnboardingOpen(false);
+          loadClosetData();
+        }}
       />
+
+      {/* Global Toast Container */}
+      <ToastContainer />
     </div>
   );
+};
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <ClosetAppContent />
+    </AuthProvider>
+  );
 }
-export default App;

@@ -72,6 +72,13 @@ export async function getSession() {
   return data.session;
 }
 
+export async function resetPasswordForEmail(email: string) {
+  if (!isSupabaseConfigured()) {
+    return { data: null, error: new Error('Supabase is not configured') };
+  }
+  return supabase.auth.resetPasswordForEmail(email);
+}
+
 /**
  * Sign in anonymously for learners taking first lessons without credentials.
  */
