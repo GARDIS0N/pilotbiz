@@ -1,11 +1,14 @@
 import express, { Request, Response } from 'express';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 
 export const bizpilotRouter = express.Router();
 
-const DATA_DIR = path.resolve('data');
+const DATA_DIR = process.env.VERCEL
+  ? path.join(os.tmpdir(), 'bizpilot_data')
+  : path.resolve('data');
 const WORKSPACE_STORE_FILE = path.join(DATA_DIR, 'bizpilot_workspaces.json');
 
 function ensureDataDir() {

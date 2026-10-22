@@ -1,7 +1,6 @@
 import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import { closetAiRouter } from '../server/closetAiRouter.js';
 import { bizpilotRouter } from '../server/bizpilotRouter.js';
 
 dotenv.config();
@@ -22,6 +21,5 @@ app.get('/api/health', (_req: Request, res: Response) =>
 
 // Mount BizPilot KE API & AI Copilot endpoints
 app.use('/api/bizpilot', bizpilotRouter);
-app.use('/api/closet', closetAiRouter);
 
 export default app;

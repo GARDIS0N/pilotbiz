@@ -45,6 +45,8 @@ const FILES_TO_STAGE = [
   'index.html',
   'package.json',
   'package-lock.json',
+  '.npmrc',
+  '.vercelignore',
   'vite.config.ts',
   'tsconfig.json',
   'vercel.json',
@@ -89,7 +91,7 @@ async function run() {
   console.log('Files staged successfully.');
 
   // 2. Commit
-  const message = 'feat: complete BizPilot KE AI-powered business management SaaS platform';
+  const message = 'fix(build): remove untracked legacy router imports from vite.config.ts for Vercel deployment';
   console.log('Committing changes...');
   let sha;
   try {

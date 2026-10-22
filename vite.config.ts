@@ -4,8 +4,6 @@ import path from 'path';
 import { defineConfig } from 'vite';
 import express from 'express';
 import dotenv from 'dotenv';
-import { closetAiRouter } from './server/closetAiRouter.js';
-import { ttsRouter } from './server/ttsRouter.js';
 import { bizpilotRouter } from './server/bizpilotRouter.js';
 
 dotenv.config();
@@ -15,8 +13,6 @@ dotenv.config({ path: '.env.local' });
 const apiApp = express();
 apiApp.use(express.json({ limit: '15mb' }));
 apiApp.use('/api/bizpilot', bizpilotRouter);
-apiApp.use('/api/tts', ttsRouter);
-apiApp.use('/api/closet', closetAiRouter);
 apiApp.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', app: 'BizPilot KE API', time: new Date().toISOString() });
 });
@@ -28,7 +24,7 @@ export default defineConfig(() => {
       react(),
       tailwindcss(),
       {
-        name: 'closet-api-dev-middleware',
+        name: 'bizpilot-api-dev-middleware',
         configureServer(server) {
           server.middlewares.use(apiApp);
         },
