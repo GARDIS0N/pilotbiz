@@ -5,20 +5,25 @@ import { defineConfig } from 'vite';
 import express from 'express';
 import dotenv from 'dotenv';
 import { closetAiRouter } from './server/closetAiRouter.js';
+import { ttsRouter } from './server/ttsRouter.js';
+import { bizpilotRouter } from './server/bizpilotRouter.js';
 
 dotenv.config();
 dotenv.config({ path: '.env.local' });
 
 // Create Express sub-app for Vite dev server so res.json and full Express features work cleanly
 const apiApp = express();
-apiApp.use(express.json());
+apiApp.use(express.json({ limit: '15mb' }));
+apiApp.use('/api/bizpilot', bizpilotRouter);
+apiApp.use('/api/tts', ttsRouter);
 apiApp.use('/api/closet', closetAiRouter);
 apiApp.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', app: 'MyCloset Dev API', time: new Date().toISOString() });
+  res.json({ status: 'ok', app: 'BizPilot KE API', time: new Date().toISOString() });
 });
 
 export default defineConfig(() => {
   return {
+    base: './',
     plugins: [
       react(),
       tailwindcss(),
@@ -38,7 +43,22 @@ export default defineConfig(() => {
       host: '0.0.0.0',
       port: 5173,
       hmr: process.env.DISABLE_HMR !== 'true',
-      watch: process.env.DISABLE_HMR === 'true' ? null : {},
+      watch:
+        process.env.DISABLE_HMR === 'true'
+          ? null
+          : {
+              ignored: [
+                '**/node_modules/**',
+                '**/dist/**',
+                '**/.git/**',
+                '**/isair-jarvis-repo/**',
+                '**/ai-video-generator/**',
+                '**/cursor-wander/**',
+                '**/Desktop/**',
+                '**/backups/**',
+                '**/data/**',
+              ],
+            },
     },
   };
 });

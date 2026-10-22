@@ -1,5 +1,5 @@
 {
-  "name": "mycloset",
+  "name": "bizpilot-ke",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -8,9 +8,10 @@
     "start": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "tsx test/closet-engine.test.ts",
+    "test": "tsx --test test/bizpilot-ke.test.ts",
+    "test:bizpilot": "tsx --test test/bizpilot-ke.test.ts",
+    "test:tts": "tsx --test test/tts-engine.test.ts",
     "test:closet": "tsx test/closet-engine.test.ts",
     "test:phase1-security": "tsx test/phase1-security-and-resilience.test.ts",
     "test:phase2-automation": "tsx test/phase2-automation-and-operations.test.ts",
@@ -41,6 +42,7 @@
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
+    "@hookform/resolvers": "^6.0.0",
     "@supabase/supabase-js": "^2.117.3",
     "@tailwindcss/vite": "^4.3.3",
     "@types/ws": "^8.18.2",
@@ -50,12 +52,17 @@
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "isomorphic-git": "^1.43.1",
+    "lamejs": "^1.2.1",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
+    "react-hook-form": "^7.90.0",
+    "react-is": "^19.3.1",
+    "recharts": "^3.10.1",
     "vite": "^8.3.0",
-    "ws": "^8.22.0"
+    "ws": "^8.22.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/canvas-confetti": "^1.9.0",
@@ -68,5 +75,8 @@
     "tailwindcss": "^4.3.3",
     "tsx": "^4.21.0",
     "typescript": "^7.0.2"
+  },
+  "optionalDependencies": {
+    "sharp": "^0.35.5"
   }
 }

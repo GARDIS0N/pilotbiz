@@ -1,125 +1,92 @@
-# MyCloset — Intelligent Digital Wardrobe & AI Stylist
+# 🧭 BizPilot KE — AI-Powered Business Management Platform for Kenyan SMEs
 
-**MyCloset** is a modern, responsive digital wardrobe and AI styling application built with React 19, TypeScript, Vite, Tailwind CSS, and Supabase. It allows users to digitize their actual clothing pieces, curate custom looks on an interactive flatlay canvas, schedule outfits onto a calendar, and receive intelligent daily styling recommendations based on weather, color harmony, and occasion.
+> **"Run your business. Know your numbers. Grow with confidence."**
 
----
-
-## 🌟 Key Features
-
-### 1. Curated Fashion Design & UX
-- **Luxury Aesthetic**: Clean off-white/cream palette (`#FAF7F2`), rich charcoal typography (`#1C1917`), subtle forest-green accents (`#1E392A`), and gold highlights (`#C2A674`).
-- **Responsive Layout**: Dedicated bottom navigation bar on mobile phones and structured sidebar on desktop.
-- **Micro-Interactions**: Skeleton loaders, smooth modals, confirmation before deletions, and toast alerts.
-
-### 2. User Accounts & Onboarding
-- **Authentication**: Sign up, login, logout, password recovery, and secure sessions via Supabase Auth.
-- **Local Persistent Mode**: Operates seamlessly in guest/demo mode without requiring third-party credentials or paid APIs; all data persists in browser IndexedDB.
-- **5-Step Onboarding**: Guides new users through name setup, aesthetic styles, frequent occasions, color preferences, and optional starter capsule pre-load.
-- **Private Wardrobes**: Full isolation so users only access their own private clothes.
-
-### 3. Digital Wardrobe Management
-- **Photography & Uploads**: Upload clothing photos from mobile cameras or desktop files. Uses canvas-based client-side compression for instant loading.
-- **Rich Metadata**: Name, category, color, secondary color, brand, size, seasons, occasions, availability status (`clean`, `in_laundry`, `unavailable`), and styling notes.
-- **Categorization**: 10 standard fashion categories + support for custom user-created categories.
-- **Search & Filtering**: Real-time search, category pill tabs with item count badges, status filter, season filter, sort options (newest, most worn, name), and favorites toggle.
-- **Wear Tracking**: Tracks wear counts and last worn dates whenever an outfit is logged.
-
-### 4. Interactive Outfit Creator
-- **Flatlay Canvas**: Assemble looks by slotting Tops, Bottoms, Footwear, Outerwear, and Accessories.
-- **Real Wardrobe Garments**: Outfits use exclusively real photographed garments from the user's closet.
-- **Outfit Metadata**: Name, description, occasion, style, season, and favorite heart toggle.
-
-### 5. Intelligent Outfit Recommendation Engine
-- **Algorithmic Styling**: Heuristic engine evaluating color coordination (complementary pairs, neutral anchors, monochrome harmony), silhouette balance, formality level, and weather suitability.
-- **Weather Awareness**: Adapts dynamically to conditions (Warm & Sunny, Mild & Breezy, Cool & Crisp, Cold & Rainy, Freezing & Snow). Disallows shorts in winter and mandates outerwear for cold rain.
-- **Clean Garment Integrity**: Exclusively selects garments marked `clean` (never recommends laundry items).
-- **Custom Filters**: User can specify "Must Wear" pieces or items to avoid.
-- **1-Click Actions**: "Wear Today" (schedules into calendar) or "Save as Outfit".
-
-### 6. Outfit Calendar & Schedule
-- **Calendar Views**: Interactive month, week, and day views.
-- **Schedule Outfits**: Assign any saved outfit to a date with daily agenda notes.
-- **Duplicate Prevention**: Detects if an outfit is already assigned to a date and confirms before duplicates.
-- **Wear Tracking**: Mark outfits as worn today to update garment wear statistics.
-- **Look History**: Archives past looks with date badges.
-
-### 7. Personalized Dashboard
-- **Contextual Greeting**: Time-aware greeting (`Good morning`, `Good afternoon`, `Good evening`).
-- **Live Wardrobe Stats**: Total garments, clean pieces, laundry count, and saved looks.
-- **Today's Look Card**: Instant view of today's scheduled outfit with 1-click worn logging.
-- **Featured Recommendation**: Prominent daily recommendation tailored to the user's preferred style.
-- **Recent Additions & Favorites**: Quick carousel previews.
+**BizPilot KE** is a full-stack SaaS business management web application built specifically for Kenyan small and medium-sized businesses — including retail shops (*dukas*), mini-supermarkets, clothing & cosmetics boutiques, electronics & phone accessory stores, online vendors, freelancers, and small wholesalers.
 
 ---
 
-## 🛠️ Tech Stack
+## 🌟 Core Modules & Capabilities
 
-- **Frontend**: React 19, TypeScript
-- **Bundler & Build**: Vite 8, Rolldown
-- **Styling**: Tailwind CSS 4, Google Fonts (*Playfair Display* & *Plus Jakarta Sans*)
-- **Icons**: Lucide React
-- **Database & Storage**:
-  - **Cloud Mode**: Supabase (PostgreSQL, Row Level Security, Supabase Storage)
-  - **Local Mode**: IndexedDB (`idb`) persistent storage adapter with client-side image compression
-- **Deployment**: Vercel ready (`vercel.json`)
+1. **Authentication, Multi-Tenant Isolation & Onboarding**
+   - Email & password registration, login, logout, password reset, and persistent sessions.
+   - Guided Kenyan SME onboarding collecting Business Name, Owner Name, Category, County/Town, Currency (`KSh` default), Contact Phone, Business Type (`Products`, `Services`, `Hybrid`), and Subscription Plan (`FREE`, `STARTER`, `GROWTH`).
+   - Brand-new accounts start with a **clean, empty workspace** and helpful empty-state actions (never fabricated sales numbers), plus an optional 1-click **Sample Nairobi Shop Demo** (`Kilimani Mart & Electronics KE`).
 
----
+2. **Live Financial Dashboard (East Africa Time — `Africa/Nairobi`)**
+   - Date filters for **Today**, **Last 7 Days**, **Last 30 Days**, **All Time**, and **Custom Date Ranges**.
+   - Real-time KPIs: Sales Revenue, Actual Cash/M-Pesa Collected, Operating Expenses, Gross Profit, Estimated Net Profit, Outstanding Customer Balances (*Madeni*), Active Products, and Low-Stock Alerts.
+   - Interactive Recharts visualizations for Sales vs. Expenses Trends and Best-Selling Products.
 
-## 🚀 Quick Start & Local Development
+3. **Product & Inventory Management**
+   - Create, edit, archive, search, filter, sort, and paginate products.
+   - Tracks SKU, Category, Supplier, Purchase Cost, Selling Price, Unit Gross Profit, Current Stock, and Low-Stock Alert Threshold.
+   - Prevents accidental negative stock (unless explicitly authorized in Business Settings with warning logs).
+   - Full **Stock Movement Audit History** recording every opening balance, POS sale, sale cancellation, supplier restock, and manual stock adjustment.
 
-### 1. Install Dependencies
-```bash
-npm install
-```
+4. **Point of Sale (POS) & Official Receipts**
+   - Fast checkout with quantity validation, authorized discounts, and optional configurable VAT/tax.
+   - Supports **M-Pesa** (recordkeeping with confirmation codes), **Cash**, **Bank Transfer**, **Card**, and **Credit / Pay Later**.
+   - Idempotency protection prevents duplicate sales from repeated clicks.
+   - Printable official receipts, PDF export via print, WhatsApp receipt copy, and **Sale Cancellation / Refund** workflow that automatically restores stock quantities.
 
-### 2. Environment Configuration
-Copy `.env.example` to `.env.local`:
-```bash
-cp .env.example .env.local
-```
+5. **Expense Tracking (With Double-Counting Prevention)**
+   - Tracks Rent, Transport, Stock Purchases, Utilities, Salaries, Internet & Communication, Marketing, Equipment, and Other expenses.
+   - Automatically separates **Stock Purchases (Inventory)** from **Operating Expenses** so Cost of Goods Sold (COGS) is never double-counted in Net Profit reports.
 
-If you do not have Supabase credentials yet, **MyCloset will run automatically in Local Persistent Mode using IndexedDB**. All uploaded photos, garments, outfits, and calendar schedules will persist across browser reloads!
+6. **Customers & Credit Management (*Madeni*) + Suppliers & Purchasing**
+   - Dynamically calculates customer outstanding balances from recorded credit sales, invoices, and partial/full payments (never a manually editable number).
+   - Generates printable **Customer Statements** and **Polite Payment Reminders** in both **English** and **Kiswahili** with Click-to-WhatsApp (`wa.me`) review links.
+   - Tracks **Suppliers**, **Stock Purchase Orders (Restocks)** (automatically updating inventory quantities and cost history), and **Unpaid Supplier Balances**.
 
-### 3. Start Development Server
-```bash
-npm run dev
-```
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+7. **Invoices & Quotations**
+   - Generates numbered Quotations (`QUO-...`) and Invoices (`INV-...`) with configurable tax settings and transparent KRA advisory notes.
+   - Tracks statuses (`draft`, `sent`, `accepted`, `partially_paid`, `paid`, `overdue`, `cancelled`) — viewing an invoice never marks it as paid.
+   - **1-Click Convert Quotation to Invoice** without duplicating underlying records.
 
-### 4. Build for Production
-```bash
-npm run build
-```
-
-### 5. Run Test Suite
-```bash
-npm test
-```
+8. **BizPilot Copilot AI Assistant & WhatsApp Communication Studio**
+   - Server-side AI service abstraction (`/api/bizpilot/copilot`) reading `GEMINI_API_KEY` / `OPENAI_API_KEY` from environment variables on the backend so keys are never exposed in frontend code.
+   - Includes a complete **Deterministic Kenyan SME Business Analyst Engine** fallback so all analysis, restock alerts, and promotional templates work 100% free without an external AI key.
 
 ---
 
-## 🗄️ Supabase Cloud Database Setup
+## 📐 Documented Financial Formulas
 
-To enable Supabase Cloud synchronization:
+- **Net Sales Revenue** = Sum of `(totalAmount - taxAmount)` for completed (non-cancelled) sales in the selected period.
+- **Actual Cash Collected** = Initial payments on completed sales in the period + subsequent customer credit/invoice payments received in the period. **Unpaid invoices and unpaid credit sales are never counted as collected cash.**
+- **Cost of Goods Sold (COGS)** = Sum of `(quantity * unitCost)` for items sold in completed sales during the period.
+- **Gross Profit** = `Net Sales Revenue - COGS` (Clearly labeled as *Estimated* if any product has an incomplete `0` purchase cost).
+- **Operating Expenses** = Sum of expenses in the period excluding `Stock Purchases`.
+- **Estimated Net Profit** = `Gross Profit - Operating Expenses`.
 
-1. Create a project at [supabase.com](https://supabase.com).
-2. Go to the **SQL Editor** in your Supabase dashboard.
-3. Paste the contents of `supabase/migrations/20261018000000_mycloset_schema.sql` and run it.
-4. Go to **Project Settings > API** and copy your `Project URL` and `anon public` key.
-5. Add them to `.env.local`:
-   ```env
-   VITE_SUPABASE_URL=https://your-project.supabase.co
-   VITE_SUPABASE_ANON_KEY=your-anon-key
+---
+
+## 🛠️ Technology Stack
+
+- **Frontend**: React 19, TypeScript, Vite, Tailwind CSS 4, Lucide Icons, Recharts, React Hook Form, Zod
+- **Backend / API**: Express (`server/bizpilotRouter.ts`)
+- **Database & Auth**: Supabase PostgreSQL + Supabase Auth (`supabase/migrations/20261020000000_bizpilot_ke_schema.sql`) with clearly separated **Local Persistent Development Mode** (`localStorage` + `data/bizpilot_workspaces.json`).
+
+---
+
+## 🚀 Running Locally
+
+1. **Install dependencies**:
+   ```bash
+   npm install
    ```
-6. Reload the app. The bottom indicator in the sidebar/settings will confirm **Supabase Cloud Synchronized**!
 
----
+2. **Configure environment variables**:
+   ```bash
+   cp .env.example .env.local
+   ```
 
-## ☁️ Deploying to Vercel
+3. **Start the development server**:
+   ```bash
+   npm run dev
+   ```
 
-1. Push your repository to GitHub / GitLab / Bitbucket.
-2. In Vercel, click **Add New Project** and select this repository.
-3. In **Environment Variables**, add:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-4. Click **Deploy**. Vercel will build using `vite build` and serve from `dist/` with full SPA rewrite routing handled by `vercel.json`.
+4. **Run automated tests**:
+   ```bash
+   npx tsx --test test/bizpilot-ke.test.ts
+   ```
